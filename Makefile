@@ -1,0 +1,64 @@
+GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null)
+REGION="us-central1"
+SERVICE="obsidian-search"
+LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
+VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
+IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
+
+# echo the gcloud project
+$(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
+$(info To get a list of your projects run `gcloud projects list`)
+
+activate:
+	@echo "Activating the virtual environment"
+	source $$TMPDIR/api-search/bin/activate
+
+install: ## [DEVELOPMENT] Install the API dependencies
+	virtualenv $$TMPDIR/api-search; \
+	source $$TMPDIR/api-search/bin/activate; \
+	pip install -r requirements.txt; \
+	pip install -r requirements-test.txt
+	@echo "You can now set your VScode python interpreter to '$$TMPDIR/api-search/bin/python'"
+
+run: ## [DEVELOPMENT] Run the API
+	python3 -m uvicorn api:app --port 3333 --reload --log-level debug
+
+docker/build: ## [Local development] Build the docker image.
+	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
+	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./Dockerfile
+
+docker/run: ## [Local development] Run the docker image.
+	docker build -t ${IMAGE_URL} -f ./Dockerfile .
+	docker run -p 8080:8080 --rm --name ${SERVICE} -v $(shell pwd)/.env:/app/.env ${IMAGE_URL}
+
+docker/push: docker/build ## [Local development] Push the docker image to GCP.
+	docker push ${IMAGE_URL}
+	docker push ${LATEST_IMAGE_URL}
+
+docker/deploy: docker/push ## [Local development] Deploy the Cloud run service.
+	@echo "Will deploy ${SERVICE} to ${REGION} on ${GCLOUD_PROJECT}"
+	gcloud beta run services replace ./service.prod.yaml --region ${REGION}
+
+docker/deploy/dev: docker/push ## [Local development] Deploy the Cloud run service.
+	gcloud beta run services replace ./service.dev.yaml --region ${REGION}
+
+release: ## [Local development] Release a new version of the API.
+	@VERSION=$$(sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml); \
+	echo "Releasing version $$VERSION"; \
+	read -p "Commit content:" COMMIT; \
+	git add .; \
+	echo "Committing '$$VERSION: $$COMMIT'"; \
+	git commit -m "$$VERSION: $$COMMIT"; \
+	git push origin main; \
+	git tag $$VERSION; \
+	git push origin $$VERSION
+	@echo "Done, check https://github.com/another-ai/search/actions"
+
+policy: ## [Local development] Set the IAM policy for the service.
+	gcloud run services set-iam-policy ${SERVICE} ./policy.prod.yaml --region ${REGION}
+
+.PHONY: help
+
+help: # Run `make help` to get help on the make commands
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
