@@ -9,8 +9,10 @@ class Note(BaseModel):
     path_to_delete: Optional[str] = None
 
 class Notes(BaseModel):
+    namespace: str
     notes: List[Note]
 
 class Input(BaseModel):
+    namespace: str
     query: str # TODO: should be Note? depend with modal stuff
     top_k: int = 6

@@ -13,3 +13,4 @@ httpx
 trio
 anyio
 pytest-asyncio
+jupyter

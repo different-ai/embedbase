@@ -110,7 +110,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     start_time = time.time()
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
     if "path_to_delete" in df.columns and df.path_to_delete.any():
-        response = index.delete(ids=df.path_to_delete.tolist())
+        response = index.delete(ids=df.path_to_delete.tolist(), namespace=request.namespace)
         print(response)
     df.notes_embedding_format = df.apply(
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
@@ -140,6 +140,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
                     for tags, content in zip(batch_df.note_tags, batch_df.note_content)
                 ],
             ),
+            namespace=request.namespace,
         )
         # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
 
@@ -172,6 +173,7 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         # filter={
         # "genre": {"$in": ["comedy", "documentary", "drama"]}
         # }
+        namespace=input.namespace,
     )
 
     state["logger"].info(f"Query: {query}")
