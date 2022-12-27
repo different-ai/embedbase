@@ -15,12 +15,17 @@ from fastapi.responses import JSONResponse
 import pinecone
 import urllib.parse
 from utils import BatchGenerator
+import openai
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
 
+
 class Settings(BaseSettings):
     pinecone_api_key: str
-    model: str = "multi-qa-MiniLM-L6-cos-v1"
+    openai_api_key: str
+    openai_organization: str
+
+    model: str = "text-embedding-ada-002"  # or "multi-qa-MiniLM-L6-cos-v1"
     embed_cache_size: typing.Optional[int] = None
     log_level: str = "INFO"
     device: str = "cpu"
@@ -48,6 +53,8 @@ app.add_middleware(
 
 settings = get_settings()
 pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
+openai.api_key = settings.openai_api_key
+openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai")
 state = {"status": "loading", "model": None, "logger": None}
 
@@ -73,14 +80,15 @@ def startup_event():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     state["logger"] = logger
-    index.fetch(ids=["foo"]) # TODO: container startup check
+    index.fetch(ids=["foo"])  # TODO: container startup check
 
     logger.info(f"Loading model {settings.model}")
     # TODO cuda
     if torch.backends.mps.is_available() and torch.backends.mps.is_built():
         logger.info("Using MPS device")
         settings.device = "mps"
-    state["model"] = SentenceTransformer(settings.model, device=settings.device)
+    if "embedding" not in settings.model: # TODO: risky
+        state["model"] = SentenceTransformer(settings.model, device=settings.device)
     state["status"] = "ready"
 
 
@@ -89,10 +97,16 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
     """
     Compute the embedding for a given sentence
     """
+    settings = get_settings()
+    if "embedding" in settings.model:
+        return openai.Embedding.create(input=[sentence], model=settings.model)["data"][
+            0
+        ]["embedding"]
+
     return state["model"].encode(
         sentence,
         convert_to_tensor=True,
-    )
+    ).tolist()
 
 
 # curl -X POST -H "Content-Type: application/json" -d '{"notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
@@ -110,21 +124,27 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     start_time = time.time()
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
     if "path_to_delete" in df.columns and df.path_to_delete.any():
-        response = index.delete(ids=df.path_to_delete.tolist(), namespace=request.namespace)
+        response = index.delete(
+            ids=df.path_to_delete.tolist(), namespace=request.namespace
+        )
         print(response)
     df.notes_embedding_format = df.apply(
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
         axis=1,
     )
     df["note_embedding"] = (
-        state["model"]
-        .encode(
-            df.notes_embedding_format.tolist(),
-            convert_to_tensor=True,
-            show_progress_bar=True,
-            batch_size=16,  # Seems to be optimal on my machine
+        (
+            state["model"]
+            .encode(
+                df.notes_embedding_format.tolist(),
+                convert_to_tensor=True,
+                show_progress_bar=True,
+                batch_size=16,  # Seems to be optimal on my machine
+            )
+            .tolist()
         )
-        .tolist()
+        if "embedding" not in settings.model
+        else df.notes_embedding_format.apply(no_batch_embed)
     )
     df_batcher = BatchGenerator(300)
     print("Uploading vectors namespace..")
@@ -169,7 +189,7 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         top_k=top_k,
         include_values=True,
         include_metadata=True,
-        vector=query_embedding.tolist(),
+        vector=query_embedding,
         # filter={
         # "genre": {"$in": ["comedy", "documentary", "drama"]}
         # }

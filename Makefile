@@ -40,7 +40,9 @@ docker/deploy: docker/push ## [Local development] Deploy the Cloud run service.
 	@echo "Will deploy ${SERVICE} to ${REGION} on ${GCLOUD_PROJECT}"
 	gcloud beta run services replace ./service.prod.yaml --region ${REGION}
 
-docker/deploy/dev: docker/push ## [Local development] Deploy the Cloud run service.
+docker/deploy/dev: ## [Local development] Deploy the Cloud run service.
+	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL}-dev -f ./Dockerfile
+	docker push ${LATEST_IMAGE_URL}-dev
 	gcloud beta run services replace ./service.dev.yaml --region ${REGION}
 
 release: ## [Local development] Release a new version of the API.
