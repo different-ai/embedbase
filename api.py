@@ -87,7 +87,7 @@ def startup_event():
     if torch.backends.mps.is_available() and torch.backends.mps.is_built():
         logger.info("Using MPS device")
         settings.device = "mps"
-    if "embedding" not in settings.model: # TODO: risky
+    if "embedding" not in settings.model:  # TODO: risky
         state["model"] = SentenceTransformer(settings.model, device=settings.device)
     state["status"] = "ready"
 
@@ -103,10 +103,14 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
             0
         ]["embedding"]
 
-    return state["model"].encode(
-        sentence,
-        convert_to_tensor=True,
-    ).tolist()
+    return (
+        state["model"]
+        .encode(
+            sentence,
+            convert_to_tensor=True,
+        )
+        .tolist()
+    )
 
 
 # curl -X POST -H "Content-Type: application/json" -d '{"notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
@@ -132,8 +136,16 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
         axis=1,
     )
-    df["note_embedding"] = (
-        (
+
+    if "embedding" in settings.model:
+        # parallelize
+        df["note_embedding"] = openai.Embedding.create(
+            input=df.notes_embedding_format.tolist(), model=settings.model
+        )["data"]
+        df["note_embedding"] = df.note_embedding.apply(lambda x: x["embedding"])
+    else:
+
+        df["note_embedding"] = (
             state["model"]
             .encode(
                 df.notes_embedding_format.tolist(),
@@ -143,9 +155,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             )
             .tolist()
         )
-        if "embedding" not in settings.model
-        else df.notes_embedding_format.apply(no_batch_embed)
-    )
+
     df_batcher = BatchGenerator(300)
     print("Uploading vectors namespace..")
     for batch_df in df_batcher(df):
