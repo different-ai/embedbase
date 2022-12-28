@@ -3,7 +3,6 @@ from pandas import DataFrame
 import torch
 import os
 from sentence_transformers import SentenceTransformer
-from sentence_transformers import util
 from functools import lru_cache
 import typing
 import logging
@@ -33,8 +32,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = SECRET_PATH + "/.env"
 
+
 def is_openai_embedding_model(model: str) -> bool:
     return model.startswith("text-embedding-")
+
 
 @lru_cache()
 def get_settings():
@@ -57,7 +58,7 @@ settings = get_settings()
 pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
-index = pinecone.Index("anotherai")
+index = pinecone.Index("anotherai", pool_threads=8)
 state = {"status": "loading", "model": None, "logger": None}
 
 
@@ -87,13 +88,14 @@ def startup_event():
         logger.info("Properly connected to Pinecone")
     else:
         logger.error("Could not connect to Pinecone")
-    logger.info(f"Loading model {settings.model}")
-    # TODO cuda
-    if torch.backends.mps.is_available() and torch.backends.mps.is_built():
-        logger.info("Using MPS device")
-        settings.device = "mps"
+    logger.info(f"Using model {settings.model}")
+
     if not is_openai_embedding_model(settings.model):
         state["model"] = SentenceTransformer(settings.model, device=settings.device)
+        # TODO cuda
+        if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+            logger.info("Using MPS device")
+            settings.device = "mps"
     state["status"] = "ready"
 
 
@@ -127,11 +129,9 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     Refresh the embeddings for a given file
     """
     notes = request.notes
-    # turn into dataframe
-    # temporarily we ignore too big notes because pinecone doesn't support them
-    # df = DataFrame([note.dict() for note in notes if len(note.note_content) < 1000])
+    # TODO: temporarily we ignore too big notes because pinecone doesn't support them
     df = DataFrame(
-        [note.dict() for note in notes],
+        [note.dict() for note in notes if len(note.note_content) < 2000],
         columns=[
             "note_path",
             "note_tags",
@@ -141,6 +141,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             "note_embedding",
         ],
     )
+
     start_time = time.time()
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
     if "path_to_delete" in df.columns and df.path_to_delete.any():
@@ -156,10 +157,11 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     if is_openai_embedding_model(settings.model):
         # parallelize
-        df.note_embedding = openai.Embedding.create(
+        response = openai.Embedding.create(
             input=df.notes_embedding_format.tolist(), model=settings.model
         )["data"]
-        df.note_embedding = df.note_embedding.apply(lambda x: x["embedding"])
+        df.note_embedding = [e["embedding"] for e in response]
+
     else:
         df.note_embedding = (
             state["model"]
@@ -171,10 +173,21 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             )
             .tolist()
         )
+    # TODO average the embeddings over "embedding" column grouped by index, merge back into df
+    # s = (
+    #     df.apply(lambda x: pd.Series(x["note_embedding"]), axis=1)
+    #     .groupby(level=0)
+    #     .mean()
+    #     .reset_index()
+    #     .drop("index", axis=1)
+    # )
+    # # merge s column into a single column , ignore index
+    # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
 
     df_batcher = BatchGenerator(300)
     state["logger"].info("Uploading vectors namespace..")
     start_time_upload = time.time()
+    responses = []
     for batch_df in df_batcher(df):
         response = index.upsert(
             vectors=zip(
@@ -188,9 +201,13 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
                 ],
             ),
             namespace=request.namespace,
+            async_req=True,
         )
+        responses.append(response)
         # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
 
+    # await all responses
+    [async_result.get() for async_result in responses]
     state["logger"].info(f"Uploaded in {time.time() - start_time_upload} seconds")
     state["logger"].info(f"Indexed & uploaded {len(notes)} sentences")
     end_time = time.time()
