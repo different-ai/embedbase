@@ -14,7 +14,10 @@ spec:
     spec:
       containerConcurrency: 5
       containers:
-        image: gcr.io/obsidian-ai/obsidian-search:0.0.6
+        startupProbe:
+          httpGet:
+            path: /health
+        image: gcr.io/obsidian-ai/obsidian-search:0.0.7
         ports:
           - containerPort: 8080
             name: http1
@@ -26,6 +29,11 @@ spec:
           - name: settings
             readOnly: true
             mountPath: /secrets
+        env:
+          - name: SENTRY_RELEASE
+            value: "0.0.7"
+          - name: ENVIRONMENT
+            value: "production"
       volumes:
         - name: settings
           secret:

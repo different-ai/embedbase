@@ -4,3 +4,4 @@ uvicorn[standard]
 pinecone-client
 pandas
 openai
+sentry-sdk[fastapi]

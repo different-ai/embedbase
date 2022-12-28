@@ -16,6 +16,11 @@ import urllib.parse
 from utils import BatchGenerator
 import openai
 
+import sentry_sdk
+
+
+
+
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
 
 
@@ -41,6 +46,14 @@ def is_openai_embedding_model(model: str) -> bool:
 def get_settings():
     return Settings()
 
+sentry_sdk.init(
+    dsn="https://6b244f8db9db446b8c2deddfea43083e@o404046.ingest.sentry.io/4504407308697600",
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production,
+    traces_sample_rate=1.0,
+)
 
 app = FastAPI()
 
@@ -241,8 +254,6 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         namespace=input.namespace,
     )
 
-    state["logger"].info(f"Query: {query}")
-    state["logger"].info(f"Response: {query_response}")
     # TODO: maybe advanced query language like elasticsearch + semantic query
     # TODO: i.e. if I want to search over tags + semantic?
 

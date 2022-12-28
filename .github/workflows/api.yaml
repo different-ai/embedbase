@@ -54,17 +54,16 @@ jobs:
           region: us-central1
           tag: ${{ env.VERSION }}
 
-      - name: Integration test
-        shell: bash
-        run: |
-          curl -X POST "https://${{ env.PROJECT_ID }}.web.app/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
-          # upload the image to imgur
-          IMGUR_URL=$(curl -X POST "https://api.imgur.com/3/upload" -F "image=@\"giraffes.jpg\"" | jq ".data.link" -r)
-          # print the url
-          echo "The service indeed workds, generated a funny image that you can see at ${IMGUR_URL}"
 
-      - name: Save image as artifact
-        uses: actions/upload-artifact@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref }}
         with:
-          name: generated-image-${{ github.sha }}
-          path: giraffes.jpg
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+      
