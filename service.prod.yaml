@@ -23,7 +23,7 @@ spec:
           successThreshold: 1
           failureThreshold: 60
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.0.9
+        image: gcr.io/obsidian-ai/obsidian-search:0.1.0
         ports:
           - containerPort: 8080
             name: http1
@@ -37,7 +37,7 @@ spec:
             mountPath: /secrets
         env:
           - name: SENTRY_RELEASE
-            value: "0.0.9"
+            value: "0.1.0"
           - name: ENVIRONMENT
             value: "production"
       volumes:

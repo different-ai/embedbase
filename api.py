@@ -286,8 +286,8 @@ def health():
     )
     if response.status_code != 200:
         raise HTTPException(
-            status_code=response.status_code, detail=response.json()["status"]
+            status_code=response.status_code, detail="Health check failed"
         )
     return JSONResponse(
-        status_code=response.status_code, content={"status": response.json()["status"]}
+        status_code=response.status_code, content={"status": "success"},
     )
