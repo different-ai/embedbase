@@ -162,7 +162,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     notes = request.notes
     # TODO: temporarily we ignore too big notes because pinecone doesn't support them
     df = DataFrame(
-        [note.dict() for note in notes if not note.note_content or len(note.note_content) < 2000],
+        [note.dict() for note in notes if not note.note_content or len(note.note_content) < 1000],
         columns=[
             "note_path",
             "note_tags",
