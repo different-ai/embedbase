@@ -293,11 +293,11 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
     # TODO: handle too large query (chunk -> average)
-    if len(query) > 1000:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"status": "error", "message": "Query too large"},
-        )
+    # if len(query) > 1000:
+    #     return JSONResponse(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         content={"status": "error", "message": "Query too large"},
+    #     )
     query_embedding = no_batch_embed(query)
 
     query_response = index.query(
