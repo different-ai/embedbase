@@ -15,9 +15,21 @@ spec:
       containerConcurrency: 5
       containers:
         startupProbe:
-          httpGet:
-            path: /health
-        image: gcr.io/obsidian-ai/obsidian-search:0.0.7
+          # httpGet:
+          #   path: /health
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 60
+          successThreshold: 1
+          failureThreshold: 60
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl -X POST -H "Content-Type: application/json" -d '{"namespace": "integration-test", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:8080/refresh
+
+        image: gcr.io/obsidian-ai/obsidian-search:0.0.8
         ports:
           - containerPort: 8080
             name: http1
@@ -31,7 +43,7 @@ spec:
             mountPath: /secrets
         env:
           - name: SENTRY_RELEASE
-            value: "0.0.7"
+            value: "0.0.8"
           - name: ENVIRONMENT
             value: "production"
       volumes:
