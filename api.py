@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from functools import lru_cache
 import typing
 import logging
-from fastapi import Depends, FastAPI, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from models import Input, Notes
 from pydantic import BaseSettings
@@ -15,14 +15,14 @@ import pinecone
 import urllib.parse
 from utils import BatchGenerator
 import openai
-
+import requests
 import sentry_sdk
 
 
 
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
-
+PORT = os.environ.get("PORT", 3333)
 
 class Settings(BaseSettings):
     pinecone_api_key: str
@@ -133,8 +133,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
     )
 
 
-# curl -X POST -H "Content-Type: application/json" -d '{"notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
-
+# curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
 
 @app.post("/refresh")
 def refresh(request: Notes, _: Settings = Depends(get_settings)):
@@ -230,7 +229,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
 
 # /semantic_search usage:
-# curl -X POST -H "Content-Type: application/json" -d '{"query": "Bob"}' http://localhost:3333/semantic_search | jq '.'
+# curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query": "Bob"}' http://localhost:3333/semantic_search | jq '.'
 
 
 @app.post("/semantic_search")
@@ -281,6 +280,14 @@ def health():
     """
     Return the status of the API
     """
+    response = requests.post(
+        f"http://localhost:{PORT}/refresh",
+        json={"notes": [{"namespace": "health-check", "note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]},
+    )
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code, detail=response.json()["status"]
+        )
     return JSONResponse(
-        status_code=status.HTTP_200_OK, content={"status": state["status"]}
+        status_code=response.status_code, content={"status": response.json()["status"]}
     )
