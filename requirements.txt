@@ -5,3 +5,4 @@ pinecone-client
 pandas
 openai
 sentry-sdk[fastapi]
+posthog

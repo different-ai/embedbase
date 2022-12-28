@@ -17,12 +17,12 @@ from utils import BatchGenerator
 import openai
 import requests
 import sentry_sdk
-
-
+import posthog
 
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
 PORT = os.environ.get("PORT", 3333)
+
 
 class Settings(BaseSettings):
     pinecone_api_key: str
@@ -46,15 +46,17 @@ def is_openai_embedding_model(model: str) -> bool:
 def get_settings():
     return Settings()
 
+
 sentry_sdk.init(
     dsn="https://6b244f8db9db446b8c2deddfea43083e@o404046.ingest.sentry.io/4504407308697600",
-
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production,
     traces_sample_rate=1.0,
     environment=os.environ.get("ENVIRONMENT", "development"),
 )
+posthog.project_api_key = "phc_V6Q5EBJViMpMCsvZAwsiOnzLOSmr0cNGnv2Rw44sUn0"
+posthog.host = "https://app.posthog.com"
 
 app = FastAPI()
 
@@ -133,6 +135,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
         .tolist()
     )
 
+
 """
 URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
 # insert
@@ -148,11 +151,22 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes
 curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear": true}' $URL/refresh | jq '.'
 
 """
+
+
 @app.post("/refresh")
 def refresh(request: Notes, _: Settings = Depends(get_settings)):
     """
     Refresh the embeddings for a given file
     """
+    posthog.capture(
+        request.namespace,
+        "refresh",
+        {
+            "namespace": request.namespace,
+            "notes_length": len(request.notes),
+            "clear": request.clear,
+        },
+    )
     if request.clear:
         # clear index
         index.delete(delete_all=True, namespace=request.namespace)
@@ -162,7 +176,11 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     notes = request.notes
     # TODO: temporarily we ignore too big notes because pinecone doesn't support them
     df = DataFrame(
-        [note.dict() for note in notes if not note.note_content or len(note.note_content) < 1000],
+        [
+            note.dict()
+            for note in notes
+            if not note.note_content or len(note.note_content) < 1000
+        ],
         columns=[
             "note_path",
             "note_tags",
@@ -177,9 +195,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
     if df.path_to_delete.any():
         to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
-        response = index.delete(
-            ids=to_delete, namespace=request.namespace
-        )
+        response = index.delete(ids=to_delete, namespace=request.namespace)
         state["logger"].debug(f"Deleted notes: {to_delete}")
 
     if not df.note_content.any():
@@ -259,14 +275,29 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query
 
 """
 
+
 @app.post("/semantic_search")
 def semantic_search(input: Input, _: Settings = Depends(get_settings)):
     """
     Search for a given query in the corpus
     """
+    posthog.capture(
+        input.namespace,
+        "search",
+        {
+            "namespace": input.namespace,
+            "query_length": len(input.query),
+        },
+    )
     query = input.query
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
+    # TODO: handle too large query (chunk -> average)
+    if len(query) > 1000:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"status": "error", "message": "Query too large"},
+        )
     query_embedding = no_batch_embed(query)
 
     query_response = index.query(
@@ -319,5 +350,6 @@ def health():
     #         status_code=response.status_code, detail="Health check failed"
     #     )
     return JSONResponse(
-        status_code=200, content={"status": "success"},
+        status_code=200,
+        content={"status": "success"},
     )
