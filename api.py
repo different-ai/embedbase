@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     class Config:
         env_file = SECRET_PATH + "/.env"
 
+def is_openai_embedding_model(model: str) -> bool:
+    return model.startswith("text-embedding-")
 
 @lru_cache()
 def get_settings():
@@ -70,7 +72,7 @@ def note_to_embedding_format(
 
 @app.on_event("startup")
 def startup_event():
-    logger = logging.getLogger("ava_semantic_search_api")
+    logger = logging.getLogger("search")
     logger.setLevel(settings.log_level)
     handler = logging.StreamHandler()
     handler.setLevel(settings.log_level)
@@ -80,14 +82,17 @@ def startup_event():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     state["logger"] = logger
-    index.fetch(ids=["foo"])  # TODO: container startup check
-
+    result = index.fetch(ids=["foo"])  # TODO: container startup check
+    if result:
+        logger.info("Properly connected to Pinecone")
+    else:
+        logger.error("Could not connect to Pinecone")
     logger.info(f"Loading model {settings.model}")
     # TODO cuda
     if torch.backends.mps.is_available() and torch.backends.mps.is_built():
         logger.info("Using MPS device")
         settings.device = "mps"
-    if "embedding" not in settings.model:  # TODO: risky
+    if not is_openai_embedding_model(settings.model):
         state["model"] = SentenceTransformer(settings.model, device=settings.device)
     state["status"] = "ready"
 
@@ -98,7 +103,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
     Compute the embedding for a given sentence
     """
     settings = get_settings()
-    if "embedding" in settings.model:
+    if is_openai_embedding_model(settings.model):
         return openai.Embedding.create(input=[sentence], model=settings.model)["data"][
             0
         ]["embedding"]
@@ -124,28 +129,39 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     notes = request.notes
     # turn into dataframe
     # temporarily we ignore too big notes because pinecone doesn't support them
-    df = DataFrame([note.dict() for note in notes if len(note.note_content) < 1000])
+    # df = DataFrame([note.dict() for note in notes if len(note.note_content) < 1000])
+    df = DataFrame(
+        [note.dict() for note in notes],
+        columns=[
+            "note_path",
+            "note_tags",
+            "note_content",
+            "path_to_delete",
+            "notes_embedding_format",
+            "note_embedding",
+        ],
+    )
     start_time = time.time()
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
     if "path_to_delete" in df.columns and df.path_to_delete.any():
         response = index.delete(
             ids=df.path_to_delete.tolist(), namespace=request.namespace
         )
-        print(response)
+        state["logger"].debug(response)
+    # add column "notes_embedding_format"
     df.notes_embedding_format = df.apply(
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
         axis=1,
     )
 
-    if "embedding" in settings.model:
+    if is_openai_embedding_model(settings.model):
         # parallelize
-        df["note_embedding"] = openai.Embedding.create(
+        df.note_embedding = openai.Embedding.create(
             input=df.notes_embedding_format.tolist(), model=settings.model
         )["data"]
-        df["note_embedding"] = df.note_embedding.apply(lambda x: x["embedding"])
+        df.note_embedding = df.note_embedding.apply(lambda x: x["embedding"])
     else:
-
-        df["note_embedding"] = (
+        df.note_embedding = (
             state["model"]
             .encode(
                 df.notes_embedding_format.tolist(),
@@ -157,7 +173,8 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         )
 
     df_batcher = BatchGenerator(300)
-    print("Uploading vectors namespace..")
+    state["logger"].info("Uploading vectors namespace..")
+    start_time_upload = time.time()
     for batch_df in df_batcher(df):
         response = index.upsert(
             vectors=zip(
@@ -174,9 +191,10 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         )
         # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
 
-    state["logger"].debug(f"Loaded {len(notes)} sentences")
+    state["logger"].info(f"Uploaded in {time.time() - start_time_upload} seconds")
+    state["logger"].info(f"Indexed & uploaded {len(notes)} sentences")
     end_time = time.time()
-    state["logger"].debug(f"Loaded in {end_time - start_time} seconds")
+    state["logger"].info(f"Indexed & uploaded in {end_time - start_time} seconds")
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
 

@@ -9,16 +9,12 @@ IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
 
-activate:
-	@echo "Activating the virtual environment"
-	source $$TMPDIR/api-search/bin/activate
-
 install: ## [DEVELOPMENT] Install the API dependencies
-	virtualenv $$TMPDIR/api-search; \
-	source $$TMPDIR/api-search/bin/activate; \
+	virtualenv env; \
+	source env/bin/activate; \
 	pip install -r requirements.txt; \
 	pip install -r requirements-test.txt
-	@echo "You can now set your VScode python interpreter to '$$TMPDIR/api-search/bin/python'"
+	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
 	python3 -m uvicorn api:app --port 3333 --reload --log-level debug

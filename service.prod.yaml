@@ -14,7 +14,7 @@ spec:
     spec:
       containerConcurrency: 5
       containers:
-        image: gcr.io/obsidian-ai/obsidian-search:0.0.4
+        image: gcr.io/obsidian-ai/obsidian-search:0.0.5
         ports:
           - containerPort: 8080
             name: http1
