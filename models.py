@@ -10,7 +10,8 @@ class Note(BaseModel):
 
 class Notes(BaseModel):
     namespace: str
-    notes: List[Note]
+    notes: List[Note] = []
+    clear: bool = False
 
 class Input(BaseModel):
     namespace: str

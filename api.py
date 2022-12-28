@@ -53,6 +53,7 @@ sentry_sdk.init(
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production,
     traces_sample_rate=1.0,
+    environment=os.environ.get("ENVIRONMENT", "development"),
 )
 
 app = FastAPI()
@@ -132,18 +133,36 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
         .tolist()
     )
 
+"""
+URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
+# insert
+curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' $URL/refresh | jq '.'
 
-# curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
+# delete
+curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"path_to_delete": "Bob.md"}]}' $URL/refresh | jq '.'
 
+# rename
+curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"path_to_delete": "Bob.md", "note_path": "Bob3.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' $URL/refresh | jq '.'
+
+# clear
+curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear": true}' $URL/refresh | jq '.'
+
+"""
 @app.post("/refresh")
 def refresh(request: Notes, _: Settings = Depends(get_settings)):
     """
     Refresh the embeddings for a given file
     """
+    if request.clear:
+        # clear index
+        index.delete(delete_all=True, namespace=request.namespace)
+        state["logger"].info("Cleared index")
+        return JSONResponse(status_code=200, content={"status": "ok"})
+
     notes = request.notes
     # TODO: temporarily we ignore too big notes because pinecone doesn't support them
     df = DataFrame(
-        [note.dict() for note in notes if len(note.note_content) < 2000],
+        [note.dict() for note in notes if not note.note_content or len(note.note_content) < 2000],
         columns=[
             "note_path",
             "note_tags",
@@ -156,11 +175,16 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     start_time = time.time()
     state["logger"].info(f"Refreshing {len(notes)} embeddings")
-    if "path_to_delete" in df.columns and df.path_to_delete.any():
+    if df.path_to_delete.any():
+        to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
         response = index.delete(
-            ids=df.path_to_delete.tolist(), namespace=request.namespace
+            ids=to_delete, namespace=request.namespace
         )
-        state["logger"].debug(response)
+        state["logger"].debug(f"Deleted notes: {to_delete}")
+
+    if not df.note_content.any():
+        state["logger"].info("No notes to index, exiting")
+        return JSONResponse(status_code=200, content={"status": "ok"})
     # add column "notes_embedding_format"
     df.notes_embedding_format = df.apply(
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
@@ -229,8 +253,11 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
 
 # /semantic_search usage:
-# curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query": "Bob"}' http://localhost:3333/semantic_search | jq '.'
+"""
+URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
+curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query": "Bob"}' $URL/semantic_search | jq '.'
 
+"""
 
 @app.post("/semantic_search")
 def semantic_search(input: Input, _: Settings = Depends(get_settings)):
@@ -258,7 +285,9 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
 
     similarities = []
     for match in query_response.matches:
+        state["logger"].debug(f"Match id: {match.id}")
         decoded_path = urllib.parse.unquote(match.id)
+        state["logger"].debug(f"Decoded path: {decoded_path}")
         similarities.append(
             {
                 "score": match.score,

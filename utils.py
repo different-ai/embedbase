@@ -10,6 +10,8 @@ class BatchGenerator:
     
     def to_batches(self, df: pd.DataFrame) -> Iterator[pd.DataFrame]:
         """ Makes chunks out of an input DataFrame. """
+        # drop index
+        df = df.reset_index(drop=True)
         splits = self.splits_num(df.shape[0])
         if splits <= 1:
             yield df
