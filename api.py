@@ -57,6 +57,7 @@ sentry_sdk.init(
 )
 posthog.project_api_key = "phc_V6Q5EBJViMpMCsvZAwsiOnzLOSmr0cNGnv2Rw44sUn0"
 posthog.host = "https://app.posthog.com"
+posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
 
 app = FastAPI()
 
@@ -75,8 +76,16 @@ pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai", pool_threads=8)
-state = {"status": "loading", "model": None, "logger": None}
-
+state = {"status": "loading", "model": None}
+logger = logging.getLogger("search")
+logger.setLevel(settings.log_level)
+handler = logging.StreamHandler()
+handler.setLevel(settings.log_level)
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 def note_to_embedding_format(
     note_path: str, note_tags: typing.List[str], note_content: str
@@ -89,16 +98,6 @@ def note_to_embedding_format(
 
 @app.on_event("startup")
 def startup_event():
-    logger = logging.getLogger("search")
-    logger.setLevel(settings.log_level)
-    handler = logging.StreamHandler()
-    handler.setLevel(settings.log_level)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    state["logger"] = logger
     result = index.fetch(ids=["foo"])  # TODO: container startup check
     if result:
         logger.info("Properly connected to Pinecone")
@@ -170,7 +169,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     if request.clear:
         # clear index
         index.delete(delete_all=True, namespace=request.namespace)
-        state["logger"].info("Cleared index")
+        logger.info("Cleared index")
         return JSONResponse(status_code=200, content={"status": "ok"})
 
     notes = request.notes
@@ -192,14 +191,14 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     )
 
     start_time = time.time()
-    state["logger"].info(f"Refreshing {len(notes)} embeddings")
+    logger.info(f"Refreshing {len(notes)} embeddings")
     if df.path_to_delete.any():
         to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
         response = index.delete(ids=to_delete, namespace=request.namespace)
-        state["logger"].debug(f"Deleted notes: {to_delete}")
+        logger.debug(f"Deleted notes: {to_delete}")
 
     if not df.note_content.any():
-        state["logger"].info("No notes to index, exiting")
+        logger.info("No notes to index, exiting")
         return JSONResponse(status_code=200, content={"status": "ok"})
     # add column "notes_embedding_format"
     df.notes_embedding_format = df.apply(
@@ -237,7 +236,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
 
     df_batcher = BatchGenerator(300)
-    state["logger"].info("Uploading vectors namespace..")
+    logger.info("Uploading vectors namespace..")
     start_time_upload = time.time()
     responses = []
     for batch_df in df_batcher(df):
@@ -260,10 +259,10 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     # await all responses
     [async_result.get() for async_result in responses]
-    state["logger"].info(f"Uploaded in {time.time() - start_time_upload} seconds")
-    state["logger"].info(f"Indexed & uploaded {len(notes)} sentences")
+    logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
+    logger.info(f"Indexed & uploaded {len(notes)} sentences")
     end_time = time.time()
-    state["logger"].info(f"Indexed & uploaded in {end_time - start_time} seconds")
+    logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
 
@@ -289,7 +288,20 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
             "query_length": len(input.query),
         },
     )
-    query = input.query
+    # either note or query is present in the request
+    if not input.note and not input.query:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": "error",
+                "message": "Please provide a query or a note.",
+            },
+        )
+    query = input.query or note_to_embedding_format(
+        input.note.note_path,
+        input.note.note_tags,
+        input.note.note_content,
+    )
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
     # TODO: handle too large query (chunk -> average)
@@ -316,9 +328,9 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
 
     similarities = []
     for match in query_response.matches:
-        state["logger"].debug(f"Match id: {match.id}")
+        logger.debug(f"Match id: {match.id}")
         decoded_path = urllib.parse.unquote(match.id)
-        state["logger"].debug(f"Decoded path: {decoded_path}")
+        logger.debug(f"Decoded path: {decoded_path}")
         similarities.append(
             {
                 "score": match.score,

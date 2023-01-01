@@ -14,3 +14,4 @@ trio
 anyio
 pytest-asyncio
 jupyter
+obsidiantools

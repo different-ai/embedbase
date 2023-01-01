@@ -13,3 +13,4 @@ env
 *.ipynb
 
 .env
+index*.json

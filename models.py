@@ -15,5 +15,6 @@ class Notes(BaseModel):
 
 class Input(BaseModel):
     namespace: str
-    query: str # TODO: should be Note? depend with modal stuff
+    query: Optional[str] = None
+    note: Optional[Note] = None
     top_k: int = 6
