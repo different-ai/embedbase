@@ -19,6 +19,11 @@ install: ## [DEVELOPMENT] Install the API dependencies
 run: ## [DEVELOPMENT] Run the API
 	python3 -m uvicorn api:app --port 3333 --reload --log-level debug
 
+test: ## [Local development] Run tests with pytest.
+	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes
+	python3 -m pytest -s -vv test_main.py::test_embed
+	@echo "Done testing"
+
 docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
 	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./Dockerfile

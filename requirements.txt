@@ -6,3 +6,4 @@ pandas
 openai
 sentry-sdk[fastapi]
 posthog
+tenacity

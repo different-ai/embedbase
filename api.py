@@ -15,9 +15,11 @@ import pinecone
 import urllib.parse
 from utils import BatchGenerator
 import openai
-import requests
 import sentry_sdk
 import posthog
+from tenacity import retry
+from tenacity.wait import wait_exponential
+from tenacity.before import before_log
 
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
@@ -81,11 +83,10 @@ logger = logging.getLogger("search")
 logger.setLevel(settings.log_level)
 handler = logging.StreamHandler()
 handler.setLevel(settings.log_level)
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 
 def note_to_embedding_format(
     note_path: str, note_tags: typing.List[str], note_content: str
@@ -121,9 +122,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
     """
     settings = get_settings()
     if is_openai_embedding_model(settings.model):
-        return openai.Embedding.create(input=[sentence], model=settings.model)["data"][
-            0
-        ]["embedding"]
+        return embed([sentence], settings.model)[0]["embedding"]
 
     return (
         state["model"]
@@ -133,6 +132,23 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
         )
         .tolist()
     )
+
+
+@retry(
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    before=before_log(logger, logging.DEBUG),
+)
+def embed(
+    input: typing.List[str], model: str = "text-embedding-ada-002"
+) -> typing.List[dict]:
+    """
+    Embed a list of sentences using OpenAI's API and retry on failure
+    Only supports OpenAI's embedding models for now
+    :param input: list of sentences to embed
+    :param model: model to use
+    :return: list of embeddings
+    """
+    return openai.Embedding.create(input=input, model=model)["data"]
 
 
 """
@@ -208,9 +224,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     if is_openai_embedding_model(settings.model):
         # parallelize
-        response = openai.Embedding.create(
-            input=df.notes_embedding_format.tolist(), model=settings.model
-        )["data"]
+        response = embed(df.notes_embedding_format.tolist(), settings.model)
         df.note_embedding = [e["embedding"] for e in response]
 
     else:

@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from .api import app
+from .api import app, embed
 import pandas as pd
 import math
 from random import randint
@@ -30,3 +30,8 @@ def test_refresh_small_notes():
             },
         )
         assert response.status_code == 200
+        assert response.json() == {"status": "success"}
+
+def test_embed():
+    data = embed(["hello world", "hello world"])
+    assert [len(d["embedding"]) for d in data] == [1536, 1536]
