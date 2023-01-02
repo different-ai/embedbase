@@ -150,6 +150,36 @@ def embed(
     """
     return openai.Embedding.create(input=input, model=model)["data"]
 
+@retry(
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    before=before_log(logger, logging.DEBUG),
+)
+def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
+    df_batcher = BatchGenerator(300)
+    logger.info("Uploading vectors namespace..")
+    start_time_upload = time.time()
+    responses = []
+    for batch_df in df_batcher(df):
+        response = index.upsert(
+            vectors=zip(
+                # url encode path
+                batch_df.note_path.apply(urllib.parse.quote).tolist(),
+                # batch_df.note_path,
+                batch_df.note_embedding,
+                [
+                    {"note_tags": tags, "note_content": content}
+                    for tags, content in zip(batch_df.note_tags, batch_df.note_content)
+                ],
+            ),
+            namespace=namespace,
+            async_req=True,
+        )
+        responses.append(response)
+        # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
+
+    # await all responses
+    [async_result.get() for async_result in responses]
+    logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
 """
 URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
@@ -248,32 +278,8 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # )
     # # merge s column into a single column , ignore index
     # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
+    upload_embeddings_to_vector_database(df, request.namespace)
 
-    df_batcher = BatchGenerator(300)
-    logger.info("Uploading vectors namespace..")
-    start_time_upload = time.time()
-    responses = []
-    for batch_df in df_batcher(df):
-        response = index.upsert(
-            vectors=zip(
-                # url encode path
-                batch_df.note_path.apply(urllib.parse.quote).tolist(),
-                # batch_df.note_path,
-                batch_df.note_embedding,
-                [
-                    {"note_tags": tags, "note_content": content}
-                    for tags, content in zip(batch_df.note_tags, batch_df.note_content)
-                ],
-            ),
-            namespace=request.namespace,
-            async_req=True,
-        )
-        responses.append(response)
-        # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
-
-    # await all responses
-    [async_result.get() for async_result in responses]
-    logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
     logger.info(f"Indexed & uploaded {len(notes)} sentences")
     end_time = time.time()
     logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")

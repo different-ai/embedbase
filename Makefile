@@ -22,6 +22,7 @@ run: ## [DEVELOPMENT] Run the API
 test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes
 	python3 -m pytest -s -vv test_main.py::test_embed
+	python3 -m pytest -s -vv test_main.py::test_upload
 	@echo "Done testing"
 
 docker/build: ## [Local development] Build the docker image.
