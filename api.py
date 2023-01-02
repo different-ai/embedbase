@@ -300,14 +300,6 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
     """
     Search for a given query in the corpus
     """
-    posthog.capture(
-        input.namespace,
-        "search",
-        {
-            "namespace": input.namespace,
-            "query_length": len(input.query),
-        },
-    )
     # either note or query is present in the request
     if not input.note and not input.query:
         return JSONResponse(
@@ -322,6 +314,16 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         input.note.note_tags,
         input.note.note_content,
     )
+    posthog.capture(
+        input.namespace,
+        "search",
+        {
+            "namespace": input.namespace,
+            "query_length": len(query),
+        },
+    )
+
+
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
     # TODO: handle too large query (chunk -> average)
