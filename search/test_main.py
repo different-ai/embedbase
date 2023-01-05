@@ -5,7 +5,7 @@ import pandas as pd
 import math
 from random import randint
 import numpy as np
-
+import json
 
 def test_semantic_search():
     with TestClient(app=app) as client:
@@ -79,3 +79,19 @@ def test_upload():
     )
     assert results.matches[0]["id"] == "1"
     assert results.matches[1]["id"] == "0"
+
+
+def test_upload_big():
+    # read test_data/upload.json
+    # upload to vector database
+    data = json.load(open("./search/test_data/upload.json"))
+    with TestClient(app=app) as client:
+        response = client.post(
+            "/refresh",
+            json={
+                "namespace": "dev",
+                "notes": data["notes"]
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"status": "success"}

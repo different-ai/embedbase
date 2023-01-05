@@ -1,4 +1,3 @@
-sentence-transformers
 fastapi
 uvicorn[standard]
 pinecone-client
@@ -7,3 +6,4 @@ openai
 sentry-sdk[fastapi]
 posthog
 tenacity
+gunicorn

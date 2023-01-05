@@ -17,22 +17,24 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn api:app --port 3333 --reload --log-level debug
+	python3 -m uvicorn search.api:app --port 3333 --reload --log-level debug
+# GUNICORN_CMD_ARGS="--keep-alive 0" gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:3333 --log-level debug --timeout 120
 
 test: ## [Local development] Run tests with pytest.
-	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes
-	python3 -m pytest -s -vv test_main.py::test_embed
+	cd search; \
+	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes; \
+	python3 -m pytest -s -vv test_main.py::test_embed; \
 	python3 -m pytest -s -vv test_main.py::test_upload
 	@echo "Done testing"
 
 docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
-	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./Dockerfile
-	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./search/Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./search/Dockerfile
 
 docker/run: ## [Local development] Run the docker image.
-	docker build -t ${IMAGE_URL} -f ./Dockerfile .
-	docker run -p 8080:8080 --rm --name ${SERVICE} -v $(shell pwd)/.env:/app/.env ${IMAGE_URL}
+	docker build -t ${IMAGE_URL} -f ./search/Dockerfile .
+	docker run -p 8080:8080 --rm --name ${SERVICE} -v "$(shell pwd)/.env":/app/.env ${IMAGE_URL}
 
 docker/push: docker/build ## [Local development] Push the docker image to GCP.
 	docker push ${IMAGE_URL}
@@ -43,7 +45,7 @@ docker/deploy: docker/push ## [Local development] Deploy the Cloud run service.
 	gcloud beta run services replace ./service.prod.yaml --region ${REGION}
 
 docker/deploy/dev: ## [Local development] Deploy the Cloud run service.
-	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL}-dev -f ./Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL}-dev -f ./search/Dockerfile
 	docker push ${LATEST_IMAGE_URL}-dev
 	gcloud beta run services replace ./service.dev.yaml --region ${REGION}
 

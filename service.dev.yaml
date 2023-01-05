@@ -29,6 +29,8 @@ spec:
             value: "latest-dev"
           - name: ENVIRONMENT
             value: "development"
+          - name: UPLOAD_BATCH_SIZE
+            value: "100"
         ports:
           - containerPort: 8080
             name: http1

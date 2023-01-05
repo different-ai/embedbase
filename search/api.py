@@ -1,29 +1,30 @@
+from multiprocessing.pool import ThreadPool
 import time
 from pandas import DataFrame
-import torch
 import os
-from sentence_transformers import SentenceTransformer
 from functools import lru_cache
 import typing
 import logging
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from models import Input, Notes
+from search.models import Input, Notes
 from pydantic import BaseSettings
 from fastapi.responses import JSONResponse
 import pinecone
 import urllib.parse
-from utils import BatchGenerator
+from .utils import BatchGenerator, too_big_rows
 import openai
 import sentry_sdk
 import posthog
 from tenacity import retry
 from tenacity.wait import wait_exponential
 from tenacity.before import before_log
+from tenacity.after import after_log
 
 
-SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
+SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 PORT = os.environ.get("PORT", 3333)
+UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
 class Settings(BaseSettings):
@@ -56,6 +57,9 @@ sentry_sdk.init(
     # We recommend adjusting this value in production,
     traces_sample_rate=1.0,
     environment=os.environ.get("ENVIRONMENT", "development"),
+    _experiments={
+        "profiles_sample_rate": 1.0,
+    },
 )
 posthog.project_api_key = "phc_V6Q5EBJViMpMCsvZAwsiOnzLOSmr0cNGnv2Rw44sUn0"
 posthog.host = "https://app.posthog.com"
@@ -63,11 +67,10 @@ posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
 
 app = FastAPI()
 
-origins = ["app://obsidian.md", "*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,7 +81,7 @@ pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai", pool_threads=8)
-state = {"status": "loading", "model": None}
+state = {"status": "loading"}
 logger = logging.getLogger("search")
 logger.setLevel(settings.log_level)
 handler = logging.StreamHandler()
@@ -104,39 +107,24 @@ def startup_event():
         logger.info("Properly connected to Pinecone")
     else:
         logger.error("Could not connect to Pinecone")
-    logger.info(f"Using model {settings.model}")
-
-    if not is_openai_embedding_model(settings.model):
-        state["model"] = SentenceTransformer(settings.model, device=settings.device)
-        # TODO cuda
-        if torch.backends.mps.is_available() and torch.backends.mps.is_built():
-            logger.info("Using MPS device")
-            settings.device = "mps"
+    logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
     state["status"] = "ready"
 
 
 @lru_cache()
-def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.Tensor:
+def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
     """
     Compute the embedding for a given sentence
     """
     settings = get_settings()
-    if is_openai_embedding_model(settings.model):
-        return embed([sentence], settings.model)[0]["embedding"]
-
-    return (
-        state["model"]
-        .encode(
-            sentence,
-            convert_to_tensor=True,
-        )
-        .tolist()
-    )
+    return embed([sentence], settings.model)[0]["embedding"]
 
 
 @retry(
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    wait=wait_exponential(multiplier=1, min=1, max=3),
     before=before_log(logger, logging.DEBUG),
+    after=after_log(logger, logging.DEBUG),
+    reraise=True,
 )
 def embed(
     input: typing.List[str], model: str = "text-embedding-ada-002"
@@ -150,16 +138,26 @@ def embed(
     """
     return openai.Embedding.create(input=input, model=model)["data"]
 
+
 @retry(
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    before=before_log(logger, logging.DEBUG),
+    wait=wait_exponential(multiplier=1, min=1, max=3),
+    before=before_log(logger, logging.INFO),
+    after=after_log(logger, logging.INFO),
+    reraise=True,
 )
 def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
-    df_batcher = BatchGenerator(300)
+    # TODO: batch size should depend on payload
+    df_batcher = BatchGenerator(UPLOAD_BATCH_SIZE)
     logger.info("Uploading vectors namespace..")
     start_time_upload = time.time()
-    responses = []
-    for batch_df in df_batcher(df):
+    batches = [batch_df for batch_df in df_batcher(df)]
+
+    def _insert(batch_df: DataFrame):
+        bigs = too_big_rows(batch_df)
+        if len(bigs) > 0:
+            logger.info(f"Ignoring {len(bigs)} rows that are too big")
+        # remove rows that are too big, in the right axis
+        batch_df = batch_df.drop(bigs, axis=0)
         response = index.upsert(
             vectors=zip(
                 # url encode path
@@ -174,12 +172,17 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
             namespace=namespace,
             async_req=True,
         )
-        responses.append(response)
+        logger.info(f"Uploaded {len(batch_df)} vectors")
+        return response
+
+    [response.get() for response in map(_insert, batches)]
+    # with ThreadPool(len(batches)) as pool:
+        # pool.map(_insert, batches)
+
         # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
 
-    # await all responses
-    [async_result.get() for async_result in responses]
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
+
 
 """
 URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
@@ -252,22 +255,10 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         axis=1,
     )
 
-    if is_openai_embedding_model(settings.model):
-        # parallelize
-        response = embed(df.notes_embedding_format.tolist(), settings.model)
-        df.note_embedding = [e["embedding"] for e in response]
+    # parallelize
+    response = embed(df.notes_embedding_format.tolist(), settings.model)
+    df.note_embedding = [e["embedding"] for e in response]
 
-    else:
-        df.note_embedding = (
-            state["model"]
-            .encode(
-                df.notes_embedding_format.tolist(),
-                convert_to_tensor=True,
-                show_progress_bar=True,
-                batch_size=16,  # Seems to be optimal on my machine
-            )
-            .tolist()
-        )
     # TODO average the embeddings over "embedding" column grouped by index, merge back into df
     # s = (
     #     df.apply(lambda x: pd.Series(x["note_embedding"]), axis=1)
@@ -278,6 +269,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # )
     # # merge s column into a single column , ignore index
     # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
+    # TODO: problem is that pinecone doesn't support this large of an input
     upload_embeddings_to_vector_database(df, request.namespace)
 
     logger.info(f"Indexed & uploaded {len(notes)} sentences")
@@ -323,7 +315,6 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         },
     )
 
-
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
     # TODO: handle too large query (chunk -> average)
@@ -333,6 +324,8 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
     #         content={"status": "error", "message": "Query too large"},
     #     )
     query_embedding = no_batch_embed(query)
+
+    logger.info(f"Query {input.query} created embedding, querying index")
 
     query_response = index.query(
         top_k=top_k,

@@ -10,7 +10,6 @@ COPY . ./
 ENV PORT 8080
 
 RUN pip install --no-cache-dir -r requirements.txt
-# multi-qa-MiniLM-L6-cos-v1
-RUN python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1')"
 # As an example here we're running the web service with one worker on uvicorn.
-CMD exec uvicorn api:app --host 0.0.0.0 --port ${PORT} --workers 1
+# CMD exec gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:${PORT} --threads 4
+CMD exec uvicorn search.api:app --host 0.0.0.0 --port ${PORT} --workers 1
