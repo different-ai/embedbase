@@ -60,6 +60,7 @@ def test_upload():
                 "note_tags": ["Humans", "Bob"],
                 "note_content": "Bob is a human",
                 "note_embedding": note["embedding"],
+                "note_hash": str(i),
             }
             for i, note in enumerate(data)
         ],

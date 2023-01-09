@@ -23,7 +23,7 @@ from tenacity import retry
 from tenacity.wait import wait_exponential
 from tenacity.before import before_log
 from tenacity.after import after_log
-
+from tenacity.stop import stop_after_attempt
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 PORT = os.environ.get("PORT", 3333)
@@ -129,7 +129,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
     wait=wait_exponential(multiplier=1, min=1, max=3),
     before=before_log(logger, logging.DEBUG),
     after=after_log(logger, logging.DEBUG),
-    reraise=True,
+    stop=stop_after_attempt(3)
 )
 def embed(
     input: typing.List[str], model: str = "text-embedding-ada-002"
@@ -148,7 +148,7 @@ def embed(
     wait=wait_exponential(multiplier=1, min=1, max=3),
     before=before_log(logger, logging.INFO),
     after=after_log(logger, logging.INFO),
-    reraise=True,
+    stop=stop_after_attempt(3),
 )
 def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     # TODO: batch size should depend on payload
