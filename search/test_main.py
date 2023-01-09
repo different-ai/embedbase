@@ -69,6 +69,7 @@ def test_upload():
             "note_tags",
             "note_content",
             "note_embedding",
+            "note_hash",
         ],
     )
     upload_embeddings_to_vector_database(df, "unit_test_test_upload")
