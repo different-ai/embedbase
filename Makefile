@@ -64,6 +64,24 @@ release: ## [Local development] Release a new version of the API.
 policy: ## [Local development] Set the IAM policy for the service.
 	gcloud run services set-iam-policy ${SERVICE} ./policy.prod.yaml --region ${REGION}
 
+# gcloud pubsub topics create enrich_index
+functions/deploy: ## [Local development] Deploy the Cloud functions.
+	if [ -z "${PINECONE_API_KEY}" ]; then \
+		echo "PINECONE_API_KEY is not set"; \
+		exit 1; \
+	fi
+	gcloud functions deploy enrich-index \
+		--gen2 \
+		--runtime=python310 \
+		--region=${REGION} \
+		--source=functions \
+		--entry-point=enrich_index \
+		--trigger-topic=enrich_index \
+		--set-env-vars=PINECONE_API_KEY=${PINECONE_API_KEY} \
+		--memory=2048MB \
+		--timeout=540s
+
+
 .PHONY: help
 
 help: # Run `make help` to get help on the make commands

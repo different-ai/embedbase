@@ -1,3 +1,4 @@
+import hashlib
 from multiprocessing.pool import ThreadPool
 import time
 from pandas import DataFrame
@@ -7,11 +8,13 @@ import typing
 import logging
 from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from search.models import Input, Notes
+from search.models import Input, Notes, Note
 from pydantic import BaseSettings
 from fastapi.responses import JSONResponse
 import pinecone
 import urllib.parse
+
+from search.pub_sub import enrich_doc
 from .utils import BatchGenerator, too_big_rows
 import openai
 import sentry_sdk
@@ -61,9 +64,10 @@ sentry_sdk.init(
         "profiles_sample_rate": 1.0,
     },
 )
-posthog.project_api_key = "phc_V6Q5EBJViMpMCsvZAwsiOnzLOSmr0cNGnv2Rw44sUn0"
+posthog.project_api_key = "phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM"
 posthog.host = "https://app.posthog.com"
 posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
+VERSION = os.environ.get("SENTRY_RELEASE", "unknown")
 
 app = FastAPI()
 
@@ -108,6 +112,7 @@ def startup_event():
     else:
         logger.error("Could not connect to Pinecone")
     logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
+    logger.info(f"Starting version {VERSION}")
     state["status"] = "ready"
 
 
@@ -165,8 +170,16 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
                 # batch_df.note_path,
                 batch_df.note_embedding,
                 [
-                    {"note_tags": tags, "note_content": content}
-                    for tags, content in zip(batch_df.note_tags, batch_df.note_content)
+                    {
+                        "note_tags": tags,
+                        "note_content": content,
+                        "note_hash": note_hash,
+                    }
+                    for tags, content, note_hash in zip(
+                        batch_df.note_tags,
+                        batch_df.note_content,
+                        batch_df.note_hash,
+                    )
                 ],
             ),
             namespace=namespace,
@@ -176,10 +189,6 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
         return response
 
     [response.get() for response in map(_insert, batches)]
-    # with ThreadPool(len(batches)) as pool:
-        # pool.map(_insert, batches)
-
-        # https://docs.pinecone.io/docs/semantic-text-search#upload-vectors-of-titles
 
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
@@ -200,6 +209,8 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear
 
 """
 
+MAX_NOTE_LENGTH = 2000
+
 
 @app.post("/refresh")
 def refresh(request: Notes, _: Settings = Depends(get_settings)):
@@ -215,6 +226,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             "clear": request.clear,
         },
     )
+    print(request)
     if request.clear:
         # clear index
         index.delete(delete_all=True, namespace=request.namespace)
@@ -227,15 +239,17 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         [
             note.dict()
             for note in notes
-            if not note.note_content or len(note.note_content) < 1000
+            if note.note_content is not None
+            and len(note.note_content) < MAX_NOTE_LENGTH
         ],
         columns=[
             "note_path",
             "note_tags",
             "note_content",
             "path_to_delete",
-            "notes_embedding_format",
+            "note_embedding_format",
             "note_embedding",
+            "note_hash"
         ],
     )
 
@@ -244,19 +258,63 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     if df.path_to_delete.any():
         to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
         response = index.delete(ids=to_delete, namespace=request.namespace)
-        logger.debug(f"Deleted notes: {to_delete}")
+        logger.info(f"Deleted notes: {to_delete}")
 
     if not df.note_content.any():
         logger.info("No notes to index, exiting")
+        print(df.note_content)
         return JSONResponse(status_code=200, content={"status": "ok"})
-    # add column "notes_embedding_format"
-    df.notes_embedding_format = df.apply(
+
+    # add column "note_embedding_format"
+    df.note_embedding_format = df.apply(
         lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
         axis=1,
     )
+    # add column "note_hash" based on "note_embedding_format"
+    df.note_hash = df.note_embedding_format.apply(
+        lambda x: hashlib.sha256(x.encode()).hexdigest()
+    )
+
+    df_length = len(df)
+
+    # filter out notes that didn't change by checking their hash
+    # in the index metadata
+    existing_documents = index.fetch(
+        ids=df.note_path.apply(urllib.parse.quote).tolist(), namespace=request.namespace
+    )
+    # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
+
+    # remove rows that have the same hash
+    df = df[
+        ~df.apply(
+            lambda x: x.note_hash
+            in [doc.get("metadata", {}).get("note_hash") for doc in existing_documents.vectors.values()],
+            axis=1,
+        )
+    ]
+
+    diff = df_length - len(df)
+
+    logger.info(f"Filtered out {diff} notes that didn't change")
+
+    posthog.capture(
+        request.namespace,
+        "refresh_filtered",
+        {
+            "namespace": request.namespace,
+            "notes_length": len(request.notes),
+            "clear": request.clear,
+            "filtered": diff,
+        },
+    )
+
+    if not df.note_content.any():
+        logger.info("No notes to index found after filtering existing ones, exiting")
+        print(df.note_content)
+        return JSONResponse(status_code=200, content={"status": "ok"})
 
     # parallelize
-    response = embed(df.notes_embedding_format.tolist(), settings.model)
+    response = embed(df.note_embedding_format.tolist(), settings.model)
     df.note_embedding = [e["embedding"] for e in response]
 
     # TODO average the embeddings over "embedding" column grouped by index, merge back into df
@@ -275,6 +333,12 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     logger.info(f"Indexed & uploaded {len(notes)} sentences")
     end_time = time.time()
     logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")
+
+    try:
+        enrich_doc(df.note_path.apply(urllib.parse.quote).tolist(), request.namespace)
+        logger.info(f"Enqueued {len(notes)} notes for enrichment")
+    except Exception as e:
+        logger.warning(f"Failed to enqueue notes for enrichment: {e}")
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
 
