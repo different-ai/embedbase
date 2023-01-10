@@ -330,7 +330,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # TODO: problem is that pinecone doesn't support this large of an input
     upload_embeddings_to_vector_database(df, request.namespace)
 
-    logger.info(f"Indexed & uploaded {len(notes)} sentences")
+    logger.info(f"Indexed & uploaded {len(df)} sentences")
     end_time = time.time()
     logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")
 
