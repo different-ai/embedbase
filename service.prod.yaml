@@ -23,16 +23,16 @@ spec:
           successThreshold: 1
           failureThreshold: 60
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.2.7
+        image: gcr.io/obsidian-ai/obsidian-search:0.2.8
         env:
           - name: SENTRY_RELEASE
-            value: "0.2.7"
+            value: "0.2.8"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE
             value: "100"
           - name: MAX_NOTE_LENGTH
-            value: "1700"
+            value: "2000"
         ports:
           - containerPort: 8080
             name: http1

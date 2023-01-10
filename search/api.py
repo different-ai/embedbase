@@ -4,6 +4,7 @@ import time
 from pandas import DataFrame
 import os
 from functools import lru_cache
+import itertools
 import typing
 import logging
 from fastapi import Depends, FastAPI, status
@@ -25,7 +26,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 
-SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
+SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
 PORT = os.environ.get("PORT", 3333)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
@@ -281,16 +282,24 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     # filter out notes that didn't change by checking their hash
     # in the index metadata
-    existing_documents = index.fetch(
-        ids=df.note_path.apply(urllib.parse.quote).tolist(), namespace=request.namespace
-    )
+    ids_to_fetch = df.note_path.apply(urllib.parse.quote).tolist()
+    # split in chunks of n because fetch has a limit of size
+    n = 500
+    ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
+    with ThreadPool(len(ids_to_fetch)) as pool:
+        existing_documents = pool.map(
+            lambda n: index.fetch(ids=n, namespace=request.namespace), ids_to_fetch
+        )
+    # flatten vectors.values()
+    flat_existing_documents = itertools.chain.from_iterable([doc.vectors.values() for doc in existing_documents])
+
     # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
 
     # remove rows that have the same hash
     df = df[
         ~df.apply(
             lambda x: x.note_hash
-            in [doc.get("metadata", {}).get("note_hash") for doc in existing_documents.vectors.values()],
+            in [doc.get("metadata", {}).get("note_hash") for doc in flat_existing_documents],
             axis=1,
         )
     ]
