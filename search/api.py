@@ -292,8 +292,9 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # in the index metadata
     ids_to_fetch = df.note_path.apply(urllib.parse.quote).tolist()
     # split in chunks of n because fetch has a limit of size
-    n = 500
+    n = 200
     ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
+    logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
     with ThreadPool(len(ids_to_fetch)) as pool:
         existing_documents = pool.map(
             lambda n: index.fetch(ids=n, namespace=request.namespace), ids_to_fetch
