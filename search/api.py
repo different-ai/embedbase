@@ -440,6 +440,7 @@ def semantic_search(request: Input, _: Settings = Depends(get_settings)):
                 "note_path": decoded_path,
                 "note_content": match.metadata["note_content"],
                 "note_tags": match.metadata["note_tags"],
+                "note_ner": match.metadata.get("note_ner", []),
             }
         )
     return JSONResponse(

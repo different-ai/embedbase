@@ -18,3 +18,5 @@ class Input(BaseModel):
     query: Optional[str] = None
     note: Optional[Note] = None
     top_k: int = 6
+    # example: {"person": "John Doe"}
+    metadata: Optional[dict] = None
