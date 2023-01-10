@@ -25,8 +25,9 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes; \
 	python3 -m pytest -s -vv test_main.py::test_embed; \
 	python3 -m pytest -s -vv test_main.py::test_upload; \
+	python3 -m pytest -s -vv test_main.py::test_embed_large_text
+
 	@echo "Done testing"
-# python3 -m pytest -s -vv test_main.py::test_embed_large_text
 
 docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"

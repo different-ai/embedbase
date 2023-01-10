@@ -26,7 +26,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 
-SECRET_PATH = "/secrets" if os.path.exists("/secrets") else "."
+SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 PORT = os.environ.get("PORT", 3333)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
