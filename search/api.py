@@ -13,7 +13,7 @@ from pydantic import BaseSettings
 from fastapi.responses import JSONResponse
 import pinecone
 import urllib.parse
-
+import numpy as np
 from search.pub_sub import enrich_doc
 from .utils import BatchGenerator, too_big_rows
 import openai
@@ -42,11 +42,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = SECRET_PATH + "/.env"
-
-
-def is_openai_embedding_model(model: str) -> bool:
-    return model.startswith("text-embedding-")
-
 
 @lru_cache()
 def get_settings():
@@ -122,7 +117,14 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
     Compute the embedding for a given sentence
     """
     settings = get_settings()
-    return embed([sentence], settings.model)[0]["embedding"]
+    # TODO: split large sentences in chunks and average the embeddings
+    chunks = [sentence]
+    if len(sentence) > 2000:
+        chunks = [sentence[i : i + 2000] for i in range(0, len(sentence), 2000)]
+    embeddings = embed(chunks, settings.model)
+    if len(chunks) > 1:
+        return np.mean([e["embedding"] for e in embeddings], axis=0).tolist()
+    return embeddings[0]["embedding"]
 
 
 @retry(
@@ -209,7 +211,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear
 
 """
 
-MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1700"))
+MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1000"))
 
 
 @app.post("/refresh")
@@ -381,12 +383,6 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
 
     top_k = min(input.top_k, 5)  # TODO might fail if index empty?
 
-    # TODO: handle too large query (chunk -> average)
-    # if len(query) > 1000:
-    #     return JSONResponse(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         content={"status": "error", "message": "Query too large"},
-    #     )
     query_embedding = no_batch_embed(query)
 
     logger.info(f"Query {input.query} created embedding, querying index")
@@ -396,9 +392,6 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         include_values=True,
         include_metadata=True,
         vector=query_embedding,
-        # filter={
-        # "genre": {"$in": ["comedy", "documentary", "drama"]}
-        # }
         namespace=input.namespace,
     )
 

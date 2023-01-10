@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from pandas import DataFrame
-from .api import app, embed, upload_embeddings_to_vector_database, index
+from .api import app, embed, upload_embeddings_to_vector_database, index, no_batch_embed
 import pandas as pd
 import math
 from random import randint
@@ -50,6 +50,10 @@ def test_embed():
     data = embed(["hello world", "hello world"])
     assert [len(d["embedding"]) for d in data] == [1536, 1536]
 
+def test_no_batch_embed_should_work_with_large_text():
+    # large text > 10.000 characters
+    data = no_batch_embed("".join("a" * 10_000))
+    assert len(data) == 1536
 
 def test_upload():
     data = embed(["hello world", "hello world"])

@@ -1,4 +1,6 @@
 import os
+import re
+import itertools
 import base64
 from typing import List
 import json
@@ -30,26 +32,24 @@ index = pinecone.Index(index_name, pool_threads=8)
 
 
 def extract_named_entities(text_batch: List[str]) -> list:
+    entities = []
     if not text_batch:
         return []
     # extract named entities using the NER pipeline
     try:
-        extracted_batch = nlp(text_batch)
+        # split retro in chunks of 3 sentences
+        # this is probably inefficient
+        # and we should batch notes together
+        # but it works for now
+        for note in text_batch:
+            chunks = [m.group(0) for m in re.finditer(r'(?s)(.*?\n){2}', note) if len(m.group(0)) > 3]
+            if not chunks:
+                chunks = [note]
+            flat = list(itertools.chain.from_iterable(nlp(chunks)))
+            entities.append(flat)
     except Exception as e:
         print(e)
         return []
-    entities = []
-    if not extracted_batch:
-        return entities
-    # loop through the results and only select the entity names
-    for text in extracted_batch:
-        # if list
-        ne = (
-            [entity["word"] for entity in text]
-            if isinstance(text, list)
-            else text["word"]
-        )
-        entities.append(list(set(ne)))
     return entities
 
 
@@ -92,6 +92,7 @@ def enrich_index(cloud_event):
         futures.append(
             index.update(
                 id=id,
+                # TODO: probably large notes will fuck up query size?
                 set_metadata={"ner": entities[i]},
                 namespace=namespace,
                 async_req=True,
