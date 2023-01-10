@@ -50,7 +50,7 @@ def test_embed():
     data = embed(["hello world", "hello world"])
     assert [len(d["embedding"]) for d in data] == [1536, 1536]
 
-def test_no_batch_embed_should_work_with_large_text():
+def test_embed_large_text():
     # large text > 10.000 characters
     data = no_batch_embed("".join("a" * 10_000))
     assert len(data) == 1536

@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = SECRET_PATH + "/.env"
 
+
 @lru_cache()
 def get_settings():
     return Settings()
@@ -132,7 +133,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
     wait=wait_exponential(multiplier=1, min=1, max=3),
     before=before_log(logger, logging.DEBUG),
     after=after_log(logger, logging.DEBUG),
-    stop=stop_after_attempt(3)
+    stop=stop_after_attempt(3),
 )
 def embed(
     input: typing.List[str], model: str = "text-embedding-ada-002"
@@ -229,6 +230,13 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             "clear": request.clear,
         },
     )
+    sentry_sdk.set_user(
+        {
+            "id": request.namespace.split("/")[0]
+            if request.namespace and len(request.namespace.split("/")) > 0
+            else "unknown"
+        }
+    )
     print(request)
     if request.clear:
         # clear index
@@ -252,7 +260,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             "path_to_delete",
             "note_embedding_format",
             "note_embedding",
-            "note_hash"
+            "note_hash",
         ],
     )
 
@@ -291,7 +299,9 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             lambda n: index.fetch(ids=n, namespace=request.namespace), ids_to_fetch
         )
     # flatten vectors.values()
-    flat_existing_documents = itertools.chain.from_iterable([doc.vectors.values() for doc in existing_documents])
+    flat_existing_documents = itertools.chain.from_iterable(
+        [doc.vectors.values() for doc in existing_documents]
+    )
 
     # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
 
@@ -299,7 +309,10 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     df = df[
         ~df.apply(
             lambda x: x.note_hash
-            in [doc.get("metadata", {}).get("note_hash") for doc in flat_existing_documents],
+            in [
+                doc.get("metadata", {}).get("note_hash")
+                for doc in flat_existing_documents
+            ],
             axis=1,
         )
     ]
@@ -363,12 +376,12 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query
 
 
 @app.post("/semantic_search")
-def semantic_search(input: Input, _: Settings = Depends(get_settings)):
+def semantic_search(request: Input, _: Settings = Depends(get_settings)):
     """
     Search for a given query in the corpus
     """
     # either note or query is present in the request
-    if not input.note and not input.query:
+    if not request.note and not request.query:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
@@ -376,32 +389,39 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
                 "message": "Please provide a query or a note.",
             },
         )
-    query = input.query or note_to_embedding_format(
-        input.note.note_path,
-        input.note.note_tags,
-        input.note.note_content,
+    query = request.query or note_to_embedding_format(
+        request.note.note_path,
+        request.note.note_tags,
+        request.note.note_content,
     )
     posthog.capture(
-        input.namespace,
+        request.namespace,
         "search",
         {
-            "namespace": input.namespace,
+            "namespace": request.namespace,
             "query_length": len(query),
         },
     )
+    sentry_sdk.set_user(
+        {
+            "id": request.namespace.split("/")[0]
+            if request.namespace and len(request.namespace.split("/")) > 0
+            else "unknown"
+        }
+    )
 
-    top_k = min(input.top_k, 5)  # TODO might fail if index empty?
+    top_k = min(request.top_k, 5)  # TODO might fail if index empty?
 
     query_embedding = no_batch_embed(query)
 
-    logger.info(f"Query {input.query} created embedding, querying index")
+    logger.info(f"Query {request.query} created embedding, querying index")
 
     query_response = index.query(
         top_k=top_k,
         include_values=True,
         include_metadata=True,
         vector=query_embedding,
-        namespace=input.namespace,
+        namespace=request.namespace,
     )
 
     # TODO: maybe advanced query language like elasticsearch + semantic query
