@@ -209,7 +209,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear
 
 """
 
-MAX_NOTE_LENGTH = 2000
+MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1700"))
 
 
 @app.post("/refresh")
