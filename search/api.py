@@ -131,8 +131,8 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.DEBUG),
-    after=after_log(logger, logging.DEBUG),
+    before=before_log(logger, logging.ERROR),
+    after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
 def embed(
@@ -150,8 +150,8 @@ def embed(
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.INFO),
-    after=after_log(logger, logging.INFO),
+    before=before_log(logger, logging.ERROR),
+    after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
 def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):

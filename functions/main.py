@@ -1,3 +1,4 @@
+from multiprocessing.pool import ThreadPool
 import os
 import re
 import itertools
@@ -42,10 +43,26 @@ def extract_named_entities(text_batch: List[str]) -> list:
         # and we should batch notes together
         # but it works for now
         for note in text_batch:
-            chunks = [m.group(0) for m in re.finditer(r'(?s)(.*?\n){2}', note) if len(m.group(0)) > 3]
+            chunks = [
+                m.group(0)
+                for m in re.finditer(r"(?s)(.*?\n){2}", note)
+                if len(m.group(0)) > 3
+            ]
             if not chunks:
                 chunks = [note]
             flat = list(itertools.chain.from_iterable(nlp(chunks)))
+            # for each {'entity_group': 'LOC', 'score': 0.9996493, 'word': 'London', 'start': 0, 'end': 6},
+            # entry, convert the score to a float because numpy is not pinecone serializable friendly
+            flat = [
+                {
+                    "entity_group": e["entity_group"],
+                    "score": float(e["score"]),
+                    "word": e["word"],
+                    "start": e["start"],
+                    "end": e["end"],
+                }
+                for e in flat
+            ]
             entities.append(flat)
     except Exception as e:
         print(e)
@@ -54,14 +71,23 @@ def extract_named_entities(text_batch: List[str]) -> list:
 
 
 def enrich_document_metadata(namespace: str, documents_id: List[str]) -> dict:
-    # {"id": foo} # id of document to be extracted
-    response = index.fetch(documents_id, namespace=namespace)
-    if not response:
+    # split in chunks of n because fetch has a limit of size
+    n = 200
+    ids_to_fetch = [documents_id[i : i + n] for i in range(0, len(documents_id), n)]
+    with ThreadPool(len(ids_to_fetch)) as pool:
+        # i.e. [{"vectors": {"id": {"metadata": {"note_content": "foo"}}}}}]
+        existing_documents = pool.map(
+            lambda n: index.fetch(ids=n, namespace=namespace), ids_to_fetch
+        )
+    if not existing_documents:
         return
+    # flatten the list of documents into {"id": {"metadata": {"note_content": "foo"}}
+    flat = {k: v for d in existing_documents for k, v in d["vectors"].items()}
 
     contents = [
         # TODO: somehow sometimes note_content is None? who care? "." hack (empty string is not allowed)
-        response.vectors[id].metadata.get("note_content", ".") for id in documents_id
+        flat[id].metadata.get("note_content", ".")
+        for id in documents_id
     ]
     if not contents:
         return []
@@ -93,7 +119,7 @@ def enrich_index(cloud_event):
             index.update(
                 id=id,
                 # TODO: probably large notes will fuck up query size?
-                set_metadata={"ner": entities[i]},
+                set_metadata={"ner": json.dumps({"json_data": entities[i]})},
                 namespace=namespace,
                 async_req=True,
             )
