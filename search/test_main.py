@@ -101,3 +101,58 @@ def test_upload_big():
         )
         assert response.status_code == 200
         assert response.json() == {"status": "success"}
+
+def test_ignore_note_that_didnt_change():
+    df = pd.DataFrame(
+        [
+            "".join(
+                [
+                    chr(math.floor(97 + 26 * np.random.rand()))
+                    for _ in range(randint(500, 800))
+                ]
+            )
+            for _ in range(10)
+        ],
+        columns=["text"],
+    )
+    with TestClient(app=app) as client:
+        response = client.post(
+            "/refresh",
+            json={
+                "namespace": "dev",
+                "clear": True,
+            },
+        )
+        response = client.post(
+            "/refresh",
+            json={
+                "namespace": "dev",
+                "notes": [
+                    {
+                        "note_path": f"{i}/Bob.md",
+                        "note_tags": ["Humans", "Bob"],
+                        "note_content": text,
+                    }
+                    for i, text in enumerate(df.text.tolist())
+                ],
+            },
+        )
+        assert response.status_code == 200
+        assert response.json().get("status", "") == "success"
+    with TestClient(app=app) as client:
+        response = client.post(
+            "/refresh",
+            json={
+                "namespace": "dev",
+                "notes": [
+                    {
+                        "note_path": f"{i}/Bob.md",
+                        "note_tags": ["Humans", "Bob"],
+                        "note_content": text,
+                    }
+                    for i, text in enumerate(df.text.tolist())
+                ],
+            },
+        )
+        assert response.status_code == 200
+        assert len(response.json().get("ignored_notes_hash")) == 10

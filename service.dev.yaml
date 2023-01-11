@@ -47,6 +47,6 @@ spec:
           secret:
             secretName: OBSIDIAN_SEARCH
             items:
-              - key: "2"
+              - key: "3"
                 path: .env
       timeoutSeconds: 120

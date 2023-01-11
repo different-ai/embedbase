@@ -23,10 +23,10 @@ spec:
           successThreshold: 1
           failureThreshold: 60
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.3.4
+        image: gcr.io/obsidian-ai/obsidian-search:0.3.5
         env:
           - name: SENTRY_RELEASE
-            value: "0.3.4"
+            value: "0.3.5"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE
@@ -49,6 +49,6 @@ spec:
           secret:
             secretName: OBSIDIAN_SEARCH
             items:
-              - key: "2"
+              - key: "3"
                 path: .env
       timeoutSeconds: 240

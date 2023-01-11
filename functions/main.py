@@ -50,6 +50,7 @@ def extract_named_entities(text_batch: List[str]) -> list:
             ]
             if not chunks:
                 chunks = [note]
+            print("chunks", chunks)
             flat = list(itertools.chain.from_iterable(nlp(chunks)))
             # for each {'entity_group': 'LOC', 'score': 0.9996493, 'word': 'London', 'start': 0, 'end': 6},
             # entry, convert the score to a float because numpy is not pinecone serializable friendly
@@ -70,7 +71,7 @@ def extract_named_entities(text_batch: List[str]) -> list:
     return entities
 
 
-def enrich_document_metadata(namespace: str, documents_id: List[str]) -> dict:
+def enrich_document_metadata(namespace: str, documents_id: List[str]):
     # split in chunks of n because fetch has a limit of size
     n = 200
     ids_to_fetch = [documents_id[i : i + n] for i in range(0, len(documents_id), n)]
@@ -80,13 +81,13 @@ def enrich_document_metadata(namespace: str, documents_id: List[str]) -> dict:
             lambda n: index.fetch(ids=n, namespace=namespace), ids_to_fetch
         )
     if not existing_documents:
-        return
+        return []
     # flatten the list of documents into {"id": {"metadata": {"note_content": "foo"}}
     flat = {k: v for d in existing_documents for k, v in d["vectors"].items()}
 
     contents = [
         # TODO: somehow sometimes note_content is None? who care? "." hack (empty string is not allowed)
-        flat[id].metadata.get("note_content", ".")
+        flat[id].metadata.get("note_content", "...")
         for id in documents_id
     ]
     if not contents:
@@ -115,11 +116,21 @@ def enrich_index(cloud_event):
     futures = []
     # update the entities to the index
     for i, id in enumerate(documents_id):
+        ner = {
+            "note_ner_entity_group": [e["entity_group"] for e in entities[i]],
+            # HACK: pinecone doesn't support list of numbers
+            "note_ner_score": str([e["score"] for e in entities[i]]),
+            "note_ner_word": [e["word"] for e in entities[i]],
+            "note_ner_start": str([e["start"] for e in entities[i]]),
+            "note_ner_end": str([e["end"] for e in entities[i]]),
+        }
+        print(f"Updating {id}")
+        print(ner)
         futures.append(
             index.update(
                 id=id,
                 # TODO: probably large notes will fuck up query size?
-                set_metadata={"ner": json.dumps({"json_data": entities[i]})},
+                set_metadata=ner,
                 namespace=namespace,
                 async_req=True,
             )

@@ -82,3 +82,11 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
+
+      - name: Deploy to Cloud Run dev
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          metadata: service.dev.yaml
+          project_id: ${{ env.PROJECT_ID }}
+          region: us-central1
+          tag: ${{ env.VERSION }}

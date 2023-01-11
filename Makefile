@@ -25,7 +25,8 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s -vv test_main.py::test_refresh_small_notes; \
 	python3 -m pytest -s -vv test_main.py::test_embed; \
 	python3 -m pytest -s -vv test_main.py::test_upload; \
-	python3 -m pytest -s -vv test_main.py::test_embed_large_text
+	python3 -m pytest -s -vv test_main.py::test_embed_large_text; \
+	python3 -m pytest -s -vv test_main.py::test_ignore_note_that_didnt_change; 
 
 	@echo "Done testing"
 

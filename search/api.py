@@ -3,6 +3,7 @@ from multiprocessing.pool import ThreadPool
 import time
 from pandas import DataFrame
 import os
+import json
 from functools import lru_cache
 import itertools
 import typing
@@ -25,6 +26,7 @@ from tenacity.wait import wait_exponential
 from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
+import requests
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 PORT = os.environ.get("PORT", 3333)
@@ -40,6 +42,8 @@ class Settings(BaseSettings):
     embed_cache_size: typing.Optional[int] = None
     log_level: str = "INFO"
     device: str = "cpu"
+
+    huggingface_inference_api_key: str
 
     class Config:
         env_file = SECRET_PATH + "/.env"
@@ -119,7 +123,6 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
     Compute the embedding for a given sentence
     """
     settings = get_settings()
-    # TODO: split large sentences in chunks and average the embeddings
     chunks = [sentence]
     if len(sentence) > 2000:
         chunks = [sentence[i : i + 2000] for i in range(0, len(sentence), 2000)]
@@ -131,7 +134,7 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.ERROR),
+    before=before_log(logger, logging.INFO),
     after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
@@ -150,7 +153,7 @@ def embed(
 
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.ERROR),
+    before=before_log(logger, logging.INFO),
     after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
@@ -195,23 +198,12 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     [response.get() for response in map(_insert, batches)]
 
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
+    posthog.capture(
+        namespace,
+        "upload_vectors",
+        {"duration": time.time() - start_time_upload, "vectors": len(df)},
+    )
 
-
-"""
-URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
-# insert
-curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' $URL/refresh | jq '.'
-
-# delete
-curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"path_to_delete": "Bob.md"}]}' $URL/refresh | jq '.'
-
-# rename
-curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "notes": [{"path_to_delete": "Bob.md", "note_path": "Bob3.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' $URL/refresh | jq '.'
-
-# clear
-curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "clear": true}' $URL/refresh | jq '.'
-
-"""
 
 MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1000"))
 
@@ -221,15 +213,6 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     """
     Refresh the embeddings for a given file
     """
-    posthog.capture(
-        request.namespace,
-        "refresh",
-        {
-            "namespace": request.namespace,
-            "notes_length": len(request.notes),
-            "clear": request.clear,
-        },
-    )
     sentry_sdk.set_user(
         {
             "id": request.namespace.split("/")[0]
@@ -274,7 +257,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     if not df.note_content.any():
         logger.info("No notes to index, exiting")
         print(df.note_content)
-        return JSONResponse(status_code=200, content={"status": "ok"})
+        return JSONResponse(status_code=200, content={"status": "success"})
 
     # add column "note_embedding_format"
     df.note_embedding_format = df.apply(
@@ -307,13 +290,12 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
 
     # remove rows that have the same hash
+    existing_hashes = [
+        doc.get("metadata", {}).get("note_hash") for doc in flat_existing_documents
+    ]
     df = df[
         ~df.apply(
-            lambda x: x.note_hash
-            in [
-                doc.get("metadata", {}).get("note_hash")
-                for doc in flat_existing_documents
-            ],
+            lambda x: x.note_hash in existing_hashes,
             axis=1,
         )
     ]
@@ -322,21 +304,16 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     logger.info(f"Filtered out {diff} notes that didn't change")
 
-    posthog.capture(
-        request.namespace,
-        "refresh_filtered",
-        {
-            "namespace": request.namespace,
-            "notes_length": len(request.notes),
-            "clear": request.clear,
-            "filtered": diff,
-        },
-    )
-
     if not df.note_content.any():
         logger.info("No notes to index found after filtering existing ones, exiting")
         print(df.note_content)
-        return JSONResponse(status_code=200, content={"status": "ok"})
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "success",
+                "ignored_notes_hash": existing_hashes,
+            },
+        )
 
     # parallelize
     response = embed(df.note_embedding_format.tolist(), settings.model)
@@ -361,19 +338,29 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     try:
         enrich_doc(df.note_path.apply(urllib.parse.quote).tolist(), request.namespace)
-        logger.info(f"Enqueued {len(notes)} notes for enrichment")
+        logger.info(f"Enqueued {len(df)} notes for enrichment")
     except Exception as e:
         logger.warning(f"Failed to enqueue notes for enrichment: {e}")
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
+    posthog.capture(
+        request.namespace,
+        "refresh",
+        {
+            "namespace": request.namespace,
+            "notes_length": len(request.notes),
+            "clear": request.clear,
+            "filtered": diff,
+            "duration": end_time - start_time,
+        },
+    )
 
-
-# /semantic_search usage:
-"""
-URL="https://obsidian-search-dev-c6txy76x2q-uc.a.run.app"
-curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dev", "query": "Bob"}' $URL/semantic_search | jq '.'
-
-"""
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status": "success",
+            "ignored_notes_hash": existing_hashes,
+        },
+    )
 
 
 @app.post("/semantic_search")
@@ -411,11 +398,36 @@ def semantic_search(request: Input, _: Settings = Depends(get_settings)):
         }
     )
 
+    # API_URL = "https://api-inference.huggingface.co/models/dslim/bert-base-NER"
+    # headers = {"Authorization": f"Bearer {settings.huggingface_inference_api_key}"}
+
+    # def query_hf(payload):
+    #     start_time = time.time()
+    #     response = requests.post(API_URL, headers=headers, json={"inputs": payload})
+    #     e = response.json()
+    #     posthog.capture(
+    #         request.namespace,
+    #         "named_entity_recognition",
+    #         {
+    #             "query_length": len(payload),
+    #             "time": time.time() - start_time,
+    #         },
+    #     )
+    #     return e
+
     top_k = min(request.top_k, 5)  # TODO might fail if index empty?
 
+    # run in parallel embed and hf NER
+    # with ThreadPool(2) as pool:
+    #     ner_response, query_embedding = pool.map(
+    #         lambda f: f(query), [query_hf, no_batch_embed]
+    #     )
     query_embedding = no_batch_embed(query)
 
     logger.info(f"Query {request.query} created embedding, querying index")
+    # TODO: unnecesary prob
+    # persons_in_the_query = [o for o in ner_response if o["entity_group"] == "PER"]
+    # logger.info(f"Found {ner_response} persons in the query")
 
     query_response = index.query(
         top_k=top_k,
@@ -423,6 +435,8 @@ def semantic_search(request: Input, _: Settings = Depends(get_settings)):
         include_metadata=True,
         vector=query_embedding,
         namespace=request.namespace,
+        # filter={"note_ner_word": {"$in": [o["word"] for o in ner_response]}},
+        # {"genre": {"$in":["documentary","action"]}}
     )
 
     # TODO: maybe advanced query language like elasticsearch + semantic query
@@ -440,7 +454,14 @@ def semantic_search(request: Input, _: Settings = Depends(get_settings)):
                 "note_path": decoded_path,
                 "note_content": match.metadata["note_content"],
                 "note_tags": match.metadata["note_tags"],
-                "note_ner": match.metadata.get("note_ner", []),
+                "note_ner_entity_group": match.metadata.get(
+                    "note_ner_entity_group", []
+                ),
+                # convert to list of numbers ("[1,2,3]" -> [1,2,3])
+                "note_ner_score": json.loads(match.metadata.get("note_ner_score", [])),
+                "note_ner_word": match.metadata.get("note_ner_word", []),
+                "note_ner_start": json.loads(match.metadata.get("note_ner_start", [])),
+                "note_ner_end": json.loads(match.metadata.get("note_ner_end", [])),
             }
         )
     return JSONResponse(
@@ -455,15 +476,6 @@ def health():
     """
     Return the status of the API
     """
-    # TODO BROKEN
-    # response = requests.post(
-    #     f"http://localhost:{PORT}/refresh",
-    #     json={"notes": [{"namespace": "health-check", "note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]},
-    # )
-    # if response.status_code != 200:
-    #     raise HTTPException(
-    #         status_code=response.status_code, detail="Health check failed"
-    #     )
     return JSONResponse(
         status_code=200,
         content={"status": "success"},
