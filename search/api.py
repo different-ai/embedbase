@@ -438,6 +438,10 @@ def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings))
         include_metadata=True,
         vector=query_embedding,
         namespace=request.namespace,
+        # if metadata is present in the request, filter by it
+        filter={"note_ner_word": {"$in": request.metadata.get("persons", "%")}}
+        if request.metadata
+        else {},
         # filter={"note_ner_word": {"$in": [o["word"] for o in ner_response]}},
         # {"genre": {"$in":["documentary","action"]}}
     )
@@ -461,9 +465,13 @@ def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings))
                     "note_ner_entity_group", []
                 ),
                 # convert to list of numbers ("[1,2,3]" -> [1,2,3])
-                "note_ner_score": json.loads(match.metadata.get("note_ner_score", "[]")),
+                "note_ner_score": json.loads(
+                    match.metadata.get("note_ner_score", "[]")
+                ),
                 "note_ner_word": match.metadata.get("note_ner_word", []),
-                "note_ner_start": json.loads(match.metadata.get("note_ner_start", "[]")),
+                "note_ner_start": json.loads(
+                    match.metadata.get("note_ner_start", "[]")
+                ),
                 "note_ner_end": json.loads(match.metadata.get("note_ner_end", "[]")),
             }
         )

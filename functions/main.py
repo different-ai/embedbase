@@ -130,6 +130,9 @@ def enrich_index(cloud_event):
         orgs = []
         miscs = []
         for e in entities[i]:
+            # skip if score is too low
+            if e["score"] < 0.7:
+                continue
             note_ner_entity_group.append(e["entity_group"])
             note_ner_score.append(e["score"])
             note_ner_word.append(e["word"])

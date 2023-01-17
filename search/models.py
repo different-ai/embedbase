@@ -19,7 +19,6 @@ class SearchRequest(BaseModel):
     namespace: str
     query: Optional[str] = None
     note: Optional[Note] = None
-    # persons: Optional[List[str]] = None
     top_k: int = 6
     # example: {"person": "John Doe"}
     metadata: Optional[dict] = None
