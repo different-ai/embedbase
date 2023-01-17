@@ -82,6 +82,7 @@ functions/deploy: ## [Local development] Deploy the Cloud functions.
 		--trigger-topic=enrich_index \
 		--set-env-vars=PINECONE_API_KEY=${PINECONE_API_KEY} \
 		--memory=2048MB \
+		--max-instances=20 \
 		--timeout=540s
 
 

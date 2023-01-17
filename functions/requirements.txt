@@ -1,3 +1,4 @@
+firebase_admin
 pinecone-client
 pandas
 tenacity

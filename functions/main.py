@@ -1,3 +1,4 @@
+import hashlib
 from multiprocessing.pool import ThreadPool
 import os
 import re
@@ -7,9 +8,11 @@ from typing import List
 import json
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
-
+from firebase_admin import firestore, initialize_app
+from google.cloud.firestore import ArrayUnion, WriteBatch
 import functions_framework
 import pinecone
+import urllib.parse
 
 device = "cpu"
 
@@ -26,11 +29,11 @@ nlp = pipeline(
 
 api_key = os.getenv("PINECONE_API_KEY") or "YOUR-API-KEY"
 pinecone.init(api_key=api_key, environment="us-west1-gcp")
-
+initialize_app()
 
 index_name = "anotherai"
 index = pinecone.Index(index_name, pool_threads=8)
-
+firestore_client = firestore.client()
 
 def extract_named_entities(text_batch: List[str]) -> list:
     entities = []
@@ -115,14 +118,38 @@ def enrich_index(cloud_event):
 
     futures = []
     # update the entities to the index
+    batch: WriteBatch = firestore_client.batch()
     for i, id in enumerate(documents_id):
+        note_ner_entity_group = []
+        note_ner_score = []
+        note_ner_word = []
+        note_ner_start = []
+        note_ner_end = []
+        locs = []
+        pers = []
+        orgs = []
+        miscs = []
+        for e in entities[i]:
+            note_ner_entity_group.append(e["entity_group"])
+            note_ner_score.append(e["score"])
+            note_ner_word.append(e["word"])
+            note_ner_start.append(e["start"])
+            note_ner_end.append(e["end"])
+            if e["entity_group"] == "LOC":
+                locs.append(e["word"])
+            elif e["entity_group"] == "PER":
+                pers.append(e["word"])
+            elif e["entity_group"] == "ORG":
+                orgs.append(e["word"])
+            elif e["entity_group"] == "MISC":
+                miscs.append(e["word"])
         ner = {
-            "note_ner_entity_group": [e["entity_group"] for e in entities[i]],
+            "note_ner_entity_group": note_ner_entity_group,
             # HACK: pinecone doesn't support list of numbers
-            "note_ner_score": str([e["score"] for e in entities[i]]),
-            "note_ner_word": [e["word"] for e in entities[i]],
-            "note_ner_start": str([e["start"] for e in entities[i]]),
-            "note_ner_end": str([e["end"] for e in entities[i]]),
+            "note_ner_score": str(note_ner_score),
+            "note_ner_word": note_ner_word,
+            "note_ner_start": str(note_ner_start),
+            "note_ner_end": str(note_ner_end),
         }
         print(f"Updating {id}")
         print(ner)
@@ -135,6 +162,21 @@ def enrich_index(cloud_event):
                 async_req=True,
             )
         )
+        # update the entities to the firestore
+        # i.e. entities/namespace/id -> {"LOC": [ "London", "Paris" ], "PER": [ "John", "Jane" ], ...}
+        doc_id = hashlib.sha256(namespace.encode()).hexdigest()
+        batch.set(firestore_client.collection("entities").document(doc_id), {
+            "LOC": ArrayUnion(locs) if locs else [],
+            "PER": ArrayUnion(pers) if pers else [],
+            "ORG": ArrayUnion(orgs) if orgs else [],
+            "MISC": ArrayUnion(miscs) if miscs else [],
+            "namespace": namespace,
+        }, merge=True)
+        # max 500 writes per batch
+        if i % 400 == 1:
+            batch.commit()
+            batch = firestore_client.batch()
+    batch.commit()
 
     [e.get() for e in futures]
 

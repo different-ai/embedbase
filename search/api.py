@@ -10,7 +10,7 @@ import typing
 import logging
 from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from search.models import Input, Notes, Note
+from search.models import SearchRequest, Notes, Note
 from pydantic import BaseSettings
 from fastapi.responses import JSONResponse
 import pinecone
@@ -29,6 +29,9 @@ from tenacity.stop import stop_after_attempt
 import requests
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
+# if can't find .env in .. try . now (local dev)
+if not os.path.exists(SECRET_PATH + "/.env"):
+    SECRET_PATH = "."
 PORT = os.environ.get("PORT", 3333)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
@@ -364,7 +367,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
 
 @app.post("/semantic_search")
-def semantic_search(request: Input, _: Settings = Depends(get_settings)):
+def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings)):
     """
     Search for a given query in the corpus
     """
@@ -458,10 +461,10 @@ def semantic_search(request: Input, _: Settings = Depends(get_settings)):
                     "note_ner_entity_group", []
                 ),
                 # convert to list of numbers ("[1,2,3]" -> [1,2,3])
-                "note_ner_score": json.loads(match.metadata.get("note_ner_score", [])),
+                "note_ner_score": json.loads(match.metadata.get("note_ner_score", "[]")),
                 "note_ner_word": match.metadata.get("note_ner_word", []),
-                "note_ner_start": json.loads(match.metadata.get("note_ner_start", [])),
-                "note_ner_end": json.loads(match.metadata.get("note_ner_end", [])),
+                "note_ner_start": json.loads(match.metadata.get("note_ner_start", "[]")),
+                "note_ner_end": json.loads(match.metadata.get("note_ner_end", "[]")),
             }
         )
     return JSONResponse(

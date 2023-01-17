@@ -8,15 +8,18 @@ class Note(BaseModel):
     note_content: Optional[str] = None
     path_to_delete: Optional[str] = None
 
+
 class Notes(BaseModel):
     namespace: str
     notes: List[Note] = []
     clear: bool = False
 
-class Input(BaseModel):
+
+class SearchRequest(BaseModel):
     namespace: str
     query: Optional[str] = None
     note: Optional[Note] = None
+    # persons: Optional[List[str]] = None
     top_k: int = 6
     # example: {"person": "John Doe"}
     metadata: Optional[dict] = None
