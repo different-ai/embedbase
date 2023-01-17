@@ -23,10 +23,10 @@ spec:
           successThreshold: 1
           failureThreshold: 60
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.3.7
+        image: gcr.io/obsidian-ai/obsidian-search:0.3.8
         env:
           - name: SENTRY_RELEASE
-            value: "0.3.7"
+            value: "0.3.8"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE

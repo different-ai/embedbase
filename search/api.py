@@ -418,7 +418,9 @@ def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings))
     #     )
     #     return e
 
-    top_k = min(request.top_k, 5)  # TODO might fail if index empty?
+    top_k = 5  # TODO might fail if index empty?
+    if request.top_k > 0:
+        top_k = request.top_k
 
     # run in parallel embed and hf NER
     # with ThreadPool(2) as pool:
