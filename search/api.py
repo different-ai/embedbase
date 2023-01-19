@@ -27,7 +27,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-
+from strings import string_similarity
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 # if can't find .env in .. try . now (local dev)
 if not os.path.exists(SECRET_PATH + "/.env"):
@@ -303,6 +303,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             axis=1,
         )
     ]
+
 
     diff = df_length - len(df)
 

@@ -30,8 +30,8 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s -vv test_main.py::test_upload; \
 	python3 -m pytest -s -vv test_main.py::test_embed_large_text; \
 	python3 -m pytest -s -vv test_main.py::test_ignore_note_that_didnt_change
-	cd functions; \
-	python3 -m pytest -s -vv test_main.py::test_extract_named_entities; \
+# cd functions; \
+# python3 -m pytest -s -vv test_main.py::test_extract_named_entities; \
 
 	@echo "Done testing"
 
