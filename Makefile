@@ -9,6 +9,8 @@ IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
 
+include .env
+
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
 	source env/bin/activate; \
@@ -26,7 +28,9 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s -vv test_main.py::test_embed; \
 	python3 -m pytest -s -vv test_main.py::test_upload; \
 	python3 -m pytest -s -vv test_main.py::test_embed_large_text; \
-	python3 -m pytest -s -vv test_main.py::test_ignore_note_that_didnt_change; 
+	python3 -m pytest -s -vv test_main.py::test_ignore_note_that_didnt_change
+	cd functions; \
+	python3 -m pytest -s -vv test_main.py::test_extract_named_entities; \
 
 	@echo "Done testing"
 
@@ -73,6 +77,10 @@ functions/deploy: ## [Local development] Deploy the Cloud functions.
 		echo "PINECONE_API_KEY is not set"; \
 		exit 1; \
 	fi
+	if [ -z "${HUGGINGFACE_INFERENCE_API_KEY}" ]; then \
+		echo "HUGGINGFACE_INFERENCE_API_KEY is not set"; \
+		exit 1; \
+	fi
 	gcloud functions deploy enrich-index \
 		--gen2 \
 		--runtime=python310 \
@@ -81,8 +89,10 @@ functions/deploy: ## [Local development] Deploy the Cloud functions.
 		--entry-point=enrich_index \
 		--trigger-topic=enrich_index \
 		--set-env-vars=PINECONE_API_KEY=${PINECONE_API_KEY} \
+		--set-env-vars=HUGGINGFACE_INFERENCE_API_KEY=${HUGGINGFACE_INFERENCE_API_KEY} \
 		--memory=2048MB \
 		--max-instances=20 \
+		--retry \
 		--timeout=540s
 
 

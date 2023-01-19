@@ -12,7 +12,12 @@ from firebase_admin import firestore, initialize_app
 from google.cloud.firestore import ArrayUnion, WriteBatch
 import functions_framework
 import pinecone
-import urllib.parse
+# import urllib.parse
+# import requests
+# from tenacity import retry
+# from tenacity.wait import wait_exponential
+# from tenacity.stop import stop_after_attempt
+
 
 device = "cpu"
 
@@ -26,6 +31,19 @@ model = AutoModelForTokenClassification.from_pretrained(model_id)
 nlp = pipeline(
     "ner", model=model, tokenizer=tokenizer, aggregation_strategy="max", device=device
 )
+
+# API_URL = f"https://api-inference.huggingface.co/models/{model_id}"
+# huggingface_inference_api_key = os.getenv("HUGGINGFACE_INFERENCE_API_KEY") or "YOUR-API-KEY"
+# headers = {"Authorization": f"Bearer {huggingface_inference_api_key}"}
+
+# @retry(
+#     wait=wait_exponential(multiplier=1, min=1, max=3),
+#     stop=stop_after_attempt(3),
+# )
+# def nlp(payload: str):
+# 	response = requests.post(API_URL, headers=headers, json={"inputs": payload})
+# 	return response.json()
+	
 
 api_key = os.getenv("PINECONE_API_KEY") or "YOUR-API-KEY"
 pinecone.init(api_key=api_key, environment="us-west1-gcp")
@@ -45,7 +63,7 @@ def extract_named_entities(text_batch: List[str]) -> list:
         # this is probably inefficient
         # and we should batch notes together
         # but it works for now
-        for note in text_batch:
+        for note in text_batch: # TODO parallel
             chunks = [
                 m.group(0)
                 for m in re.finditer(r"(?s)(.*?\n){2}", note)

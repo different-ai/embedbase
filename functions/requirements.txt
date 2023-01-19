@@ -1,6 +1,5 @@
 firebase_admin
 pinecone-client
-pandas
 tenacity
 transformers
 --extra-index-url https://download.pytorch.org/whl/cpu

@@ -105,7 +105,8 @@ def note_to_embedding_format(
     """
     Convert a note to the format expected by the embedding model
     """
-    return f"File:\n{note_path}\nTags:\n{note_tags}\nContent:\n{note_content}"
+    # return f"File:\n{note_path}\nTags:\n{note_tags}\nContent:\n{note_content}"
+    return f"File:\n{note_path}\nContent:\n{note_content}"
 
 
 @app.on_event("startup")

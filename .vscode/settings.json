@@ -2,7 +2,7 @@
     "python.envFile": "${workspaceFolder}/.env",
     "python.formatting.provider": "black",
     "python.testing.pytestArgs": [
-        "./search"
+        "."
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
