@@ -20,10 +20,10 @@ spec:
           initialDelaySeconds: 120
           successThreshold: 1
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.4.9
+        image: gcr.io/obsidian-ai/obsidian-search:0.5.0
         env:
           - name: SENTRY_RELEASE
-            value: "0.4.9"
+            value: "0.5.0"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE

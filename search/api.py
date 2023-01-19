@@ -110,7 +110,7 @@ def note_to_embedding_format(
 
 
 @app.on_event("startup")
-def startup_event():
+def startup_event(): 
     result = index.fetch(ids=["foo"])  # TODO: container startup check
     if result:
         logger.info("Properly connected to Pinecone")
@@ -264,7 +264,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         return JSONResponse(status_code=200, content={"status": "success"})
 
     # HACK depecrated client version >2.14.0 don't send note_embedding_format
-    if not df.note_to_embedding_format.any():
+    if not df.note_embedding_format.any():
         # add column "note_embedding_format"
         df.note_embedding_format = df.apply(
             lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
