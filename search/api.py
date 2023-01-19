@@ -27,7 +27,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-from strings import string_similarity
+from search.strings import string_similarity
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 # if can't find .env in .. try . now (local dev)
 if not os.path.exists(SECRET_PATH + "/.env"):
@@ -294,20 +294,35 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
 
     # remove rows that have the same hash
-    existing_hashes = [
-        doc.get("metadata", {}).get("note_hash") for doc in flat_existing_documents
-    ]
+    existing_hashes = []
+    exisiting_contents = []
+    for doc in flat_existing_documents:
+        existing_hashes.append(doc.get("metadata", {}).get("note_hash"))
+        exisiting_contents.append(doc.get("metadata", {}).get("note_content"))
     df = df[
         ~df.apply(
             lambda x: x.note_hash in existing_hashes,
             axis=1,
         )
     ]
+    threshold_similarity = 0.7
+    # count rows that didn't change too much using string similarity on note content embedding format
+    didnt_change = df.apply(
+        lambda x: 
+        any(
+            string_similarity(x.note_content, exisiting_content)
+            > threshold_similarity
+            for exisiting_content in exisiting_contents
+        ),
+        axis=1,
+    )
+    sum_didnt_change = sum(didnt_change)
+    logger.info(f"There are {sum_didnt_change} notes that didn't change too much")
 
 
     diff = df_length - len(df)
 
-    logger.info(f"Filtered out {diff} notes that didn't change")
+    logger.info(f"Filtered out {diff} notes that didn't change at all")
 
     if not df.note_content.any():
         logger.info("No notes to index found after filtering existing ones, exiting")
@@ -356,6 +371,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             "clear": request.clear,
             "filtered": diff,
             "duration": end_time - start_time,
+            "didnt_change": sum_didnt_change,
         },
     )
 
