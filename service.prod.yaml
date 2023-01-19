@@ -17,16 +17,16 @@ spec:
         startupProbe:
           httpGet:
             path: /health
-          initialDelaySeconds: 60
-          periodSeconds: 60
-          timeoutSeconds: 60
-          successThreshold: 10
-          failureThreshold: 60
+          initialDelaySeconds: 120
+          periodSeconds: 120
+          timeoutSeconds: 120
+          successThreshold: 1
+          failureThreshold: 120
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.4.5
+        image: gcr.io/obsidian-ai/obsidian-search:0.4.6
         env:
           - name: SENTRY_RELEASE
-            value: "0.4.5"
+            value: "0.4.6"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE
