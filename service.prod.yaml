@@ -18,15 +18,12 @@ spec:
           httpGet:
             path: /health
           initialDelaySeconds: 120
-          periodSeconds: 120
-          timeoutSeconds: 120
           successThreshold: 1
-          failureThreshold: 120
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.4.7
+        image: gcr.io/obsidian-ai/obsidian-search:0.4.9
         env:
           - name: SENTRY_RELEASE
-            value: "0.4.7"
+            value: "0.4.9"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE
