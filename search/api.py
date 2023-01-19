@@ -202,11 +202,11 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     [response.get() for response in map(_insert, batches)]
 
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
-    posthog.capture(
-        namespace,
-        "upload_vectors",
-        {"duration": time.time() - start_time_upload, "vectors": len(df)},
-    )
+    # posthog.capture(
+    #     namespace,
+    #     "upload_vectors",
+    #     {"duration": time.time() - start_time_upload, "vectors": len(df)},
+    # )
 
 
 MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1000"))
@@ -362,18 +362,18 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     except Exception as e:
         logger.warning(f"Failed to enqueue notes for enrichment: {e}")
 
-    posthog.capture(
-        request.namespace,
-        "refresh",
-        {
-            "namespace": request.namespace,
-            "notes_length": len(request.notes),
-            "clear": request.clear,
-            "filtered": diff,
-            "duration": end_time - start_time,
-            "didnt_change": sum_didnt_change,
-        },
-    )
+    # posthog.capture(
+    #     request.namespace,
+    #     "refresh",
+    #     {
+    #         "namespace": request.namespace,
+    #         "notes_length": len(request.notes),
+    #         "clear": request.clear,
+    #         "filtered": diff,
+    #         "duration": end_time - start_time,
+    #         "didnt_change": sum_didnt_change,
+    #     },
+    # )
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
@@ -403,14 +403,14 @@ def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings))
         request.note.note_tags,
         request.note.note_content,
     )
-    posthog.capture(
-        request.namespace,
-        "search",
-        {
-            "namespace": request.namespace,
-            "query_length": len(query),
-        },
-    )
+    # posthog.capture(
+    #     request.namespace,
+    #     "search",
+    #     {
+    #         "namespace": request.namespace,
+    #         "query_length": len(query),
+    #     },
+    # )
     sentry_sdk.set_user(
         {
             "id": request.namespace.split("/")[0]
