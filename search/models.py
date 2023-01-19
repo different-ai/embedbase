@@ -7,6 +7,7 @@ class Note(BaseModel):
     note_tags: Optional[List[str]] = None
     note_content: Optional[str] = None
     path_to_delete: Optional[str] = None
+    note_embedding_format: Optional[str] = None
 
 
 class Notes(BaseModel):

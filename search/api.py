@@ -263,11 +263,13 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         print(df.note_content)
         return JSONResponse(status_code=200, content={"status": "success"})
 
-    # add column "note_embedding_format"
-    df.note_embedding_format = df.apply(
-        lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
-        axis=1,
-    )
+    # HACK depecrated client version >2.14.0 don't send note_embedding_format
+    if not df.note_to_embedding_format.any():
+        # add column "note_embedding_format"
+        df.note_embedding_format = df.apply(
+            lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
+            axis=1,
+        )
     # add column "note_hash" based on "note_embedding_format"
     df.note_hash = df.note_embedding_format.apply(
         lambda x: hashlib.sha256(x.encode()).hexdigest()
