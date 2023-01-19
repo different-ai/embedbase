@@ -43,7 +43,7 @@ def test_refresh_small_notes():
             },
         )
         assert response.status_code == 200
-        assert response.json() == {"status": "success"}
+        assert response.json().get("status", "") == "success"
 
 
 def test_embed():

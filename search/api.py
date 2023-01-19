@@ -316,7 +316,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         ),
         axis=1,
     )
-    sum_didnt_change = sum(didnt_change)
+    sum_didnt_change = len(df[didnt_change])
     logger.info(f"There are {sum_didnt_change} notes that didn't change too much")
 
 
