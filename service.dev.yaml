@@ -36,8 +36,8 @@ spec:
             name: http1
         resources:
           limits:
-            cpu: "4"
-            memory: 8192Mi
+            cpu: "1"
+            memory: 1024Mi
         volumeMounts:
           - name: settings
             readOnly: true
