@@ -92,7 +92,7 @@ functions/deploy: ## [Local development] Deploy the Cloud functions.
 		--set-env-vars=PINECONE_API_KEY=${PINECONE_API_KEY} \
 		--set-env-vars=HUGGINGFACE_INFERENCE_API_KEY=${HUGGINGFACE_INFERENCE_API_KEY} \
 		--memory=2048MB \
-		--max-instances=20 \
+		--max-instances=2 \
 		--retry \
 		--timeout=540s
 

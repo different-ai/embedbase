@@ -10,7 +10,7 @@ spec:
         run.googleapis.com/execution-environment: gen2
         run.googleapis.com/startup-cpu-boost: "true"
         autoscaling.knative.dev/minScale: "1"
-        autoscaling.knative.dev/maxScale: "100"
+        autoscaling.knative.dev/maxScale: "40"
     spec:
       containerConcurrency: 5
       containers:
@@ -20,10 +20,10 @@ spec:
           initialDelaySeconds: 120
           successThreshold: 1
 
-        image: gcr.io/obsidian-ai/obsidian-search:0.5.1
+        image: gcr.io/obsidian-ai/obsidian-search:0.5.2
         env:
           - name: SENTRY_RELEASE
-            value: "0.5.1"
+            value: "0.5.2"
           - name: ENVIRONMENT
             value: "production"
           - name: UPLOAD_BATCH_SIZE
@@ -35,7 +35,7 @@ spec:
             name: http1
         resources:
           limits:
-            cpu: "1"
+            cpu: "4"
             memory: 2048Mi
         volumeMounts:
           - name: settings

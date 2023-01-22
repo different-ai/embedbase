@@ -27,6 +27,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
+import traceback
 from search.strings import string_similarity
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 # if can't find .env in .. try . now (local dev)
@@ -284,9 +285,15 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     n = 200
     ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
     logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
+    def _fetch(ids):
+        try:
+            return index.fetch(ids=ids, namespace=request.namespace)
+        except Exception as e:
+            logger.error(f"Error fetching {ids}: {e}", exc_info=True)
+            raise e
     with ThreadPool(len(ids_to_fetch)) as pool:
         existing_documents = pool.map(
-            lambda n: index.fetch(ids=n, namespace=request.namespace), ids_to_fetch
+            lambda n: _fetch(n), ids_to_fetch
         )
     # flatten vectors.values()
     flat_existing_documents = itertools.chain.from_iterable(
