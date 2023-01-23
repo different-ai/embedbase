@@ -3,8 +3,8 @@
 .*
 
 # Allow files and directories
-!search/**
+!search/*.py
 !setup.py
-!*requirements.txt
+!requirements.txt
 !README.md
 !MANIFEST.in

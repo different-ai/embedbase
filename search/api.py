@@ -20,7 +20,7 @@ from search.pub_sub import enrich_doc
 from .utils import BatchGenerator, too_big_rows
 import openai
 import sentry_sdk
-import posthog
+# import posthog
 from tenacity import retry
 from tenacity.wait import wait_exponential
 from tenacity.before import before_log
@@ -69,9 +69,9 @@ sentry_sdk.init(
         "profiles_sample_rate": 1.0,
     },
 )
-posthog.project_api_key = "phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM"
-posthog.host = "https://app.posthog.com"
-posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
+# posthog.project_api_key = "phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM"
+# posthog.host = "https://app.posthog.com"
+# posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
 VERSION = os.environ.get("SENTRY_RELEASE", "unknown")
 
 app = FastAPI()
@@ -316,18 +316,20 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     ]
     threshold_similarity = 0.7
     # count rows that didn't change too much using string similarity on note content embedding format
-    didnt_change = df.apply(
-        lambda x: 
-        any(
-            string_similarity(x.note_content, exisiting_content)
-            > threshold_similarity
-            for exisiting_content in exisiting_contents
-        ),
-        axis=1,
-    )
-    sum_didnt_change = len(df[didnt_change])
-    logger.info(f"There are {sum_didnt_change} notes that didn't change too much")
-
+    try:
+        didnt_change = df.apply(
+            lambda x: 
+            any(
+                string_similarity(x.note_content, exisiting_content)
+                > threshold_similarity
+                for exisiting_content in exisiting_contents
+            ),
+            axis=1,
+        )
+        sum_didnt_change = len(df[didnt_change])
+        logger.info(f"There are {sum_didnt_change} notes that didn't change too much")
+    except:
+        pass
 
     diff = df_length - len(df)
 
@@ -365,11 +367,11 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     end_time = time.time()
     logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")
 
-    try:
-        enrich_doc(df.note_path.apply(urllib.parse.quote).tolist(), request.namespace)
-        logger.info(f"Enqueued {len(df)} notes for enrichment")
-    except Exception as e:
-        logger.warning(f"Failed to enqueue notes for enrichment: {e}")
+    # try:
+    #     enrich_doc(df.note_path.apply(urllib.parse.quote).tolist(), request.namespace)
+    #     logger.info(f"Enqueued {len(df)} notes for enrichment")
+    # except Exception as e:
+    #     logger.warning(f"Failed to enqueue notes for enrichment: {e}")
 
     # posthog.capture(
     #     request.namespace,
@@ -516,6 +518,18 @@ def health():
     """
     Return the status of the API
     """
+    logger.info("Health check")
+    # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
+    r = requests.post(
+        "http://0.0.0.0:8080/refresh",
+        json={
+            "namespace": "test",
+            "notes": [],
+        },
+    )
+    r.raise_for_status()
+    logger.info("Health check successful")
+
     return JSONResponse(
         status_code=200,
         content={"status": "success"},

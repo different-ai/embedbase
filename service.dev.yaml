@@ -10,18 +10,18 @@ spec:
         run.googleapis.com/execution-environment: gen2
         run.googleapis.com/startup-cpu-boost: "true"
         autoscaling.knative.dev/minScale: "0"
-        autoscaling.knative.dev/maxScale: "100"
+        autoscaling.knative.dev/maxScale: "1"
     spec:
-      containerConcurrency: 5
+      containerConcurrency: 1
       containers:
         startupProbe:
           httpGet:
             path: /health
           initialDelaySeconds: 60
-          periodSeconds: 60
-          timeoutSeconds: 60
           successThreshold: 1
-          failureThreshold: 60
+          periodSeconds: 30
+          timeoutSeconds: 30
+          failureThreshold: 30
 
         image: gcr.io/obsidian-ai/obsidian-search:latest-dev
         env:

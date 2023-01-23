@@ -4,7 +4,7 @@ pinecone-client
 pandas
 openai
 sentry-sdk[fastapi]
-posthog
+# posthog
 tenacity
 gunicorn
 google-cloud-pubsub
