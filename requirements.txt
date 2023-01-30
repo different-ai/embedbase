@@ -8,3 +8,5 @@ sentry-sdk[fastapi]
 tenacity
 gunicorn
 google-cloud-pubsub
+firebase_admin
+packaging

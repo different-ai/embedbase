@@ -12,19 +12,23 @@ spec:
         autoscaling.knative.dev/minScale: "1"
         autoscaling.knative.dev/maxScale: "100"
     spec:
-      containerConcurrency: 8
+      containerConcurrency: 80
       containers:
         startupProbe:
           httpGet:
+            httpHeaders:
+              - name: Authorization
+                value: Bearer local
             path: /health
           initialDelaySeconds: 30
           successThreshold: 1
           periodSeconds: 30
           timeoutSeconds: 30
           failureThreshold: 30
-
         image: gcr.io/obsidian-ai/obsidian-search:0.5.3
         env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /secrets_firebase/svc.prod.json
           - name: SENTRY_RELEASE
             value: "0.5.3"
           - name: ENVIRONMENT
@@ -44,6 +48,9 @@ spec:
           - name: settings
             readOnly: true
             mountPath: /secrets
+          - name: firebase_admin_service_account
+            mountPath: /secrets_firebase
+            readOnly: true
       volumes:
         - name: settings
           secret:
@@ -51,4 +58,10 @@ spec:
             items:
               - key: "3"
                 path: .env
+        - name: firebase_admin_service_account
+          secret:
+            secretName: FIREBASE_ADMIN_SERVICE_ACCOUNT
+            items:
+              - key: "1"
+                path: svc.prod.json
       timeoutSeconds: 240

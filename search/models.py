@@ -9,17 +9,19 @@ class Note(BaseModel):
     path_to_delete: Optional[str] = None
     note_embedding_format: Optional[str] = None
 
+class BaseSearchRequest(BaseModel):
+    vault_id: str
 
-class Notes(BaseModel):
-    namespace: str
+class SearchRefreshRequest(BaseSearchRequest):
     notes: List[Note] = []
-    clear: bool = False
 
-
-class SearchRequest(BaseModel):
-    namespace: str
+class SearchRequest(BaseSearchRequest):
+    vault_id: str
     query: Optional[str] = None
     note: Optional[Note] = None
     top_k: int = 6
     # example: {"person": "John Doe"}
     metadata: Optional[dict] = None
+
+class SearchClearRequest(BaseSearchRequest):
+    pass

@@ -8,54 +8,45 @@ from functools import lru_cache
 import itertools
 import typing
 import logging
-from fastapi import Depends, FastAPI, status
+from fastapi import Depends, FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from search.models import SearchRequest, Notes, Note
-from pydantic import BaseSettings
+from search.middlewares.history.auths.firebase import firebase_auth
+from search.middlewares.history.backends.firestore import FirestoreBackend
+from search.middlewares.history.core import HistoryMiddleware
+from search.models import (
+    BaseSearchRequest,
+    SearchClearRequest,
+    SearchRefreshRequest,
+    SearchRequest,
+)
 from fastapi.responses import JSONResponse
 import pinecone
 import urllib.parse
 import numpy as np
-from search.pub_sub import enrich_doc
+from search.settings import Settings, get_settings
 from .utils import BatchGenerator, too_big_rows
 import openai
 import sentry_sdk
-# import posthog
+
 from tenacity import retry
 from tenacity.wait import wait_exponential
 from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-import traceback
 from search.strings import string_similarity
-SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
-# if can't find .env in .. try . now (local dev)
-if not os.path.exists(SECRET_PATH + "/.env"):
-    SECRET_PATH = "."
+from firebase_admin import initialize_app, firestore, credentials
+from starlette.types import Scope
+
+SECRET_FIREBASE_PATH = (
+    "/secrets_firebase" if os.path.exists("/secrets_firebase") else ".."
+)
+
+
+if not os.path.exists(SECRET_FIREBASE_PATH + "/svc.prod.json"):
+    SECRET_FIREBASE_PATH = "."
 PORT = os.environ.get("PORT", 3333)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
-
-
-class Settings(BaseSettings):
-    pinecone_api_key: str
-    openai_api_key: str
-    openai_organization: str
-
-    model: str = "text-embedding-ada-002"  # or "multi-qa-MiniLM-L6-cos-v1"
-    embed_cache_size: typing.Optional[int] = None
-    log_level: str = "INFO"
-    device: str = "cpu"
-
-    huggingface_inference_api_key: str
-
-    class Config:
-        env_file = SECRET_PATH + "/.env"
-
-
-@lru_cache()
-def get_settings():
-    return Settings()
 
 
 sentry_sdk.init(
@@ -63,23 +54,56 @@ sentry_sdk.init(
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production,
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.2,
     environment=os.environ.get("ENVIRONMENT", "development"),
     _experiments={
         "profiles_sample_rate": 1.0,
     },
 )
-# posthog.project_api_key = "phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM"
-# posthog.host = "https://app.posthog.com"
-# posthog.debug = os.environ.get("ENVIRONMENT", "development") == "development"
 VERSION = os.environ.get("SENTRY_RELEASE", "unknown")
 
 app = FastAPI()
+cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
+initialize_app(cred)
+_firestore = firestore.client()
+
+
+async def handle_auth_error(exc: Exception, scope: Scope):
+    status_code = (
+        exc.status_code
+        if hasattr(exc, "status_code")
+        else status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+    message = exc.detail if hasattr(exc, "detail") else str(exc)
+
+    logger.error(message, exc_info=True)
+    try:
+        sentry_sdk.capture_message(message, level="error")
+    except:
+        pass
+    return JSONResponse(
+        status_code=status_code,
+        content={"message": message},
+    )
+
+
+async def on_auth_success(user: str, group: str, scope: Scope):
+    try:
+        sentry_sdk.set_user({"id": user, "group": group})
+    except:
+        pass
 
 
 app.add_middleware(
+    HistoryMiddleware,
+    authenticate=firebase_auth,
+    backend=FirestoreBackend(_firestore),
+    on_auth_error=handle_auth_error,
+    on_auth_success=on_auth_success,
+)
+app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["app://obsidian.md", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -111,7 +135,7 @@ def note_to_embedding_format(
 
 
 @app.on_event("startup")
-def startup_event(): 
+def startup_event():
     result = index.fetch(ids=["foo"])  # TODO: container startup check
     if result:
         logger.info("Properly connected to Pinecone")
@@ -203,36 +227,42 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     [response.get() for response in map(_insert, batches)]
 
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
-    # posthog.capture(
-    #     namespace,
-    #     "upload_vectors",
-    #     {"duration": time.time() - start_time_upload, "vectors": len(df)},
-    # )
 
 
 MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1000"))
 
 
-@app.post("/refresh")
-def refresh(request: Notes, _: Settings = Depends(get_settings)):
+def get_namespace(request: Request, request_body: BaseSearchRequest) -> str:
+    return f"{request.scope.get('uid')}/{request_body.vault_id}"
+
+
+@app.post("/v1/search/clear")
+def clear_search(
+    request: Request,
+    request_body: SearchClearRequest,
+    _: Settings = Depends(get_settings),
+):
+    namespace = get_namespace(request, request_body)
+
+    index.delete(delete_all=True, namespace=namespace)
+    logger.info("Cleared index")
+    return JSONResponse(status_code=200, content={"status": "success"})
+
+
+@app.post("/v1/search/refresh")
+def refresh(
+    request: Request,
+    request_body: SearchRefreshRequest,
+    _: Settings = Depends(get_settings),
+):
     """
     Refresh the embeddings for a given file
     """
-    sentry_sdk.set_user(
-        {
-            "id": request.namespace.split("/")[0]
-            if request.namespace and len(request.namespace.split("/")) > 0
-            else "unknown"
-        }
-    )
-    print(request)
-    if request.clear:
-        # clear index
-        index.delete(delete_all=True, namespace=request.namespace)
-        logger.info("Cleared index")
-        return JSONResponse(status_code=200, content={"status": "ok"})
+    namespace = get_namespace(request, request_body)
 
-    notes = request.notes
+    sentry_sdk.set_user({"id": request_body.vault_id})
+
+    notes = request_body.notes
     # TODO: temporarily we ignore too big notes because pinecone doesn't support them
     df = DataFrame(
         [
@@ -256,19 +286,20 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     logger.info(f"Refreshing {len(notes)} embeddings")
     if df.path_to_delete.any():
         to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
-        response = index.delete(ids=to_delete, namespace=request.namespace)
+        response = index.delete(ids=to_delete, namespace=namespace)
         logger.info(f"Deleted notes: {to_delete}")
 
     if not df.note_content.any():
         logger.info("No notes to index, exiting")
-        print(df.note_content)
         return JSONResponse(status_code=200, content={"status": "success"})
 
     # HACK depecrated client version >2.14.0 don't send note_embedding_format
     if not df.note_embedding_format.any():
         # add column "note_embedding_format"
         df.note_embedding_format = df.apply(
-            lambda x: note_to_embedding_format(x.note_path, x.note_tags, x.note_content),
+            lambda x: note_to_embedding_format(
+                x.note_path, x.note_tags, x.note_content
+            ),
             axis=1,
         )
     # add column "note_hash" based on "note_embedding_format"
@@ -285,16 +316,16 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     n = 200
     ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
     logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
+
     def _fetch(ids):
         try:
-            return index.fetch(ids=ids, namespace=request.namespace)
+            return index.fetch(ids=ids, namespace=namespace)
         except Exception as e:
             logger.error(f"Error fetching {ids}: {e}", exc_info=True)
             raise e
+
     with ThreadPool(len(ids_to_fetch)) as pool:
-        existing_documents = pool.map(
-            lambda n: _fetch(n), ids_to_fetch
-        )
+        existing_documents = pool.map(lambda n: _fetch(n), ids_to_fetch)
     # flatten vectors.values()
     flat_existing_documents = itertools.chain.from_iterable(
         [doc.vectors.values() for doc in existing_documents]
@@ -318,8 +349,7 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # count rows that didn't change too much using string similarity on note content embedding format
     try:
         didnt_change = df.apply(
-            lambda x: 
-            any(
+            lambda x: any(
                 string_similarity(x.note_content, exisiting_content)
                 > threshold_similarity
                 for exisiting_content in exisiting_contents
@@ -337,7 +367,6 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
 
     if not df.note_content.any():
         logger.info("No notes to index found after filtering existing ones, exiting")
-        print(df.note_content)
         return JSONResponse(
             status_code=200,
             content={
@@ -361,30 +390,11 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     # # merge s column into a single column , ignore index
     # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: problem is that pinecone doesn't support this large of an input
-    upload_embeddings_to_vector_database(df, request.namespace)
+    upload_embeddings_to_vector_database(df, namespace)
 
     logger.info(f"Indexed & uploaded {len(df)} sentences")
     end_time = time.time()
     logger.info(f"Indexed & uploaded in {end_time - start_time} seconds")
-
-    # try:
-    #     enrich_doc(df.note_path.apply(urllib.parse.quote).tolist(), request.namespace)
-    #     logger.info(f"Enqueued {len(df)} notes for enrichment")
-    # except Exception as e:
-    #     logger.warning(f"Failed to enqueue notes for enrichment: {e}")
-
-    # posthog.capture(
-    #     request.namespace,
-    #     "refresh",
-    #     {
-    #         "namespace": request.namespace,
-    #         "notes_length": len(request.notes),
-    #         "clear": request.clear,
-    #         "filtered": diff,
-    #         "duration": end_time - start_time,
-    #         "didnt_change": sum_didnt_change,
-    #     },
-    # )
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
@@ -395,13 +405,15 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     )
 
 
-@app.post("/semantic_search")
-def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings)):
+@app.post("/v1/search")
+def semantic_search(
+    request: Request, request_body: SearchRequest, _: Settings = Depends(get_settings)
+):
     """
     Search for a given query in the corpus
     """
     # either note or query is present in the request
-    if not request.note and not request.query:
+    if not request_body.note and not request_body.query:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
@@ -409,76 +421,32 @@ def semantic_search(request: SearchRequest, _: Settings = Depends(get_settings))
                 "message": "Please provide a query or a note.",
             },
         )
-    query = request.query or note_to_embedding_format(
-        request.note.note_path,
-        request.note.note_tags,
-        request.note.note_content,
+    query = request_body.query or note_to_embedding_format(
+        request_body.note.note_path,
+        request_body.note.note_tags,
+        request_body.note.note_content,
     )
-    # posthog.capture(
-    #     request.namespace,
-    #     "search",
-    #     {
-    #         "namespace": request.namespace,
-    #         "query_length": len(query),
-    #     },
-    # )
-    sentry_sdk.set_user(
-        {
-            "id": request.namespace.split("/")[0]
-            if request.namespace and len(request.namespace.split("/")) > 0
-            else "unknown"
-        }
-    )
-
-    # API_URL = "https://api-inference.huggingface.co/models/dslim/bert-base-NER"
-    # headers = {"Authorization": f"Bearer {settings.huggingface_inference_api_key}"}
-
-    # def query_hf(payload):
-    #     start_time = time.time()
-    #     response = requests.post(API_URL, headers=headers, json={"inputs": payload})
-    #     e = response.json()
-    #     posthog.capture(
-    #         request.namespace,
-    #         "named_entity_recognition",
-    #         {
-    #             "query_length": len(payload),
-    #             "time": time.time() - start_time,
-    #         },
-    #     )
-    #     return e
+    namespace = get_namespace(request, request_body)
+    sentry_sdk.set_user({"id": request_body.vault_id})
 
     top_k = 5  # TODO might fail if index empty?
-    if request.top_k > 0:
-        top_k = request.top_k
-
-    # run in parallel embed and hf NER
-    # with ThreadPool(2) as pool:
-    #     ner_response, query_embedding = pool.map(
-    #         lambda f: f(query), [query_hf, no_batch_embed]
-    #     )
+    if request_body.top_k > 0:
+        top_k = request_body.top_k
     query_embedding = no_batch_embed(query)
 
-    logger.info(f"Query {request.query} created embedding, querying index")
-    # TODO: unnecesary prob
-    # persons_in_the_query = [o for o in ner_response if o["entity_group"] == "PER"]
-    # logger.info(f"Found {ner_response} persons in the query")
+    logger.info(f"Query {request_body.query} created embedding, querying index")
 
     query_response = index.query(
         top_k=top_k,
         include_values=True,
         include_metadata=True,
         vector=query_embedding,
-        namespace=request.namespace,
+        namespace=namespace,
         # if metadata is present in the request, filter by it
-        filter={"note_ner_word": {"$in": request.metadata.get("persons", "%")}}
-        if request.metadata
+        filter={"note_ner_word": {"$in": request_body.metadata.get("persons", "%")}}
+        if request_body.metadata
         else {},
-        # filter={"note_ner_word": {"$in": [o["word"] for o in ner_response]}},
-        # {"genre": {"$in":["documentary","action"]}}
     )
-
-    # TODO: maybe advanced query language like elasticsearch + semantic query
-    # TODO: i.e. if I want to search over tags + semantic?
 
     similarities = []
     for match in query_response.matches:
@@ -521,10 +489,13 @@ def health():
     logger.info("Health check")
     # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
     r = requests.post(
-        "http://0.0.0.0:8080/refresh",
+        "http://0.0.0.0:8080/v1/search/refresh",
         json={
-            "namespace": "test",
+            "vault_id": "test",
             "notes": [],
+        },
+        headers={
+            "Authorization": "Bearer local",
         },
     )
     r.raise_for_status()

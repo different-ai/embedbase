@@ -4,7 +4,7 @@ SERVICE="obsidian-search"
 LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
 VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
-
+LOCAL_PORT="3333"
 # echo the gcloud project
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
@@ -20,7 +20,7 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn search.api:app --port 3333 --reload --log-level debug
+	python3 -m uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug
 # GUNICORN_CMD_ARGS="--keep-alive 0" gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:3333 --log-level debug --timeout 120
 
 test: ## [Local development] Run tests with pytest.
@@ -42,7 +42,9 @@ docker/build: ## [Local development] Build the docker image.
 
 docker/run: ## [Local development] Run the docker image.
 	docker build -t ${IMAGE_URL} -f ./search/Dockerfile .
-	docker run -p 8080:8080 --rm --name ${SERVICE} -v "$(shell pwd)/.env":/app/.env ${IMAGE_URL}
+	docker run -p 8080:8080 --rm --name ${SERVICE} \
+		-v "$(shell pwd)/.env":/app/.env \
+		-v "$(shell pwd)/svc.prod.json":/app/svc.prod.json ${IMAGE_URL}
 
 docker/push: docker/build ## [Local development] Push the docker image to GCP.
 	docker push ${IMAGE_URL}
