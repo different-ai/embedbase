@@ -1,6 +1,8 @@
 # Embedbase
 
-[DESCRIPTION]
+**The open-source API for storing & retrieving embeddings.**
+
+Easily search images, audio, and text alike - in a single api call.
 
 ## Installation
 

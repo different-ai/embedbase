@@ -4,7 +4,6 @@ from . import BaseBackend
 from google.cloud.firestore import Client, SERVER_TIMESTAMP
 
 from starlette.types import Scope
-import datetime
 from .plans import plans
 
 
@@ -16,20 +15,6 @@ class FirestoreBackend(BaseBackend):
         self._firestore = firestore
 
     async def can_log(self, user: str, group: str, scope: Scope) -> Optional[str]:
-        """
-        check if the user can query this path within his plan
-        Free plan
-        50 texts
-        10 images
-        30 links
-        Hobby # no bankrupcy
-        50 x 20 = 1000 texts
-        10 x 20 = 200 images
-        30 x 20 = 600 links
-        Pro
-        same temporarily
-        """
-
         # get all the requests since the beginning of the month (first day)
         current_month_history_by_path_doc = self._firestore.collection("quotas").document(
             user
