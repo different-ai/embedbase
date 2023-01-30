@@ -434,10 +434,6 @@ def semantic_search(
         include_metadata=True,
         vector=query_embedding,
         namespace=namespace,
-        # if metadata is present in the request, filter by it
-        filter={"note_ner_word": {"$in": request_body.metadata.get("persons", "%")}}
-        if request_body.metadata
-        else {},
     )
 
     similarities = []
@@ -452,18 +448,6 @@ def semantic_search(
                 "note_path": decoded_path,
                 "note_content": match.metadata["note_content"],
                 "note_tags": match.metadata["note_tags"],
-                "note_ner_entity_group": match.metadata.get(
-                    "note_ner_entity_group", []
-                ),
-                # convert to list of numbers ("[1,2,3]" -> [1,2,3])
-                "note_ner_score": json.loads(
-                    match.metadata.get("note_ner_score", "[]")
-                ),
-                "note_ner_word": match.metadata.get("note_ner_word", []),
-                "note_ner_start": json.loads(
-                    match.metadata.get("note_ner_start", "[]")
-                ),
-                "note_ner_end": json.loads(match.metadata.get("note_ner_end", "[]")),
             }
         )
     return JSONResponse(

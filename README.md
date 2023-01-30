@@ -46,11 +46,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query"
         "Humans",
         "Bob"
       ],
-      "note_ner_entity_group": [],
-      "note_ner_score": [],
-      "note_ner_word": [],
-      "note_ner_start": [],
-      "note_ner_end": []
     }
   ]
 }
@@ -62,7 +57,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query"
   ⚠️ Ensure there is no "dev" in the tag, i.e. `gcr.io/obsidian-ai/obsidian-search:0.0.7` ⚠️
 2. Push your code to `main`
 
-## Cloud Run configuration
+## Cloud Run deployment
 
 ### Setup
 
@@ -81,14 +76,11 @@ gcloud services enable run.googleapis.com
 # Enable Secret Manager
 gcloud services enable secretmanager.googleapis.com
 
-# create a secret for the stability key
-gcloud secrets create OBSIDIAN_SEARCH --replication-policy=automatic
+# create a secret for the config
+gcloud secrets create SEARCH --replication-policy=automatic
 
-# add a version to the secret (from https://pinecone.io)
-
-# create a ".env" file with content:
-# PINECONE_API_KEY="foo"
-gcloud secrets versions add OBSIDIAN_SEARCH --data-file=.env
+# add a secret version based on your yaml config
+gcloud secrets versions add SEARCH --data-file=config.yaml
 ```
 
 ### Manual deployment
