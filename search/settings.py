@@ -12,12 +12,9 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_organization: str
 
-    model: str = "text-embedding-ada-002"  # or "multi-qa-MiniLM-L6-cos-v1"
+    model: str = "text-embedding-ada-002"
     embed_cache_size: typing.Optional[int] = None
     log_level: str = "INFO"
-    device: str = "cpu"
-
-    huggingface_inference_api_key: str
 
     class Config:
         env_file = SECRET_PATH + "/.env"

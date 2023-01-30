@@ -1,6 +1,0 @@
-firebase_admin
-pinecone-client
-tenacity
-transformers
---extra-index-url https://download.pytorch.org/whl/cpu
-torch

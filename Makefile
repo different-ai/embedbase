@@ -15,13 +15,11 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
 	source env/bin/activate; \
 	pip install -r requirements.txt; \
-	pip install -r requirements-test.txt; \
-	pip install -r functions/requirements.txt
+	pip install -r requirements-test.txt
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug
-# GUNICORN_CMD_ARGS="--keep-alive 0" gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:3333 --log-level debug --timeout 120
+	gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:${LOCAL_PORT} --log-level debug --timeout 120
 
 test: ## [Local development] Run tests with pytest.
 	cd search; \
@@ -30,9 +28,6 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_main.py::test_upload; \
 	python3 -m pytest -s test_main.py::test_embed_large_text; \
 	python3 -m pytest -s test_main.py::test_ignore_note_that_didnt_change
-# cd functions; \
-# python3 -m pytest -s -vv test_main.py::test_extract_named_entities; \
-
 	@echo "Done testing"
 
 docker/build: ## [Local development] Build the docker image.
@@ -73,31 +68,6 @@ release: ## [Local development] Release a new version of the API.
 
 policy: ## [Local development] Set the IAM policy for the service.
 	gcloud run services set-iam-policy ${SERVICE} ./policy.prod.yaml --region ${REGION}
-
-# gcloud pubsub topics create enrich_index
-functions/deploy: ## [Local development] Deploy the Cloud functions.
-	if [ -z "${PINECONE_API_KEY}" ]; then \
-		echo "PINECONE_API_KEY is not set"; \
-		exit 1; \
-	fi
-	if [ -z "${HUGGINGFACE_INFERENCE_API_KEY}" ]; then \
-		echo "HUGGINGFACE_INFERENCE_API_KEY is not set"; \
-		exit 1; \
-	fi
-	gcloud functions deploy enrich-index \
-		--gen2 \
-		--runtime=python310 \
-		--region=${REGION} \
-		--source=functions \
-		--entry-point=enrich_index \
-		--trigger-topic=enrich_index \
-		--set-env-vars=PINECONE_API_KEY=${PINECONE_API_KEY} \
-		--set-env-vars=HUGGINGFACE_INFERENCE_API_KEY=${HUGGINGFACE_INFERENCE_API_KEY} \
-		--memory=2048MB \
-		--max-instances=1 \
-		--timeout=540s
-# --retry
-
 
 .PHONY: help
 

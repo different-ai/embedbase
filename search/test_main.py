@@ -87,21 +87,6 @@ def test_upload():
     assert results.matches[1]["id"] == "0"
 
 
-def test_upload_big():
-    # read test_data/upload.json
-    # upload to vector database
-    data = json.load(open("./search/test_data/upload.json"))
-    with TestClient(app=app) as client:
-        response = client.post(
-            "/refresh",
-            json={
-                "namespace": "dev",
-                "notes": data["notes"]
-            },
-        )
-        assert response.status_code == 200
-        assert response.json() == {"status": "success"}
-
 def test_ignore_note_that_didnt_change():
     df = pd.DataFrame(
         [
