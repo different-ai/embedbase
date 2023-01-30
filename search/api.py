@@ -38,69 +38,80 @@ from search.strings import string_similarity
 from firebase_admin import initialize_app, firestore, credentials
 from starlette.types import Scope
 
+settings = get_settings()
 SECRET_FIREBASE_PATH = (
     "/secrets_firebase" if os.path.exists("/secrets_firebase") else ".."
 )
-
 
 if not os.path.exists(SECRET_FIREBASE_PATH + "/svc.prod.json"):
     SECRET_FIREBASE_PATH = "."
 PORT = os.environ.get("PORT", 3333)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
+logger = logging.getLogger("search")
+logger.setLevel(settings.log_level)
+handler = logging.StreamHandler()
+handler.setLevel(settings.log_level)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
-sentry_sdk.init(
-    dsn="https://6b244f8db9db446b8c2deddfea43083e@o404046.ingest.sentry.io/4504407308697600",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production,
-    traces_sample_rate=0.2,
-    environment=os.environ.get("ENVIRONMENT", "development"),
-    _experiments={
-        "profiles_sample_rate": 1.0,
-    },
-)
-VERSION = os.environ.get("SENTRY_RELEASE", "unknown")
+if settings.sentry:
+    logger.info("Enabling Sentry")
+    sentry_sdk.init(
+        dsn=settings.sentry,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production,
+        traces_sample_rate=0.2,
+        environment=os.environ.get("ENVIRONMENT", "development"),
+        _experiments={
+            "profiles_sample_rate": 1.0,
+        },
+    )
 
 app = FastAPI()
-cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
-initialize_app(cred)
-_firestore = firestore.client()
 
+if settings.middlewares and settings.middlewares.history:
+    logger.info("Enabling history middleware")
+    cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
+    initialize_app(cred)
+    _firestore = firestore.client()
+    async def handle_auth_error(exc: Exception, scope: Scope):
+        status_code = (
+            exc.status_code
+            if hasattr(exc, "status_code")
+            else status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        message = exc.detail if hasattr(exc, "detail") else str(exc)
 
-async def handle_auth_error(exc: Exception, scope: Scope):
-    status_code = (
-        exc.status_code
-        if hasattr(exc, "status_code")
-        else status.HTTP_500_INTERNAL_SERVER_ERROR
+        logger.error(message, exc_info=True)
+        try:
+            sentry_sdk.capture_message(message, level="error")
+        except:
+            pass
+        return JSONResponse(
+            status_code=status_code,
+            content={"message": message},
+        )
+
+    async def on_auth_success(user: str, group: str, scope: Scope):
+        try:
+            sentry_sdk.set_user({"id": user, "group": group})
+        except:
+            pass
+
+    app.add_middleware(
+        HistoryMiddleware,
+        authenticate=firebase_auth,
+        backend=FirestoreBackend(_firestore),
+        on_auth_error=handle_auth_error,
+        on_auth_success=on_auth_success,
     )
-    message = exc.detail if hasattr(exc, "detail") else str(exc)
-
-    logger.error(message, exc_info=True)
-    try:
-        sentry_sdk.capture_message(message, level="error")
-    except:
-        pass
-    return JSONResponse(
-        status_code=status_code,
-        content={"message": message},
-    )
 
 
-async def on_auth_success(user: str, group: str, scope: Scope):
-    try:
-        sentry_sdk.set_user({"id": user, "group": group})
-    except:
-        pass
 
 
-app.add_middleware(
-    HistoryMiddleware,
-    authenticate=firebase_auth,
-    backend=FirestoreBackend(_firestore),
-    on_auth_error=handle_auth_error,
-    on_auth_success=on_auth_success,
-)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["app://obsidian.md", "*"],
@@ -109,19 +120,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-settings = get_settings()
 pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai", pool_threads=8)
-state = {"status": "loading"}
-logger = logging.getLogger("search")
-logger.setLevel(settings.log_level)
-handler = logging.StreamHandler()
-handler.setLevel(settings.log_level)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+
 
 
 def note_to_embedding_format(
@@ -142,8 +145,6 @@ def startup_event():
     else:
         logger.error("Could not connect to Pinecone")
     logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
-    logger.info(f"Starting version {VERSION}")
-    state["status"] = "ready"
 
 
 @lru_cache()
@@ -293,15 +294,6 @@ def refresh(
         logger.info("No notes to index, exiting")
         return JSONResponse(status_code=200, content={"status": "success"})
 
-    # HACK depecrated client version >2.14.0 don't send note_embedding_format
-    if not df.note_embedding_format.any():
-        # add column "note_embedding_format"
-        df.note_embedding_format = df.apply(
-            lambda x: note_to_embedding_format(
-                x.note_path, x.note_tags, x.note_content
-            ),
-            axis=1,
-        )
     # add column "note_hash" based on "note_embedding_format"
     df.note_hash = df.note_embedding_format.apply(
         lambda x: hashlib.sha256(x.encode()).hexdigest()

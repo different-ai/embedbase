@@ -1,11 +1,65 @@
-# API
+# Embedbase
 
-API dedicated to simplify the usage of search with Obsidian AI.
+[DESCRIPTION]
 
-This is runnable locally or in Google Cloud Run.
+## Installation
 
-Please refer to [the main Makefile](./Makefile) for the available commands.
+`config.yaml`
+```
+pinecone_api_key: ...
+openai_api_key: ...
+openai_organization: ...
+sentry: ...
+middlewares:
+  history:
+    auth: firebase
+    backend: firestore
+```
 
+### Baremetal
+
+1. `make install`
+2. `make run`
+
+### Docker
+
+1. `make docker/run`
+
+## Usage
+
+```bash
+# inserting a document
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human.", "note_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:3333/v1/search/refresh | jq '.'
+
+{
+  "status": "success",
+  "ignored_notes_hash": []
+}
+
+
+# searching
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:3333/v1/search | jq '.'
+{
+  "query": "Bob",
+  "similarities": [
+    {
+      "score": 0.828773,
+      "note_name": "Bob.md",
+      "note_path": "Bob.md",
+      "note_content": "Bob is a human.",
+      "note_tags": [
+        "Humans",
+        "Bob"
+      ],
+      "note_ner_entity_group": [],
+      "note_ner_score": [],
+      "note_ner_word": [],
+      "note_ner_start": [],
+      "note_ner_end": []
+    }
+  ]
+}
+```
 
 ## Releasing
 

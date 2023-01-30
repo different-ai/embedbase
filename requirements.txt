@@ -8,3 +8,4 @@ tenacity
 gunicorn
 firebase_admin
 packaging
+pydantic_yaml[pyyaml]

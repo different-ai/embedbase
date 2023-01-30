@@ -19,7 +19,7 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	gunicorn -w 1 -k uvicorn.workers.UvicornH11Worker api:app -b 0.0.0.0:${LOCAL_PORT} --log-level debug --timeout 120
+	python3 -m uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
 	cd search; \
