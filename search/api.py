@@ -3,7 +3,6 @@ from multiprocessing.pool import ThreadPool
 import time
 from pandas import DataFrame
 import os
-import json
 from functools import lru_cache
 import itertools
 import typing
@@ -38,6 +37,7 @@ from search.strings import string_similarity
 from firebase_admin import initialize_app, firestore, credentials
 from starlette.types import Scope
 
+
 settings = get_settings()
 SECRET_FIREBASE_PATH = (
     "/secrets_firebase" if os.path.exists("/secrets_firebase") else ".."
@@ -55,6 +55,13 @@ handler.setLevel(settings.log_level)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+try:
+    from search.plugins.firestore_backend import can_log
+    logger.info("Enabling plugins")
+except ImportError:
+    logger.info("No plugins found")
+    can_log = lambda: None
 
 if settings.sentry:
     logger.info("Enabling Sentry")
@@ -104,7 +111,7 @@ if settings.middlewares and settings.middlewares.history:
     app.add_middleware(
         HistoryMiddleware,
         authenticate=firebase_auth,
-        backend=FirestoreBackend(_firestore),
+        backend=FirestoreBackend(_firestore, can_log=can_log),
         on_auth_error=handle_auth_error,
         on_auth_success=on_auth_success,
     )
@@ -124,7 +131,6 @@ pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai", pool_threads=8)
-
 
 
 def note_to_embedding_format(

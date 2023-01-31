@@ -4,6 +4,7 @@
 
 # Allow files and directories
 !search/middlewares
+!search/plugins
 !search/*.py
 !setup.py
 !requirements.txt

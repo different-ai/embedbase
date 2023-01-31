@@ -38,7 +38,7 @@ docker/build: ## [Local development] Build the docker image.
 docker/run: ## [Local development] Run the docker image.
 	docker build -t ${IMAGE_URL} -f ./search/Dockerfile .
 	docker run -p 8080:8080 --rm --name ${SERVICE} \
-		-v "$(shell pwd)/.env":/app/.env \
+		-v "$(shell pwd)/config.yaml":/app/config.yaml \
 		-v "$(shell pwd)/svc.prod.json":/app/svc.prod.json ${IMAGE_URL}
 
 docker/push: docker/build ## [Local development] Push the docker image to GCP.

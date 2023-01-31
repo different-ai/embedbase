@@ -1,98 +1,25 @@
 from itertools import groupby
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 from . import BaseBackend
 from google.cloud.firestore import Client, SERVER_TIMESTAMP
-
-from starlette.types import Scope
-from .plans import plans
-
+from starlette.types import Scope, ASGIApp
 
 
 class FirestoreBackend(BaseBackend):
     """simple history tracker with Firestore"""
 
-    def __init__(self, firestore: Client) -> None:
+    def __init__(
+        self,
+        firestore: Client,
+        can_log: Optional[Callable[[Client, str, str, Scope], Awaitable[Optional[str]]]] = None,
+    ):
         self._firestore = firestore
+        self._can_log = can_log
 
     async def can_log(self, user: str, group: str, scope: Scope) -> Optional[str]:
-        # get all the requests since the beginning of the month (first day)
-        current_month_history_by_path_doc = self._firestore.collection("quotas").document(
-            user
-        ).get()
-        # no log yet
-        if not current_month_history_by_path_doc.exists:
+        if not self._can_log:
             return None
-        # i.e. {"/v1/text/create": 3, "/v1/image/create": 2 ...}
-        current_month_history_by_path = current_month_history_by_path_doc.to_dict()
-        stripe_role = scope.get("stripe_role", "free")
-
-        if stripe_role == "free":
-            p = "/v1/text/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} texts. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-            p = "/v1/image/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} images. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-            p = "/v1/search"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} links. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-        elif stripe_role == "hobby":
-            p = "/v1/text/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} texts. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-            p = "/v1/image/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} images. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-            p = "/v1/search"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} links. "
-                        + "Please upgrade your plan on https://app.anotherai.co"
-                    )
-
-        elif stripe_role == "pro":
-            p = "/v1/text/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} texts. "
-                        + "Please contact us at ben@prologe.io to increase your plan limit"
-                    )
-            p = "/v1/image/create"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} images. "
-                        + "Please contact us at ben@prologe.io to increase your plan limit"
-                    )
-            p = "/v1/search"
-            if scope["path"] == p:
-                if current_month_history_by_path[p] > plans[stripe_role][p]:
-                    return (
-                        f"You exceeded your plan limit of {plans[stripe_role][p]} links. "
-                        + "Please contact us at ben@prologe.io to increase your plan limit"
-                    )
+        return await self._can_log(user, group, scope)
 
     async def log(self, user: str, group: str, scope: Scope):
         """log the request in the history"""

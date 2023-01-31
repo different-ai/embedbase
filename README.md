@@ -27,7 +27,6 @@ openai_organization: ...
 ```bash
 # inserting a document
 curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human.", "note_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:3333/v1/search/refresh | jq '.'
-
 {
   "status": "success",
   "ignored_notes_hash": []

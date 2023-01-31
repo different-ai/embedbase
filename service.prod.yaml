@@ -56,8 +56,8 @@ spec:
           secret:
             secretName: OBSIDIAN_SEARCH
             items:
-              - key: "3"
-                path: .env
+              - key: "4"
+                path: config.yaml
         - name: firebase_admin_service_account
           secret:
             secretName: FIREBASE_ADMIN_SERVICE_ACCOUNT
