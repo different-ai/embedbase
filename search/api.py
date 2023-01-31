@@ -39,6 +39,7 @@ from starlette.types import Scope
 
 
 settings = get_settings()
+MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
 SECRET_FIREBASE_PATH = (
     "/secrets_firebase" if os.path.exists("/secrets_firebase") else ".."
 )
@@ -58,7 +59,6 @@ logger.addHandler(handler)
 
 try:
     from search.plugins.firestore_backend import can_log
-
     logger.info("Enabling plugins")
 except ImportError:
     logger.info("No plugins found")
@@ -232,7 +232,6 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
 
-MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
 
 
 def get_namespace(request: Request, request_body: BaseSearchRequest) -> str:
@@ -445,12 +444,13 @@ def semantic_search(
     similarities = []
     for match in query_response.matches:
         logger.debug(f"Match id: {match.id}")
-        decoded_path = urllib.parse.unquote(match.id)
-        logger.debug(f"Decoded path: {decoded_path}")
+        decoded_id = urllib.parse.unquote(match.id)
+        logger.debug(f"Decoded id: {decoded_id}")
         similarities.append(
             {
                 "score": match.score,
-                "document_path": decoded_path,
+                "document_id": decoded_id,
+                "document_path": decoded_id,
                 "document_content": match.metadata["document_content"],
                 "document_tags": match.metadata["document_tags"],
             }
