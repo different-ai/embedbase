@@ -1,6 +1,6 @@
 # Embedbase
 
-Open-source API for efficiently to easily create, store, and retrieve embeddings.
+Open-source API for to easily create, store, and retrieve embeddings.
 
 ## Stack
 
