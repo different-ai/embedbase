@@ -6,7 +6,7 @@ services:
     build: .
     ports:
       - "8000:8000"
-    command:  uvicorn search.api:app --reload --log-level debug
+    command:  uvicorn search.api:app --reload --log-level debug --host 0.0.0.0
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
