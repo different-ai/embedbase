@@ -4,6 +4,11 @@ tasks:
       command: |
         export PIP_USER=false
         make install
+    - name: Generate config
+      command: |
+        eval $(gp env -e)
+        pip3 install yq
+        echo "$SEARCH_CONFIG" | yq -y > config.yaml
 
 vscode:
   extensions:

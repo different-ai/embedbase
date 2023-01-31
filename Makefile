@@ -1,10 +1,10 @@
-GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null)
+GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null || echo "none")
 REGION="us-central1"
 SERVICE="obsidian-search"
 LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
 VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
-LOCAL_PORT="3333"
+LOCAL_PORT="8080"
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
 
@@ -38,7 +38,7 @@ docker/run: ## [Local development] Run the docker image.
 	docker build -t ${IMAGE_URL} -f ./search/Dockerfile .
 	docker run -p 8080:8080 --rm --name ${SERVICE} \
 		-v "$(shell pwd)/config.yaml":/app/config.yaml \
-		-v "$(shell pwd)/svc.prod.json":/app/svc.prod.json ${IMAGE_URL}
+		${IMAGE_URL}
 
 docker/push: docker/build ## [Local development] Push the docker image to GCP.
 	docker push ${IMAGE_URL}

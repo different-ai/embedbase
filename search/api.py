@@ -46,7 +46,7 @@ SECRET_FIREBASE_PATH = (
 
 if not os.path.exists(SECRET_FIREBASE_PATH + "/svc.prod.json"):
     SECRET_FIREBASE_PATH = "."
-PORT = os.environ.get("PORT", 3333)
+PORT = os.environ.get("PORT", 8080)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 logger = logging.getLogger("search")
