@@ -27,7 +27,7 @@ openai_organization: ...
 ## Usage
 
 ```bash
-# inserting a document
+# inserting/updating a document
 curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:8080/v1/search/refresh | jq '.'
 {
   "status": "success",
@@ -51,6 +51,12 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query"
       ],
     }
   ]
+}
+
+# deleting a document
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_to_delete": "Bob.md"}]}' http://localhost:8080/v1/search/refresh | jq '.'
+{
+  "status": "success",
 }
 ```
 
