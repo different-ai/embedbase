@@ -58,6 +58,7 @@ logger.addHandler(handler)
 
 try:
     from search.plugins.firestore_backend import can_log
+
     logger.info("Enabling plugins")
 except ImportError:
     logger.info("No plugins found")
@@ -84,6 +85,7 @@ if settings.middlewares and settings.middlewares.history:
     cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
     initialize_app(cred)
     _firestore = firestore.client()
+
     async def handle_auth_error(exc: Exception, scope: Scope):
         status_code = (
             exc.status_code
@@ -117,8 +119,6 @@ if settings.middlewares and settings.middlewares.history:
     )
 
 
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["app://obsidian.md", "*"],
@@ -133,14 +133,11 @@ openai.organization = settings.openai_organization
 index = pinecone.Index("anotherai", pool_threads=8)
 
 
-def note_to_embedding_format(
-    note_path: str, note_tags: typing.List[str], note_content: str
-) -> str:
+def document_to_embedding_format(document_path: str, document_content: str) -> str:
     """
-    Convert a note to the format expected by the embedding model
+    Convert a document to the format expected by the embedding model
     """
-    # return f"File:\n{note_path}\nTags:\n{note_tags}\nContent:\n{note_content}"
-    return f"File:\n{note_path}\nContent:\n{note_content}"
+    return f"File:\n{document_path}\nContent:\n{document_content}"
 
 
 @app.on_event("startup")
@@ -208,20 +205,19 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
         batch_df = batch_df.drop(bigs, axis=0)
         response = index.upsert(
             vectors=zip(
-                # url encode path
-                batch_df.note_path.apply(urllib.parse.quote).tolist(),
-                # batch_df.note_path,
-                batch_df.note_embedding,
+                # pinecone needs to have the document path url encoded
+                batch_df.document_path.apply(urllib.parse.quote).tolist(),
+                batch_df.document_embedding,
                 [
                     {
-                        "note_tags": tags,
-                        "note_content": content,
-                        "note_hash": note_hash,
+                        "document_tags": tags,
+                        "document_content": content,
+                        "document_hash": document_hash,
                     }
-                    for tags, content, note_hash in zip(
-                        batch_df.note_tags,
-                        batch_df.note_content,
-                        batch_df.note_hash,
+                    for tags, content, document_hash in zip(
+                        batch_df.document_tags,
+                        batch_df.document_content,
+                        batch_df.document_hash,
                     )
                 ],
             ),
@@ -236,7 +232,7 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
 
-MAX_NOTE_LENGTH = int(os.environ.get("MAX_NOTE_LENGTH", "1000"))
+MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
 
 
 def get_namespace(request: Request, request_body: BaseSearchRequest) -> str:
@@ -269,47 +265,47 @@ def refresh(
 
     sentry_sdk.set_user({"id": request_body.vault_id})
 
-    notes = request_body.notes
-    # TODO: temporarily we ignore too big notes because pinecone doesn't support them
+    documents = request_body.documents
+    # TODO: temporarily we ignore too big documents because pinecone doesn't support them
     df = DataFrame(
         [
-            note.dict()
-            for note in notes
-            if note.note_content is not None
-            and len(note.note_content) < MAX_NOTE_LENGTH
+            doc.dict()
+            for doc in documents
+            if doc.document_content is not None
+            and len(doc.document_content) < MAX_DOCUMENT_LENGTH
         ],
         columns=[
-            "note_path",
-            "note_tags",
-            "note_content",
-            "path_to_delete",
-            "note_embedding_format",
-            "note_embedding",
-            "note_hash",
+            "document_path",
+            "document_tags",
+            "document_content",
+            "document_to_delete",
+            "document_embedding_format",
+            "document_embedding",
+            "document_hash",
         ],
     )
 
     start_time = time.time()
-    logger.info(f"Refreshing {len(notes)} embeddings")
-    if df.path_to_delete.any():
-        to_delete = df.path_to_delete.apply(urllib.parse.quote).tolist()
+    logger.info(f"Refreshing {len(documents)} embeddings")
+    if df.document_to_delete.any():
+        to_delete = df.document_to_delete.apply(urllib.parse.quote).tolist()
         response = index.delete(ids=to_delete, namespace=namespace)
-        logger.info(f"Deleted notes: {to_delete}")
+        logger.info(f"Deleted documents: {to_delete}")
 
-    if not df.note_content.any():
-        logger.info("No notes to index, exiting")
+    if not df.document_content.any():
+        logger.info("No documents to index, exiting")
         return JSONResponse(status_code=200, content={"status": "success"})
 
-    # add column "note_hash" based on "note_embedding_format"
-    df.note_hash = df.note_embedding_format.apply(
+    # add column "document_hash" based on "document_embedding_format"
+    df.document_hash = df.document_embedding_format.apply(
         lambda x: hashlib.sha256(x.encode()).hexdigest()
     )
 
     df_length = len(df)
 
-    # filter out notes that didn't change by checking their hash
+    # filter out documents that didn't change by checking their hash
     # in the index metadata
-    ids_to_fetch = df.note_path.apply(urllib.parse.quote).tolist()
+    ids_to_fetch = df.document_path.apply(urllib.parse.quote).tolist()
     # split in chunks of n because fetch has a limit of size
     n = 200
     ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
@@ -335,58 +331,62 @@ def refresh(
     existing_hashes = []
     exisiting_contents = []
     for doc in flat_existing_documents:
-        existing_hashes.append(doc.get("metadata", {}).get("note_hash"))
-        exisiting_contents.append(doc.get("metadata", {}).get("note_content"))
+        existing_hashes.append(doc.get("metadata", {}).get("document_hash"))
+        exisiting_contents.append(doc.get("metadata", {}).get("document_content"))
     df = df[
         ~df.apply(
-            lambda x: x.note_hash in existing_hashes,
+            lambda x: x.document_hash in existing_hashes,
             axis=1,
         )
     ]
     threshold_similarity = 0.7
-    # count rows that didn't change too much using string similarity on note content embedding format
+    # count rows that didn't change too much using string similarity on document content embedding format
     try:
         didnt_change = df.apply(
             lambda x: any(
-                string_similarity(x.note_content, exisiting_content)
+                string_similarity(x.document_content, exisiting_content)
                 > threshold_similarity
                 for exisiting_content in exisiting_contents
             ),
             axis=1,
         )
         sum_didnt_change = len(df[didnt_change])
-        logger.info(f"There are {sum_didnt_change} notes that didn't change too much")
+        logger.info(
+            f"There are {sum_didnt_change} documents that didn't change too much"
+        )
     except:
         pass
 
     diff = df_length - len(df)
 
-    logger.info(f"Filtered out {diff} notes that didn't change at all")
+    logger.info(f"Filtered out {diff} documents that didn't change at all")
 
-    if not df.note_content.any():
-        logger.info("No notes to index found after filtering existing ones, exiting")
+    if not df.document_content.any():
+        logger.info(
+            "No documents to index found after filtering existing ones, exiting"
+        )
         return JSONResponse(
             status_code=200,
             content={
                 "status": "success",
-                "ignored_notes_hash": existing_hashes,
+                "ignored_hashes": existing_hashes,
             },
         )
 
     # parallelize
-    response = embed(df.note_embedding_format.tolist(), settings.model)
-    df.note_embedding = [e["embedding"] for e in response]
+    response = embed(df.document_embedding_format.tolist(), settings.model)
+    df.document_embedding = [e["embedding"] for e in response]
 
     # TODO average the embeddings over "embedding" column grouped by index, merge back into df
     # s = (
-    #     df.apply(lambda x: pd.Series(x["note_embedding"]), axis=1)
+    #     df.apply(lambda x: pd.Series(x["document_embedding"]), axis=1)
     #     .groupby(level=0)
     #     .mean()
     #     .reset_index()
     #     .drop("index", axis=1)
     # )
     # # merge s column into a single column , ignore index
-    # df.note_embedding = s.apply(lambda x: x.tolist(), axis=1)
+    # df.document_embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: problem is that pinecone doesn't support this large of an input
     upload_embeddings_to_vector_database(df, namespace)
 
@@ -398,7 +398,7 @@ def refresh(
         status_code=status.HTTP_200_OK,
         content={
             "status": "success",
-            "ignored_notes_hash": existing_hashes,
+            "ignored_hashes": existing_hashes,
         },
     )
 
@@ -410,19 +410,19 @@ def semantic_search(
     """
     Search for a given query in the corpus
     """
-    # either note or query is present in the request
-    if not request_body.note and not request_body.query:
+    # either document or query is present in the request
+    if not request_body.document and not request_body.query:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
                 "status": "error",
-                "message": "Please provide a query or a note.",
+                "message": "Please provide a query or a document.",
             },
         )
-    query = request_body.query or note_to_embedding_format(
-        request_body.note.note_path,
-        request_body.note.note_tags,
-        request_body.note.note_content,
+    query = request_body.query or document_to_embedding_format(
+        request_body.document.document_path,
+        request_body.document.document_tags,
+        request_body.document.document_content,
     )
     namespace = get_namespace(request, request_body)
     sentry_sdk.set_user({"id": request_body.vault_id})
@@ -450,10 +450,9 @@ def semantic_search(
         similarities.append(
             {
                 "score": match.score,
-                "note_name": decoded_path.split("/")[-1],
-                "note_path": decoded_path,
-                "note_content": match.metadata["note_content"],
-                "note_tags": match.metadata["note_tags"],
+                "document_path": decoded_path,
+                "document_content": match.metadata["document_content"],
+                "document_tags": match.metadata["document_tags"],
             }
         )
     return JSONResponse(
@@ -474,7 +473,7 @@ def health():
         "http://0.0.0.0:8080/v1/search/refresh",
         json={
             "vault_id": "test",
-            "notes": [],
+            "documents": [],
         },
         headers={
             "Authorization": "Bearer local",

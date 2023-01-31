@@ -1,5 +1,7 @@
 # Embedbase
 
+Supabase for embeddings.
+
 **The open-source API for storing & retrieving embeddings.**
 
 Easily search images, audio, and text alike - in a single api call.
@@ -26,10 +28,10 @@ openai_organization: ...
 
 ```bash
 # inserting a document
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human.", "note_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:3333/v1/search/refresh | jq '.'
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:3333/v1/search/refresh | jq '.'
 {
   "status": "success",
-  "ignored_notes_hash": []
+  "ignored_hashes": []
 }
 
 
@@ -40,10 +42,10 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query"
   "similarities": [
     {
       "score": 0.828773,
-      "note_name": "Bob.md",
-      "note_path": "Bob.md",
-      "note_content": "Bob is a human.",
-      "note_tags": [
+      "document_id": "Bob.md",
+      "document_path": "Bob.md",
+      "document_content": "Bob is a human.",
+      "document_tags": [
         "Humans",
         "Bob"
       ],
