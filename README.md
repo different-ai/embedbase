@@ -63,7 +63,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "docume
 ## Releasing
 
 1. bump `service.prod.yaml` Docker image tag  
-  ⚠️ Ensure there is no "dev" in the tag, i.e. `gcr.io/obsidian-ai/obsidian-search:0.0.7` ⚠️
+  ⚠️ Ensure there is no "dev" in the tag, i.e. `gcr.io/foo/search:0.4.2` ⚠️
 2. Push your code to `main`
 
 ## Deployment

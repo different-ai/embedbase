@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: obsidian-search-dev
+  name: search-dev
 spec:
   template:
     metadata:
@@ -25,7 +25,6 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 30
           failureThreshold: 30
-        image: gcr.io/obsidian-ai/obsidian-search:latest-dev
         env:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /secrets_firebase/svc.prod.json
@@ -54,7 +53,7 @@ spec:
       volumes:
         - name: settings
           secret:
-            secretName: OBSIDIAN_SEARCH
+            secretName: SEARCH
             items:
               - key: "4"
                 path: config.yaml

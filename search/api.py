@@ -121,7 +121,7 @@ if settings.middlewares and settings.middlewares.history:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["app://obsidian.md", "*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
