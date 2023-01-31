@@ -1,0 +1,13 @@
+# https://app.pinecone.io/
+## index name
+pinecone_index: "my index name"
+# replace this with your environment
+pinecone_environment: "us-east1-gcp"
+pinecone_api_key: ""
+
+
+# https://platform.openai.com/account/api-keys
+openai_api_key: "sk-xxxxxxx"
+# https://platform.openai.com/account/org-settings
+openai_organization: "org-xxxxx"
+

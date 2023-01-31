@@ -34,6 +34,8 @@ class Middlewares(YamlModel):
 
 class Settings(YamlModel):
     pinecone_api_key: str
+    pinecone_index: str
+    pinecone_environment: str
     openai_api_key: str
     openai_organization: str
     model: str = "text-embedding-ada-002"

@@ -127,10 +127,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pinecone.init(api_key=settings.pinecone_api_key, environment="us-west1-gcp")
+pinecone.init(api_key=settings.pinecone_api_key, environment=settings.pinecone_environment)
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
-index = pinecone.Index("anotherai", pool_threads=8)
+pinecone_index = settings.pinecone_index
+index = pinecone.Index(pinecone_index, pool_threads=8)
 
 
 def document_to_embedding_format(document_path: str, document_content: str) -> str:
