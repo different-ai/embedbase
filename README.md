@@ -1,10 +1,13 @@
 # Embedbase
 
-Supabase for embeddings.
+Open-source API for efficiently to easily create, store, and retrieve embeddings.
 
-**The open-source API for storing & retrieving embeddings.**
+## Stack
 
-Easily search images, audio, and text alike - in a single api call.
+Build on top of:
+* pinecone
+* openai embeddings
+* fastapi
 
 ## Installation
 
