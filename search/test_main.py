@@ -13,8 +13,7 @@ def test_semantic_search():
         assert response.status_code == 200
 
 
-# curl -X POST -H "Content-Type: application/json" -d '{"notes": [{"note_path": "Bob.md", "note_tags": ["Humans", "Bob"], "note_content": "Bob is a human"}]}' http://localhost:3333/refresh | jq '.'
-def test_refresh_small_notes():
+def test_refresh_small_documents():
     df = pd.DataFrame(
         [
             "".join(
@@ -32,11 +31,11 @@ def test_refresh_small_notes():
             "/refresh",
             json={
                 "namespace": "dev",
-                "notes": [
+                "documents": [
                     {
-                        "note_path": f"{i}/Bob.md",
-                        "note_tags": ["Humans", "Bob"],
-                        "note_content": text,
+                        "document_path": f"{i}/Bob.md",
+                        "document_tags": ["Humans", "Bob"],
+                        "document_content": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -60,20 +59,20 @@ def test_upload():
     df = DataFrame(
         [
             {
-                "note_path": str(i),
-                "note_tags": ["Humans", "Bob"],
-                "note_content": "Bob is a human",
-                "note_embedding": note["embedding"],
-                "note_hash": str(i),
+                "document_path": str(i),
+                "document_tags": ["Humans", "Bob"],
+                "document_content": "Bob is a human",
+                "document_embedding": document["embedding"],
+                "document_hash": str(i),
             }
-            for i, note in enumerate(data)
+            for i, document in enumerate(data)
         ],
         columns=[
-            "note_path",
-            "note_tags",
-            "note_content",
-            "note_embedding",
-            "note_hash",
+            "document_path",
+            "document_tags",
+            "document_content",
+            "document_embedding",
+            "document_hash",
         ],
     )
     upload_embeddings_to_vector_database(df, "unit_test_test_upload")
@@ -87,7 +86,7 @@ def test_upload():
     assert results.matches[1]["id"] == "0"
 
 
-def test_ignore_note_that_didnt_change():
+def test_ignore_document_that_didnt_change():
     df = pd.DataFrame(
         [
             "".join(
@@ -112,11 +111,11 @@ def test_ignore_note_that_didnt_change():
             "/refresh",
             json={
                 "namespace": "dev",
-                "notes": [
+                "documents": [
                     {
-                        "note_path": f"{i}/Bob.md",
-                        "note_tags": ["Humans", "Bob"],
-                        "note_content": text,
+                        "document_path": f"{i}/Bob.md",
+                        "document_tags": ["Humans", "Bob"],
+                        "document_content": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -129,15 +128,15 @@ def test_ignore_note_that_didnt_change():
             "/refresh",
             json={
                 "namespace": "dev",
-                "notes": [
+                "documents": [
                     {
-                        "note_path": f"{i}/Bob.md",
-                        "note_tags": ["Humans", "Bob"],
-                        "note_content": text,
+                        "document_path": f"{i}/Bob.md",
+                        "document_tags": ["Humans", "Bob"],
+                        "document_content": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
             },
         )
         assert response.status_code == 200
-        assert len(response.json().get("ignored_notes_hash")) == 10
+        assert len(response.json().get("ignored_hashes")) == 10

@@ -34,7 +34,7 @@ def too_big_rows(df: DataFrame):
     Reason: Bad Request
     HTTP response headers: HTTPHeaderDict({'content-type': 'application/json', 'date': 'Wed, 04 Jan 2023 15:18:40 GMT', 'x-envoy-upstream-service-time': '1', 'content-length': '115', 'server': 'envoy'})
     HTTP response body: {"code":3,"message":"metadata size is 11759 bytes, which exceeds the limit of 10240 bytes per vector","details":[]}
-    Check if note_tags and note_content are small enough
+    Check if document_tags and document_content are small enough
 
     return size in bytes
     """
@@ -42,8 +42,8 @@ def too_big_rows(df: DataFrame):
     too_big_rows = []
     for i, row in df.iterrows():
         size = 0
-        size += sys.getsizeof(row.note_tags)
-        size += sys.getsizeof(row.note_content)
+        size += sys.getsizeof(row.document_tags)
+        size += sys.getsizeof(row.document_content)
         if size > 10240:
             too_big_rows.append(i)
             print(f"Row {i} is too big, size {size}")

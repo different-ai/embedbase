@@ -5,11 +5,10 @@ LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
 VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
 LOCAL_PORT="3333"
-# echo the gcloud project
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
 
-include .env
+-include .env
 
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
@@ -19,7 +18,7 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug 
+	uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
 	cd search; \
