@@ -1,37 +1,55 @@
+⚠️ Alpha version 
+
+**There are ongoing efforts to make it more modular and easy to use**
+
+
 # Embedbase
 
 Open-source API for to easily create, store, and retrieve embeddings.
 
-## Stack
+You can join the waitlist to make use of the hosted version [here](https://yep.so/p/embedase)
 
-Build on top of:
-* pinecone
-* openai embeddings
-* fastapi
+
+> Used by [AVA](https://github.com/louis030195/obsidian-ava) and serving ~100k requests a day.
+
+## Current Stack
+
+* [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vecotrization
+* [pinecone](https://www.pinecone.io/) to store vectors & documents
+* [fastapi](https://github.com/tiangolo/fastapi) 
+* [firebase](https://firebase.google.com/) for auth (optional)
+
 
 ## Installation
 
-`config.yaml`
-```
-pinecone_api_key: ...
-openai_api_key: ...
-openai_organization: ...
-```
+### Prerequisite
+* Pinecone account & one index
+* Openai account
 
-### Baremetal
+minimal `config.yaml` (see `config.example.yaml`)
 
-1. `make install`
-2. `make run`
+```
+# https://app.pinecone.io/
+pinecone_index: "my index name"
+# replace this with your environment
+pinecone_environment: "us-east1-gcp"
+pinecone_api_key: ""
+
+# https://platform.openai.com/account/api-keys
+openai_api_key: "sk-xxxxxxx"
+# https://platform.openai.com/account/org-settings
+openai_organization: "org-xxxxx"
+```
 
 ### Docker
 
-1. `make docker/run`
+`docker-compose up`
 
 ## Usage
 
 ```bash
 # inserting/updating a document
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:8000/v1/search/refresh | jq '.'
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:8080/v1/search/refresh | jq '.'
 {
   "status": "success",
   "ignored_hashes": []
@@ -39,7 +57,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "docume
 
 
 # searching
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:8000/v1/search | jq '.'
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:8080/v1/search | jq '.'
 {
   "query": "Bob",
   "similarities": [
@@ -57,18 +75,33 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query"
 }
 
 # deleting a document
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_to_delete": "Bob.md"}]}' http://localhost:8000/v1/search/refresh | jq '.'
+curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_to_delete": "Bob.md"}]}' http://localhost:8080/v1/search/refresh | jq '.'
 {
   "status": "success",
 }
 ```
 
-## Releasing
+## Authorization
 
-1. bump `service.prod.yaml` Docker image tag  
-  ⚠️ Ensure there is no "dev" in the tag, i.e. `gcr.io/foo/search:0.4.2` ⚠️
-2. Push your code to `main`
+Right now we just support simple firebase auth. We'll be adding more integrations as we go.
+
+`config.yaml`
+```
+auth: simple_firebase
+## example
+firebase_service_account_path './service_account.json'
+```
+
 
 ## Deployment
 
 Please see [deployment](./docs/DEPLOYMENT.md) for more information.
+
+
+## To Do
+- [x] add docker-compose ✅ 2023-02-01
+- [ ] launch hosted version
+- [ ] ability to use own storage middleware
+- [ ] ability to use own auth middleare
+- [ ] document how to add custom sentry config
+- [ ] release sync sdk
