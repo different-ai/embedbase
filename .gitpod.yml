@@ -8,7 +8,7 @@ tasks:
       command: |
         eval $(gp env -e)
         pip3 install yq
-        echo "$SEARCH_CONFIG" | yq -y > config.yaml
+        echo "$EMBEDBASE_CONFIG" | yq -y > config.yaml
 
 vscode:
   extensions:
