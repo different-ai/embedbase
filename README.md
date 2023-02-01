@@ -99,6 +99,8 @@ TOKEN="foo"
 curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:8080/v1/search | jq '.'
 ```
 
+You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).
+
 ## Deployment
 
 Please see [deployment](./docs/DEPLOYMENT.md) for more information.
