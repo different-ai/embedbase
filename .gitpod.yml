@@ -20,7 +20,6 @@ vscode:
     - ms-python.vscode-pylance
     - ms-python.python
     - littlefoxteam.vscode-python-test-adapter
-    - randomfractalsinc.vscode-data-preview
     - k--kato.intellij-idea-keybindings
     - trungngo.autoflake
 
