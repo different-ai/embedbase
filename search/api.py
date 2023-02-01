@@ -471,13 +471,10 @@ def health():
     logger.info("Health check")
     # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
     r = requests.post(
-        "http://0.0.0.0:8080/v1/search/refresh",
+        f"http://0.0.0.0:{PORT}/v1/search/refresh",
         json={
             "vault_id": "test",
             "documents": [],
-        },
-        headers={
-            "Authorization": "Bearer local",
         },
     )
     r.raise_for_status()
