@@ -59,6 +59,7 @@ logger.addHandler(handler)
 
 try:
     from search.plugins.firestore_backend import can_log
+
     logger.info("Enabling plugins")
 except ImportError:
     logger.info("No plugins found")
@@ -127,7 +128,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pinecone.init(api_key=settings.pinecone_api_key, environment=settings.pinecone_environment)
+pinecone.init(
+    api_key=settings.pinecone_api_key, environment=settings.pinecone_environment
+)
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 pinecone_index = settings.pinecone_index
@@ -233,8 +236,6 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
 
-
-
 def get_namespace(request: Request, request_body: BaseSearchRequest) -> str:
     return f"{request.scope.get('uid')}/{request_body.vault_id}"
 
@@ -271,8 +272,11 @@ def refresh(
         [
             doc.dict()
             for doc in documents
-            if doc.document_content is not None
-            and len(doc.document_content) < MAX_DOCUMENT_LENGTH
+            if doc.document_content is None
+            or (
+                doc.document_content is not None
+                and len(doc.document_content) < MAX_DOCUMENT_LENGTH
+            )
         ],
         columns=[
             "document_path",
