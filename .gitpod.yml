@@ -22,3 +22,4 @@ vscode:
     - littlefoxteam.vscode-python-test-adapter
     - randomfractalsinc.vscode-data-preview
     - k--kato.intellij-idea-keybindings
+    - trungngo.autoflake

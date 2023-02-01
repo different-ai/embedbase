@@ -4,7 +4,7 @@ SERVICE="search"
 LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
 VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
-LOCAL_PORT="8080"
+LOCAL_PORT="8000"
 $(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
 $(info To get a list of your projects run `gcloud projects list`)
 

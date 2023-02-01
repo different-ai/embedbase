@@ -7,11 +7,8 @@ from functools import lru_cache
 import itertools
 import typing
 import logging
-from fastapi import Depends, FastAPI, status, Request
+from fastapi import Depends, FastAPI, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from search.middlewares.history.auths.firebase import firebase_auth
-from search.middlewares.history.backends.firestore import FirestoreBackend
-from search.middlewares.history.core import HistoryMiddleware
 from search.models import (
     BaseSearchRequest,
     SearchClearRequest,
@@ -34,18 +31,14 @@ from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
 from search.strings import string_similarity
-from firebase_admin import initialize_app, firestore, credentials
-from starlette.types import Scope
+from typing import Tuple
+
+from firebase_admin import auth
+from google.api_core.exceptions import InvalidArgument
 
 
 settings = get_settings()
 MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
-SECRET_FIREBASE_PATH = (
-    "/secrets_firebase" if os.path.exists("/secrets_firebase") else ".."
-)
-
-if not os.path.exists(SECRET_FIREBASE_PATH + "/svc.prod.json"):
-    SECRET_FIREBASE_PATH = "."
 PORT = os.environ.get("PORT", 8080)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
@@ -57,13 +50,6 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-try:
-    from search.plugins.firestore_backend import can_log
-
-    logger.info("Enabling plugins")
-except ImportError:
-    logger.info("No plugins found")
-    can_log = lambda: None
 
 if settings.sentry:
     logger.info("Enabling Sentry")
@@ -81,43 +67,41 @@ if settings.sentry:
 
 app = FastAPI()
 
-if settings.middlewares and settings.middlewares.history:
-    logger.info("Enabling history middleware")
-    cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
-    initialize_app(cred)
-    _firestore = firestore.client()
+if settings.auth == "firebase":
+    @app.middleware("http")
+    async def firebase_auth(request: Request, call_next) -> Tuple[str, str]:
+        # extract token from header
+        for name, value in request.headers.items():  # type: bytes, bytes
+            print(name, value)
+            if name == "authorization":
+                authorization = value
+                break
+        else:
+            authorization = None
 
-    async def handle_auth_error(exc: Exception, scope: Scope):
-        status_code = (
-            exc.status_code
-            if hasattr(exc, "status_code")
-            else status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-        message = exc.detail if hasattr(exc, "detail") else str(exc)
+        if not authorization:
+            return JSONResponse(status_code=401, content={"error": "missing authorization header"})
 
-        logger.error(message, exc_info=True)
+        s = authorization.split(" ")
+
+        if len(s) != 2:
+            return JSONResponse(status_code=401, content={"error": "invalid authorization header"})
+
+        token_type, token = s
+        assert (
+            token_type == "Bearer"
+        ), "Authorization header must be `Bearer` type. Like: `Bearer LONG_JWT`"
+
         try:
-            sentry_sdk.capture_message(message, level="error")
-        except:
-            pass
-        return JSONResponse(
-            status_code=status_code,
-            content={"message": message},
-        )
+            token = token.strip()
+            decoded_token = auth.verify_id_token(token)
+        except Exception as err:
+            return JSONResponse(status_code=401, content={"error": "invalid token"})
 
-    async def on_auth_success(user: str, group: str, scope: Scope):
-        try:
-            sentry_sdk.set_user({"id": user, "group": group})
-        except:
-            pass
-
-    app.add_middleware(
-        HistoryMiddleware,
-        authenticate=firebase_auth,
-        backend=FirestoreBackend(_firestore, can_log=can_log),
-        on_auth_error=handle_auth_error,
-        on_auth_success=on_auth_success,
-    )
+        # add uid to scope
+        request.scope["uid"] = decoded_token["userId"]
+        response = await call_next(request)
+        return response
 
 
 app.add_middleware(

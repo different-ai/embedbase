@@ -1,3 +1,0 @@
-# Customisation of the search API through plugins
-
-Documentation in progress...

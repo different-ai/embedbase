@@ -11,3 +11,6 @@ openai_api_key: "sk-xxxxxxx"
 # https://platform.openai.com/account/org-settings
 openai_organization: "org-xxxxx"
 
+# authentication
+# authentication: firebase # only firebase is supported for now
+# firebase_service_account_path: "path/to/service-account.json"
