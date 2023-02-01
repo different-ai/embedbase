@@ -23,3 +23,8 @@ vscode:
     - randomfractalsinc.vscode-data-preview
     - k--kato.intellij-idea-keybindings
     - trungngo.autoflake
+
+
+ports:
+  - port: 8000
+    visibility: public

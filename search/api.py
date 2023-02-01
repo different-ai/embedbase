@@ -262,6 +262,7 @@ def refresh(
             )
         ],
         columns=[
+            "document_id",
             "document_path",
             "document_tags",
             "document_content",
