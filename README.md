@@ -14,7 +14,7 @@ You can join the waitlist to make use of the hosted version [here](https://yep.s
 
 ## Current Stack
 
-* [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vecotrization
+* [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
 * [pinecone](https://www.pinecone.io/) to store vectors & documents
 * [fastapi](https://github.com/tiangolo/fastapi) 
 * [firebase](https://firebase.google.com/) for auth (optional)
