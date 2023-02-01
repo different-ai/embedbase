@@ -15,3 +15,5 @@ anyio
 pytest-asyncio
 jupyter
 functions_framework
+# for automatically removing unused imports
+autoflake

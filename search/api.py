@@ -7,7 +7,7 @@ from functools import lru_cache
 import itertools
 import typing
 import logging
-from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from search.models import (
     BaseSearchRequest,
@@ -34,7 +34,6 @@ from search.strings import string_similarity
 from typing import Tuple
 
 from firebase_admin import auth
-from google.api_core.exceptions import InvalidArgument
 
 
 settings = get_settings()
