@@ -12,6 +12,16 @@ You can join the waitlist to make use of the hosted version [here](https://yep.s
 
 > Used by [AVA](https://github.com/louis030195/obsidian-ava) and serving ~100k requests a day.
 
+## Example 
+
+This example shows how you could use Embedbase to display the most similar documents.
+
+e.g. tesla is most most similar to car in list`[dog, wolf, giraffe, car,robot]`
+
+https://user-images.githubusercontent.com/25003283/216080514-9d40f912-7201-419e-80e3-11ad4fd52ac6.mov
+
+[See code here](./examples/simple-react/README.md)
+
 ## Current Stack
 
 * [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
@@ -113,3 +123,4 @@ Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 - [ ] ability to use own auth middleare
 - [ ] document how to add custom sentry config
 - [ ] release sync sdk
+- [ ] add natural language search
