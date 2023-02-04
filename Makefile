@@ -1,5 +1,5 @@
 LATEST_IMAGE_URL="ghcr.io/another-ai/embedbase:latest"
-VERSION="1.0.0"
+VERSION="0.5.4"
 IMAGE_URL="ghcr.io/another-ai/embedbase:${VERSION}"
 LOCAL_PORT="8000"
 

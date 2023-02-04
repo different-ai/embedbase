@@ -26,7 +26,7 @@ jobs:
         env:
           EMBEDBASE_TEST_CONFIG: ${{ secrets.EMBEDBASE_TEST_CONFIG }}
         run: |
-          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O yq
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
           chmod +x yq
           echo $EMBEDBASE_TEST_CONFIG | yq -P > config.yaml
 
