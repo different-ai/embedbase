@@ -18,7 +18,8 @@ jobs:
       - name: Get the version
         id: get_version
         # read in Makefile first line showing "VERSION="..."" and get the version number
-        run: echo "VERSION=$(cat Makefile | grep VERSION | head -n 1 | cut -d '=' -f 2)" >> $GITHUB_ENV
+        # remove the '"' and set it as an environment variable
+        run: echo "VERSION=$(cat Makefile | grep VERSION | head -n 1 | cut -d '=' -f 2 | tr -d '"')" >> $GITHUB_ENV
         
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1 
