@@ -9,9 +9,8 @@ import json
 
 def test_semantic_search():
     with TestClient(app=app) as client:
-        response = client.post("/semantic_search", json={"query": "bob"})
+        response = client.post("/v1/search", json={"query": "bob", "vault_id": "dev"})
         assert response.status_code == 200
-
 
 def test_refresh_small_documents():
     df = pd.DataFrame(
@@ -28,14 +27,15 @@ def test_refresh_small_documents():
     )
     with TestClient(app=app) as client:
         response = client.post(
-            "/refresh",
+            "/v1/search/refresh",
             json={
-                "namespace": "dev",
+                "vault_id": "dev",
                 "documents": [
                     {
                         "document_path": f"{i}/Bob.md",
                         "document_tags": ["Humans", "Bob"],
                         "document_content": text,
+                        "document_embedding_format": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -101,21 +101,22 @@ def test_ignore_document_that_didnt_change():
     )
     with TestClient(app=app) as client:
         response = client.post(
-            "/refresh",
+            "/v1/search/refresh",
             json={
-                "namespace": "dev",
+                "vault_id": "dev",
                 "clear": True,
             },
         )
         response = client.post(
-            "/refresh",
+            "/v1/search/refresh",
             json={
-                "namespace": "dev",
+                "vault_id": "dev",
                 "documents": [
                     {
                         "document_path": f"{i}/Bob.md",
                         "document_tags": ["Humans", "Bob"],
                         "document_content": text,
+                        "document_embedding_format": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -125,14 +126,15 @@ def test_ignore_document_that_didnt_change():
         assert response.json().get("status", "") == "success"
     with TestClient(app=app) as client:
         response = client.post(
-            "/refresh",
+            "/v1/search/refresh",
             json={
-                "namespace": "dev",
+                "vault_id": "dev",
                 "documents": [
                     {
                         "document_path": f"{i}/Bob.md",
                         "document_tags": ["Humans", "Bob"],
                         "document_content": text,
+                        "document_embedding_format": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],

@@ -22,10 +22,11 @@ run: ## [DEVELOPMENT] Run the API
 
 test: ## [Local development] Run tests with pytest.
 	cd search; \
+	python3 -m pytest -s test_main.py::test_semantic_search; \
 	python3 -m pytest -s test_main.py::test_refresh_small_documents; \
 	python3 -m pytest -s test_main.py::test_embed; \
-	python3 -m pytest -s test_main.py::test_upload; \
 	python3 -m pytest -s test_main.py::test_embed_large_text; \
+	python3 -m pytest -s test_main.py::test_upload; \
 	python3 -m pytest -s test_main.py::test_ignore_note_that_didnt_change
 	@echo "Done testing"
 
