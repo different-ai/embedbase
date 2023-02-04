@@ -22,7 +22,7 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_main.py::test_embed; \
 	python3 -m pytest -s test_main.py::test_embed_large_text; \
 	python3 -m pytest -s test_main.py::test_upload; \
-	python3 -m pytest -s test_main.py::test_ignore_note_that_didnt_change
+	python3 -m pytest -s test_main.py::test_ignore_document_that_didnt_change
 	@echo "Done testing"
 
 docker/build: ## [Local development] Build the docker image.
@@ -41,14 +41,14 @@ docker/push: docker/build ## [Local development] Push the docker image to GCP.
 	docker push ${LATEST_IMAGE_URL}
 
 release: ## [Local development] Release a new version of the API.
-	echo "Releasing version $$VERSION"; \
+	echo "Releasing version ${VERSION}"; \
 	read -p "Commit content:" COMMIT; \
 	git add .; \
-	echo "Committing '$$VERSION: $$COMMIT'"; \
-	git commit -m "$$VERSION: $$COMMIT"; \
+	echo "Committing '${VERSION}: $$COMMIT'"; \
+	git commit -m "${VERSION}: $$COMMIT"; \
 	git push origin main; \
-	git tag $$VERSION; \
-	git push origin $$VERSION
+	git tag ${VERSION}; \
+	git push origin ${VERSION}
 	@echo "Done, check https://github.com/another-ai/embedbase/actions"
 
 .PHONY: help
