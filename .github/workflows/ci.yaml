@@ -26,8 +26,8 @@ jobs:
         env:
           EMBEDBASE_TEST_CONFIG: ${{ secrets.EMBEDBASE_TEST_CONFIG }}
         run: |
-          sudo apt-get update
-          sudo apt-get install yq -y
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O yq
+          chmod +x yq
           echo $EMBEDBASE_TEST_CONFIG | yq -P > config.yaml
 
       - name: Run tests
