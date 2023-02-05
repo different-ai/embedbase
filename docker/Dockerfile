@@ -8,8 +8,7 @@ WORKDIR $APP_HOME
 COPY . ./
 
 ENV PORT 8080
-
-# TODO: different docker per flavor?
+# TODO: flavors
 RUN pip install --no-cache-dir .[all]
-
+CMD exec gunicorn -w 1 -k uvicorn.workers.UvicornWorker search.api:app -b 0.0.0.0:${PORT} --threads 8 --timeout 0 --log-level info
 # TODO: .sh docker entrypoint - maybe https://github.com/mautrix/telegram

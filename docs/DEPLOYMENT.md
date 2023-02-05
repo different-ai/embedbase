@@ -1,5 +1,7 @@
 ## Cloud Run deployment
 
+[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://embedbase.anotherai.co).
+
 ### Setup
 
 ```bash
@@ -18,48 +20,23 @@ gcloud services enable run.googleapis.com
 gcloud services enable secretmanager.googleapis.com
 
 # create a secret for the config
-gcloud secrets create SEARCH --replication-policy=automatic
+gcloud secrets create EMBEDBASE --replication-policy=automatic
 
 # add a secret version based on your yaml config
-gcloud secrets versions add SEARCH --data-file=config.yaml
-```
+gcloud secrets versions add EMBEDBASE --data-file=config.yaml
 
-### Manual deployment
+IMAGE_URL="gcr.io/${PROJECT_ID}/embedbase:0.0.1"
 
-```bash
-make docker/deploy
-```
+docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./docker/Dockerfile
 
-### Automatic deployment through GitHub Actions
+docker push ${IMAGE_URL}
 
-```bash
-# create service account for pushing containers to gcr
-# and deploying to cloud run
-gcloud iam service-accounts create cloud-run-deployer \
-  --display-name "Cloud Run deployer"
+gcloud run deploy embedbase \
+  --image ${IMAGE_URL} \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-secrets /secrets/config.yaml=EMBEDBASE:1
 
-# Grant the appropriate Cloud Run role
-# to the service account to provide repository access
-gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-  --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
-  --role roles/run.admin
-
-# Grant the appropriate Cloud Storage role
-# to the service account to provide registry access
-gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-  --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
-  --role roles/storage.admin
-
-# Service Account User
-gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-  --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
-  --role roles/iam.serviceAccountUser
-
-# get svc key
-KEY_PATH="${PROJECT_ID}.cloud-run-deployer.svc.prod.json"
-gcloud iam service-accounts keys create ${KEY_PATH} \
-  --iam-account=cloud-run-deployer@.iam.gserviceaccount.com
-cat ${KEY_PATH}
-# copy the key to GitHub secrets as `GCP_SA_KEY_PROD`
-rm -rf ${KEY_PATH}
+# getting cloud run url
+gcloud run services list --platform managed --region us-central1 --format="value(status.url)" --filter="metadata.name=embedbase"
 ```

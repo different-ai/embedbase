@@ -26,18 +26,21 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_main.py::test_ignore_document_that_didnt_change
 	@echo "Done testing"
 
-docker/build: ## [Local development] Build the docker image.
+docker/build/prod: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
-	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./search/Dockerfile
-	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./search/Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./docker/Dockerfile
+	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./docker/Dockerfile
 
-docker/run: ## [Local development] Run the docker image.
-	docker build -t ${IMAGE_URL} -f ./search/Dockerfile .
-	docker run -p 8080:8080 --rm --name ${SERVICE} \
-		-v "$(shell pwd)/config.yaml":/app/config.yaml \
-		${IMAGE_URL}
+docker/run/dev: ## [Local development] Run the development docker image.
+	docker-compose up
 
-docker/push: docker/build ## [Local development] Push the docker image to GCP.
+docker/run/prod:
+# note we don't user buildx here to use local platform cpu
+	docker build . -t embedbase -f ./docker/Dockerfile
+	docker run -p 8000:8080 \
+		-v ${PWD}:/app embedbase
+
+docker/push: docker/build/prod ## [Local development] Push the docker image to registry.
 	docker push ${IMAGE_URL}
 	docker push ${LATEST_IMAGE_URL}
 
