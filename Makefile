@@ -1,5 +1,6 @@
 LATEST_IMAGE_URL="ghcr.io/another-ai/embedbase:latest"
-VERSION="0.5.5"
+# read version from setup.py
+VERSION="$(shell python3 setup.py --version)"
 IMAGE_URL="ghcr.io/another-ai/embedbase:${VERSION}"
 LOCAL_PORT="8000"
 

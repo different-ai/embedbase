@@ -1,0 +1,18 @@
+# Format: #/name defines a new extras_require group called name
+# Uncommented lines after the group definition insert things into that group.
+
+#/firebase
+firebase_admin
+
+#/ai
+# whatever...
+# google-cloud-bigquery
+# wandb
+# db-dtypes
+# sentence-transformers
+# nltk
+# flair
+# openai
+
+#/observability
+sentry-sdk[fastapi]

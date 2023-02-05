@@ -3,9 +3,9 @@
 .*
 
 # Allow files and directories
-!search/middlewares
 !search/*.py
 !setup.py
 !requirements.txt
+!optional-requirements.txt
 !README.md
 !MANIFEST.in

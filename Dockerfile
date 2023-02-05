@@ -9,4 +9,7 @@ COPY . ./
 
 ENV PORT 8080
 
-RUN pip install --no-cache-dir -r requirements.txt
+# TODO: different docker per flavor?
+RUN pip install --no-cache-dir .[all]
+
+# TODO: .sh docker entrypoint - maybe https://github.com/mautrix/telegram

@@ -3,10 +3,6 @@ uvicorn[standard]
 pinecone-client
 pandas
 openai
-# TODO: only use sentry-sdk when using sentry
-sentry-sdk[fastapi]
 tenacity
 gunicorn
-# TODO: only use firebase_admin when using firebase authentication
-firebase_admin
 pydantic_yaml[pyyaml]
