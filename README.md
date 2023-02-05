@@ -57,6 +57,88 @@ openai_organization: "org-xxxxx"
 
 ## Usage
 
+### Inserting data
+
+```ts
+const URL = 'http://localhost:8000'
+fetch(`${URL}/v1/search/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      vault_id: 'dev',
+      documents: [{
+        document_id: 'Elon',
+        document_path: 'Elon',
+        document_content: 'Elon is sipping a tea on Mars',
+        document_tags: ['mars', 'space'],
+        document_embedding_format: 'Doc:\Elon\nContent:\Elon is sipping a tea on Mars',
+      }],
+    }),
+  });
+}
+```
+
+### Searching
+
+```ts
+fetch(`${URL}/v1/search`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      vault_id: 'dev',
+      documents: [{
+        query: 'Something about a red planet',
+      }],
+    }),
+  });
+}
+```
+
+Result:
+
+```json
+{
+  "query": "Something about a red planet",
+  "similarities": [
+    {
+      "score": 0.828773,
+      "document_id": "Elon",
+      "document_path": "Elon",
+      "document_content": "Elon is sipping a tea on Mars",
+      "document_tags": [
+        "mars",
+        "space"
+      ],
+    }
+  ]
+}
+```
+
+### Delete
+
+```ts
+fetch(`${URL}/v1/search/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      vault_id: 'dev',
+      documents: [{
+        document_to_delete: 'Elon',
+      }],
+    }),
+  });
+}
+```
+
+<details>
+  <summary>Equivalent in Bash</summary>
+  
 ```bash
 # inserting/updating a document
 curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:8000/v1/search/refresh | jq '.'
@@ -90,6 +172,9 @@ curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "docume
   "status": "success",
 }
 ```
+
+</details>
+
 
 ## Authorization
 
