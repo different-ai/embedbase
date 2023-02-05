@@ -35,7 +35,7 @@ docker/run/dev: ## [Local development] Run the development docker image.
 	docker-compose up
 
 docker/run/prod:
-# note we don't user buildx here to use local platform cpu
+# note we don't use buildx here to use local platform cpu
 	docker build . -t embedbase -f ./docker/Dockerfile
 	docker run -p 8000:8080 \
 		-v ${PWD}:/app embedbase
