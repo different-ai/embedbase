@@ -33,7 +33,6 @@ import requests
 from search.strings import string_similarity
 from typing import Tuple
 
-from firebase_admin import auth
 
 
 settings = get_settings()
@@ -67,6 +66,7 @@ if settings.sentry:
 app = FastAPI()
 
 if settings.auth == "firebase":
+    from firebase_admin import auth
     @app.middleware("http")
     async def firebase_auth(request: Request, call_next) -> Tuple[str, str]:
         # extract token from header
