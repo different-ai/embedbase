@@ -90,9 +90,7 @@ fetch(`${URL}/v1/search`, {
     },
     body: JSON.stringify({
       vault_id: 'dev',
-      documents: [{
-        query: 'Something about a red planet',
-      }],
+      query: 'Something about a red planet',
     }),
   });
 }
