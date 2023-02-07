@@ -1,6 +1,6 @@
 ## Cloud Run deployment
 
-[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://embedbase.anotherai.co).
+[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
 
 ### Setup
 
