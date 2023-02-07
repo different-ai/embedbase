@@ -22,6 +22,8 @@ vscode:
     - littlefoxteam.vscode-python-test-adapter
     - k--kato.intellij-idea-keybindings
     - trungngo.autoflake
+    - christian-kohler.npm-intellisense
+    - dbaeumer.vscode-eslint
 
 
 ports:

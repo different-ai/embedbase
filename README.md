@@ -61,39 +61,31 @@ openai_organization: "org-xxxxx"
 
 ```ts
 const URL = 'http://localhost:8000'
-fetch(`${URL}/v1/search/refresh`, {
+fetch(`${URL}/v1/dev`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      vault_id: 'dev',
       documents: [{
-        document_id: 'Elon',
-        document_path: 'Elon',
-        document_content: 'Elon is sipping a tea on Mars',
-        document_tags: ['mars', 'space'],
-        document_embedding_format: 'Doc:\Elon\nContent:\Elon is sipping a tea on Mars',
+        data: 'Elon is sipping a tea on Mars',
       }],
     }),
   });
-}
 ```
 
 ### Searching
 
 ```ts
-fetch(`${URL}/v1/search`, {
+fetch(`${URL}/v1/dev/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      vault_id: 'dev',
       query: 'Something about a red planet',
     }),
   });
-}
 ```
 
 Result:
@@ -104,77 +96,15 @@ Result:
   "similarities": [
     {
       "score": 0.828773,
-      "document_id": "Elon",
-      "document_path": "Elon",
-      "document_content": "Elon is sipping a tea on Mars",
-      "document_tags": [
-        "mars",
-        "space"
-      ],
+      "id": "ABCU75FEBE",
+      "data": "Elon is sipping a tea on Mars",
     }
   ]
 }
 ```
 
-### Delete
 
-```ts
-fetch(`${URL}/v1/search/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      vault_id: 'dev',
-      documents: [{
-        document_to_delete: 'Elon',
-      }],
-    }),
-  });
-}
-```
-
-<details>
-  <summary>Equivalent in Bash</summary>
-  
-```bash
-# inserting/updating a document
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_path": "Bob.md", "document_tags": ["Humans", "Bob"], "document_content": "Bob is a human.", "document_embedding_format": "File:\nBob.md\nContent:\nBob is a human."}]}' http://localhost:8000/v1/search/refresh | jq '.'
-{
-  "status": "success",
-  "ignored_hashes": []
-}
-
-
-# searching
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:8000/v1/search | jq '.'
-{
-  "query": "Bob",
-  "similarities": [
-    {
-      "score": 0.828773,
-      "document_id": "Bob.md",
-      "document_path": "Bob.md",
-      "document_content": "Bob is a human.",
-      "document_tags": [
-        "Humans",
-        "Bob"
-      ],
-    }
-  ]
-}
-
-# deleting a document
-curl -X POST -H "Content-Type: application/json" -d '{"vault_id": "dev", "documents": [{"document_to_delete": "Bob.md"}]}' http://localhost:8000/v1/search/refresh | jq '.'
-{
-  "status": "success",
-}
-```
-
-</details>
-
-
-## Authorization
+## Authentication
 
 Right now we just support simple firebase auth. We'll be adding more integrations as we go.
 
@@ -188,7 +118,7 @@ firebase_service_account_path ./service_account.json
 
 ```bash
 TOKEN="foo"
-curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"vault_id": "dev", "query": "Bob"}' http://localhost:8080/v1/search | jq '.'
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"query": "Bob"}' http://localhost:8080/v1/dev/search | jq '.'
 ```
 
 You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).

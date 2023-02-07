@@ -15,7 +15,6 @@ function App() {
   const [search, setSearch] = React.useState('');
   const [documents, setDocuments] = React.useState<{content: string; color: string}[]>([]);
   const [idToken, setIdToken] = React.useState<string | null>(null);
-  console.log("firebaseConfig", firebaseConfig)
 
   const handleSearchBarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -29,14 +28,13 @@ function App() {
   }
   const colourizeDocuments = () => {
     if (!search) return;
-    fetch('http://localhost:8000/v1/search', {
+    fetch('http://localhost:8000/v1/dev/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${idToken}`,
       },
       body: JSON.stringify({
-        vault_id: 'dev',
         query: search,
       }),
     }).then((res) => res.json()).then((res) => {
@@ -54,36 +52,27 @@ function App() {
   const addDocument = () => {
     // hash of search bar + time
     const id = hashCode(search + Date.now().toString());
-    fetch('http://localhost:8000/v1/search/refresh', {
+    fetch('http://localhost:8000/v1/dev', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${idToken}`,
       },
       body: JSON.stringify({
-        vault_id: 'dev',
         documents: [{
-          document_id: id,
-          document_path: id,
-          document_content: search,
-          document_tags: [],
-          document_embedding_format: search,
+          data: search,
         }],
       }),
     }).then(() => setDocuments([...documents, { content: search, color: 'black' }]))
       .catch((err) => alert(err));
   }
   const clearIndex = () => {
-    // /v1/search/clear
-    fetch('http://localhost:8000/v1/search/clear', {
-      method: 'POST',
+    fetch('http://localhost:8000/v1/dev/clear', {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${idToken}`,
       },
-      body: JSON.stringify({
-        vault_id: 'dev',
-      }),
     }).then(() => setDocuments([])).catch((err) => alert(err));
   }
 

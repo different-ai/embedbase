@@ -1,30 +1,22 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel
 
-# TODO: could use pandera lib
 class Document(BaseModel):
-    document_id: Optional[str] = None
-    document_path: Optional[str] = None
-    document_tags: Optional[List[str]] = None
-    document_content: Optional[str] = None
-    document_to_delete: Optional[str] = None
-    document_embedding_format: Optional[str] = None
+    id: Optional[str] = None
+    # data can be
+    # - a string - for example  "This is a document"
+    # TODO: - an image as an array - for example [[1, 2, 3], [4, 5, 6]]
+    # etc.
+    data: Any
 
 
-class BaseSearchRequest(BaseModel):
-    vault_id: str
+class AddRequest(BaseModel):
+    documents: List[Document]
 
+class DeleteRequest(BaseModel):
+    ids: List[str]
 
-class SearchRefreshRequest(BaseSearchRequest):
-    documents: List[Document] = []
-
-
-class SearchRequest(BaseSearchRequest):
-    vault_id: str
-    query: Optional[str] = None
-    document: Optional[Document] = None
+class SearchRequest(BaseModel):
+    query: str
     top_k: int = 6
 
-
-class SearchClearRequest(BaseSearchRequest):
-    pass

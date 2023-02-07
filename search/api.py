@@ -10,9 +10,8 @@ import logging
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from search.models import (
-    BaseSearchRequest,
-    SearchClearRequest,
-    SearchRefreshRequest,
+    DeleteRequest,
+    AddRequest,
     SearchRequest,
 )
 from fastapi.responses import JSONResponse
@@ -30,9 +29,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-from search.strings import string_similarity
 from typing import Tuple
-
 
 
 settings = get_settings()
@@ -67,6 +64,7 @@ app = FastAPI()
 
 if settings.auth == "firebase":
     from firebase_admin import auth
+
     @app.middleware("http")
     async def firebase_auth(request: Request, call_next) -> Tuple[str, str]:
         # extract token from header
@@ -79,12 +77,16 @@ if settings.auth == "firebase":
             authorization = None
 
         if not authorization:
-            return JSONResponse(status_code=401, content={"error": "missing authorization header"})
+            return JSONResponse(
+                status_code=401, content={"error": "missing authorization header"}
+            )
 
         s = authorization.split(" ")
 
         if len(s) != 2:
-            return JSONResponse(status_code=401, content={"error": "invalid authorization header"})
+            return JSONResponse(
+                status_code=401, content={"error": "invalid authorization header"}
+            )
 
         token_type, token = s
         assert (
@@ -101,6 +103,22 @@ if settings.auth == "firebase":
         request.scope["uid"] = decoded_token["userId"]
         response = await call_next(request)
         return response
+
+
+if settings.middlewares:
+    for i, m in enumerate(settings.middlewares):
+        # import python file at path m
+        # and call middleware(app)
+
+        try:
+            module = __import__(m, fromlist=["middleware"])
+            module.middleware(app)
+            # Verify contents of the module:
+            print(dir(module))
+
+            logger.info(f"Loaded middleware {m}")
+        except Exception as e:
+            logger.error(f"Error loading middleware {m}: {e}")
 
 
 app.add_middleware(
@@ -120,20 +138,13 @@ pinecone_index = settings.pinecone_index
 index = pinecone.Index(pinecone_index, pool_threads=8)
 
 
-def document_to_embedding_format(document_path: str, document_content: str) -> str:
-    """
-    Convert a document to the format expected by the embedding model
-    """
-    return f"File:\n{document_path}\nContent:\n{document_content}"
-
-
 @app.on_event("startup")
 def startup_event():
     result = index.fetch(ids=["foo"])  # TODO: container startup check
     if result:
         logger.info("Properly connected to Pinecone")
     else:
-        logger.error("Could not connect to Pinecone")
+        raise Exception("Could not connect to Pinecone")
     logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
 
 
@@ -193,19 +204,13 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
         response = index.upsert(
             vectors=zip(
                 # pinecone needs to have the document path url encoded
-                batch_df.document_path.apply(urllib.parse.quote).tolist(),
-                batch_df.document_embedding,
+                batch_df.id.apply(urllib.parse.quote).tolist(),
+                batch_df.embedding,
                 [
                     {
-                        "document_tags": tags,
-                        "document_content": content,
-                        "document_hash": document_hash,
+                        "data": data,
                     }
-                    for tags, content, document_hash in zip(
-                        batch_df.document_tags,
-                        batch_df.document_content,
-                        batch_df.document_hash,
-                    )
+                    for data in batch_df.data
                 ],
             ),
             namespace=namespace,
@@ -219,35 +224,36 @@ def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
     logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
 
 
-def get_namespace(request: Request, request_body: BaseSearchRequest) -> str:
-    return f"{request.scope.get('uid')}/{request_body.vault_id}"
+def get_namespace(request: Request, vault_id: str) -> str:
+    return f"{request.scope.get('uid')}/{vault_id}"
 
 
-@app.post("/v1/search/clear")
-def clear_search(
+@app.get("/v1/{vault_id}/clear")
+def clear(
     request: Request,
-    request_body: SearchClearRequest,
+    vault_id: str,
     _: Settings = Depends(get_settings),
 ):
-    namespace = get_namespace(request, request_body)
+    namespace = get_namespace(request, vault_id)
 
     index.delete(delete_all=True, namespace=namespace)
     logger.info("Cleared index")
     return JSONResponse(status_code=200, content={"status": "success"})
 
 
-@app.post("/v1/search/refresh")
-def refresh(
+@app.post("/v1/{vault_id}")
+def add(
     request: Request,
-    request_body: SearchRefreshRequest,
+    vault_id: str,
+    request_body: AddRequest,
     _: Settings = Depends(get_settings),
 ):
     """
     Refresh the embeddings for a given file
     """
-    namespace = get_namespace(request, request_body)
+    namespace = get_namespace(request, vault_id)
 
-    sentry_sdk.set_user({"id": request_body.vault_id})
+    sentry_sdk.set_user({"id": vault_id})
 
     documents = request_body.documents
     # TODO: temporarily we ignore too big documents because pinecone doesn't support them
@@ -255,101 +261,82 @@ def refresh(
         [
             doc.dict()
             for doc in documents
-            if doc.document_content is None
-            or (
-                doc.document_content is not None
-                and len(doc.document_content) < MAX_DOCUMENT_LENGTH
-            )
+            if doc.data is None
+            or (doc.data is not None and len(doc.data) < MAX_DOCUMENT_LENGTH)
         ],
         columns=[
-            "document_id",
-            "document_path",
-            "document_tags",
-            "document_content",
-            "document_to_delete",
-            "document_embedding_format",
-            "document_embedding",
-            "document_hash",
+            "id",
+            "data",
+            "embedding",
+            "hash",
         ],
     )
 
     start_time = time.time()
     logger.info(f"Refreshing {len(documents)} embeddings")
-    if df.document_to_delete.any():
-        to_delete = df.document_to_delete.apply(urllib.parse.quote).tolist()
-        response = index.delete(ids=to_delete, namespace=namespace)
-        logger.info(f"Deleted documents: {to_delete}")
 
-    if not df.document_content.any():
+    if not df.data.any():
         logger.info("No documents to index, exiting")
         return JSONResponse(status_code=200, content={"status": "success"})
 
-    # add column "document_hash" based on "document_embedding_format"
-    df.document_hash = df.document_embedding_format.apply(
+    # add column "hash" based on "data"
+    df.hash = df.data.apply(
         lambda x: hashlib.sha256(x.encode()).hexdigest()
     )
 
     df_length = len(df)
-
-    # filter out documents that didn't change by checking their hash
-    # in the index metadata
-    ids_to_fetch = df.document_path.apply(urllib.parse.quote).tolist()
-    # split in chunks of n because fetch has a limit of size
-    n = 200
-    ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
-    logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
-
-    def _fetch(ids):
-        try:
-            return index.fetch(ids=ids, namespace=namespace)
-        except Exception as e:
-            logger.error(f"Error fetching {ids}: {e}", exc_info=True)
-            raise e
-
-    with ThreadPool(len(ids_to_fetch)) as pool:
-        existing_documents = pool.map(lambda n: _fetch(n), ids_to_fetch)
-    # flatten vectors.values()
-    flat_existing_documents = itertools.chain.from_iterable(
-        [doc.vectors.values() for doc in existing_documents]
-    )
-
-    # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
-
-    # remove rows that have the same hash
     existing_hashes = []
-    exisiting_contents = []
-    for doc in flat_existing_documents:
-        existing_hashes.append(doc.get("metadata", {}).get("document_hash"))
-        exisiting_contents.append(doc.get("metadata", {}).get("document_content"))
-    df = df[
-        ~df.apply(
-            lambda x: x.document_hash in existing_hashes,
-            axis=1,
-        )
-    ]
-    threshold_similarity = 0.7
-    # count rows that didn't change too much using string similarity on document content embedding format
-    try:
-        didnt_change = df.apply(
-            lambda x: any(
-                string_similarity(x.document_content, exisiting_content)
-                > threshold_similarity
-                for exisiting_content in exisiting_contents
-            ),
-            axis=1,
-        )
-        sum_didnt_change = len(df[didnt_change])
+
+    if df.id.any():
         logger.info(
-            f"There are {sum_didnt_change} documents that didn't change too much"
+            f"Checking embeddings computing necessity for {df_length} documents"
         )
-    except:
-        pass
+        # filter out documents that didn't change by checking their hash
+        # in the index metadata
+        ids_to_fetch = df.id.apply(urllib.parse.quote).tolist()
+        # split in chunks of n because fetch has a limit of size
+        n = 200
+        ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
+        logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
+
+        def _fetch(ids):
+            try:
+                return index.fetch(ids=ids, namespace=namespace)
+            except Exception as e:
+                logger.error(f"Error fetching {ids}: {e}", exc_info=True)
+                raise e
+
+        with ThreadPool(len(ids_to_fetch)) as pool:
+            existing_documents = pool.map(lambda n: _fetch(n), ids_to_fetch)
+        # flatten vectors.values()
+        flat_existing_documents = itertools.chain.from_iterable(
+            [doc.vectors.values() for doc in existing_documents]
+        )
+
+        # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
+
+        # remove rows that have the same hash
+        exisiting_contents = []
+        for doc in flat_existing_documents:
+            existing_hashes.append(doc.id)
+            exisiting_contents.append(doc.get("metadata", {}).get("data"))
+        df = df[
+            ~df.apply(
+                lambda x: x.hash in existing_hashes,
+                axis=1,
+            )
+        ]
+    else:
+        # generate ids using hash + time
+        df.id = df.hash.apply(
+            lambda x: f"{x}-{int(time.time() * 1000)}"
+        )
 
     diff = df_length - len(df)
 
     logger.info(f"Filtered out {diff} documents that didn't change at all")
 
-    if not df.document_content.any():
+    if not df.data.any():
         logger.info(
             "No documents to index found after filtering existing ones, exiting"
         )
@@ -357,24 +344,25 @@ def refresh(
             status_code=200,
             content={
                 "status": "success",
-                "ignored_hashes": existing_hashes,
+                "ignored_ids": existing_hashes,
+                "inserted_ids": df.id.tolist(),
             },
         )
 
     # parallelize
-    response = embed(df.document_embedding_format.tolist(), settings.model)
-    df.document_embedding = [e["embedding"] for e in response]
+    response = embed(df.data.tolist(), settings.model)
+    df.embedding = [e["embedding"] for e in response]
 
     # TODO average the embeddings over "embedding" column grouped by index, merge back into df
     # s = (
-    #     df.apply(lambda x: pd.Series(x["document_embedding"]), axis=1)
+    #     df.apply(lambda x: pd.Series(x["embedding"]), axis=1)
     #     .groupby(level=0)
     #     .mean()
     #     .reset_index()
     #     .drop("index", axis=1)
     # )
     # # merge s column into a single column , ignore index
-    # df.document_embedding = s.apply(lambda x: x.tolist(), axis=1)
+    # df.embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: problem is that pinecone doesn't support this large of an input
     upload_embeddings_to_vector_database(df, namespace)
 
@@ -386,34 +374,45 @@ def refresh(
         status_code=status.HTTP_200_OK,
         content={
             "status": "success",
-            "ignored_hashes": existing_hashes,
+            "ignored_ids": existing_hashes,
+            "inserted_ids": df.id.tolist(),
         },
     )
 
+@app.delete("/v1/{vault_id}")
+def delete(
+    request: Request,
+    vault_id: str,
+    request_body: DeleteRequest,
+    _: Settings = Depends(get_settings),
+):
+    """
+    Delete a document from the index
+    """
+    namespace = get_namespace(request, vault_id)
+    sentry_sdk.set_user({"id": vault_id})
 
-@app.post("/v1/search")
+    ids = request_body.ids
+    logger.info(f"Deleting {len(ids)} documents")
+    index.delete(ids=ids, namespace=namespace)
+    logger.info(f"Deleted {len(ids)} documents")
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
+
+
+@app.post("/v1/{vault_id}/search")
 def semantic_search(
-    request: Request, request_body: SearchRequest, _: Settings = Depends(get_settings)
+    request: Request,
+    vault_id: str,
+    request_body: SearchRequest,
+    _: Settings = Depends(get_settings),
 ):
     """
     Search for a given query in the corpus
     """
-    # either document or query is present in the request
-    if not request_body.document and not request_body.query:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "status": "error",
-                "message": "Please provide a query or a document.",
-            },
-        )
-    query = request_body.query or document_to_embedding_format(
-        request_body.document.document_path,
-        request_body.document.document_tags,
-        request_body.document.document_content,
-    )
-    namespace = get_namespace(request, request_body)
-    sentry_sdk.set_user({"id": request_body.vault_id})
+    query = request_body.query
+    namespace = get_namespace(request, vault_id)
+    sentry_sdk.set_user({"id": vault_id})
 
     top_k = 5  # TODO might fail if index empty?
     if request_body.top_k > 0:
@@ -438,10 +437,8 @@ def semantic_search(
         similarities.append(
             {
                 "score": match.score,
-                "document_id": decoded_id,
-                "document_path": decoded_id,
-                "document_content": match.metadata["document_content"],
-                "document_tags": match.metadata["document_tags"],
+                "id": decoded_id,
+                "data": match.metadata.get("data", None),
             }
         )
     return JSONResponse(
@@ -459,9 +456,8 @@ def health():
     logger.info("Health check")
     # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
     r = requests.post(
-        f"http://0.0.0.0:{PORT}/v1/search/refresh",
+        f"http://0.0.0.0:{PORT}/v1/test",
         json={
-            "vault_id": "test",
             "documents": [],
         },
     )

@@ -5,11 +5,19 @@ import pandas as pd
 import math
 from random import randint
 import numpy as np
-import json
+
+
+def test_clear():
+    with TestClient(app=app) as client:
+        response = client.get(
+            "/v1/dev/clear",
+        )
+        assert response.status_code == 200
+        assert response.json().get("status", "") == "success"
 
 def test_semantic_search():
     with TestClient(app=app) as client:
-        response = client.post("/v1/search", json={"query": "bob", "vault_id": "dev"})
+        response = client.post("/v1/dev/search", json={"query": "bob"})
         assert response.status_code == 200
 
 def test_refresh_small_documents():
@@ -27,15 +35,11 @@ def test_refresh_small_documents():
     )
     with TestClient(app=app) as client:
         response = client.post(
-            "/v1/search/refresh",
+            "/v1/dev",
             json={
-                "vault_id": "dev",
                 "documents": [
                     {
-                        "document_path": f"{i}/Bob.md",
-                        "document_tags": ["Humans", "Bob"],
-                        "document_content": text,
-                        "document_embedding_format": text,
+                        "data": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -59,20 +63,16 @@ def test_upload():
     df = DataFrame(
         [
             {
-                "document_path": str(i),
-                "document_tags": ["Humans", "Bob"],
-                "document_content": "Bob is a human",
-                "document_embedding": document["embedding"],
-                "document_hash": str(i),
+                "data": "Bob is a human",
+                "embedding": document["embedding"],
+                "id": str(i),
             }
             for i, document in enumerate(data)
         ],
         columns=[
-            "document_path",
-            "document_tags",
-            "document_content",
-            "document_embedding",
-            "document_hash",
+            "data",
+            "embedding",
+            "id",
         ],
     )
     upload_embeddings_to_vector_database(df, "unit_test_test_upload")
@@ -89,34 +89,26 @@ def test_upload():
 def test_ignore_document_that_didnt_change():
     df = pd.DataFrame(
         [
-            "".join(
+            ("".join(
                 [
                     chr(math.floor(97 + 26 * np.random.rand()))
                     for _ in range(randint(500, 800))
                 ]
-            )
-            for _ in range(10)
+            ), i)
+            for i in range(10)
         ],
-        columns=["text"],
+        columns=["text", "id"],
     )
     with TestClient(app=app) as client:
-        response = client.post(
-            "/v1/search/refresh",
-            json={
-                "vault_id": "dev",
-                "clear": True,
-            },
+        response = client.get(
+            "/v1/dev/clear",
         )
         response = client.post(
-            "/v1/search/refresh",
+            "/v1/dev",
             json={
-                "vault_id": "dev",
                 "documents": [
                     {
-                        "document_path": f"{i}/Bob.md",
-                        "document_tags": ["Humans", "Bob"],
-                        "document_content": text,
-                        "document_embedding_format": text,
+                        "data": text,
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -124,21 +116,21 @@ def test_ignore_document_that_didnt_change():
         )
         assert response.status_code == 200
         assert response.json().get("status", "") == "success"
+        ids = response.json().get("inserted_ids", [])
+        # add to df
+        df["id"] = ids
     with TestClient(app=app) as client:
         response = client.post(
-            "/v1/search/refresh",
+            "/v1/dev",
             json={
-                "vault_id": "dev",
                 "documents": [
                     {
-                        "document_path": f"{i}/Bob.md",
-                        "document_tags": ["Humans", "Bob"],
-                        "document_content": text,
-                        "document_embedding_format": text,
+                        "id": id,
+                        "data": text,
                     }
-                    for i, text in enumerate(df.text.tolist())
+                    for id, text in zip(df.id.tolist(), df.text.tolist())
                 ],
             },
         )
         assert response.status_code == 200
-        assert len(response.json().get("ignored_hashes")) == 10
+        assert len(response.json().get("ignored_ids")) == 10
