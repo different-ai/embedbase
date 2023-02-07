@@ -127,6 +127,8 @@ You can only get ID tokens through Firebase client SDK, there is [an example to 
 
 Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 
+[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://embedbase.anotherai.co).
+
 
 ## To Do
 - [x] add docker-compose ✅ 2023-02-01
