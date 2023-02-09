@@ -5,8 +5,12 @@ name: Unit Tests
 on:
   push:
     branches: [main]
+    paths:
+      - 'search/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'search/**'
 jobs:
   build:
     runs-on: ubuntu-latest
