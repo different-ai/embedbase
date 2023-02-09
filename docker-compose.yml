@@ -13,5 +13,4 @@ services:
       - PYTHONUNBUFFERED=1
       - PORT=8000
     volumes:
-      - ./:/app
-
+      - ./config.yaml:/app/config.yaml

@@ -38,6 +38,16 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}
             ghcr.io/${{ github.repository_owner }}/embedbase:latest
+      
+      - name: Build and push dev
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/Dockerfile.dev
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
 
       - name: Create Release
         id: create_release
