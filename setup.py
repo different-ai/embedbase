@@ -25,7 +25,7 @@ if __name__ == "__main__":
         name="embedbase",
         packages=find_packages(),
         include_package_data=True,
-        version="0.5.7",
+        version="0.5.8",
         description="",
         install_requires=install_requires,
         extras_require=extras_require,

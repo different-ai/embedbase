@@ -394,7 +394,8 @@ def delete(
 
     ids = request_body.ids
     logger.info(f"Deleting {len(ids)} documents")
-    index.delete(ids=ids, namespace=namespace)
+    quoted_ids = [urllib.parse.quote(id) for id in ids]
+    index.delete(ids=quoted_ids, namespace=namespace)
     logger.info(f"Deleted {len(ids)} documents")
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
