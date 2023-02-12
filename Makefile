@@ -4,8 +4,6 @@ VERSION="$(shell python3 setup.py --version)"
 IMAGE_URL="ghcr.io/another-ai/embedbase:${VERSION}"
 LOCAL_PORT="8000"
 
--include .env
-
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
 	source env/bin/activate; \

@@ -11,6 +11,8 @@ tasks:
         echo "$EMBEDBASE_CONFIG" | yq -y > config.yaml
 
 vscode:
+  # list as bullet points installed extensions:
+  # code --list-extensions | xargs -L 1 echo - 
   extensions:
     - github.copilot
     - toba.vsfire
