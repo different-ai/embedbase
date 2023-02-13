@@ -11,10 +11,10 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	uvicorn search.api:app --port ${LOCAL_PORT} --reload --log-level debug 
+	uvicorn embedbase.api:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
-	cd search; \
+	cd embedbase; \
 	python3 -m pytest -s test_main.py::test_clear; \
 	python3 -m pytest -s test_main.py::test_semantic_search; \
 	python3 -m pytest -s test_main.py::test_refresh_small_documents; \

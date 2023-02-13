@@ -10,7 +10,7 @@ import typing
 import logging
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from search.models import (
+from embedbase.models import (
     DeleteRequest,
     AddRequest,
     SearchRequest,
@@ -18,8 +18,8 @@ from search.models import (
 from fastapi.responses import JSONResponse
 import urllib.parse
 import numpy as np
-from search.pinecone_db import Pinecone
-from search.settings import Settings, get_settings
+from embedbase.pinecone_db import Pinecone
+from embedbase.settings import Settings, get_settings
 import openai
 import sentry_sdk
 

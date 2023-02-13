@@ -2,9 +2,9 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from pandas import DataFrame
 import pytest
-from search.pinecone_db import Pinecone
+from embedbase.pinecone_db import Pinecone
 
-from search.settings import get_settings
+from embedbase.settings import get_settings
 from .api import app, embed, no_batch_embed
 import pandas as pd
 import math

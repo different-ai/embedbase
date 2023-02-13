@@ -1,7 +1,7 @@
 from typing import Coroutine, List, Optional
 from pandas import DataFrame
-from search.utils import BatchGenerator, too_big_rows
-from search.db import VectorDatabase
+from embedbase.utils import BatchGenerator, too_big_rows
+from embedbase.db import VectorDatabase
 import urllib.parse
 import pinecone
 

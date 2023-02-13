@@ -6,11 +6,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'search/**'
+      - 'embedbase/**'
   pull_request:
     branches: [main]
     paths:
-      - 'search/**'
+      - 'embedbase/**'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +24,10 @@ jobs:
           python-version: 3.8
 
       - name: Install deps
-        run: make install
+        run: |
+          pip install --upgrade pip
+          python3.8 -m venv env
+          make install
 
       - name: Read EMBEDBASE_TEST_CONFIG JSON secret and write it to config.yaml
         env:

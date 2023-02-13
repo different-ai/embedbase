@@ -1,6 +1,6 @@
 from typing import Coroutine, List, Optional
 from pandas import DataFrame
-from search.db import VectorDatabase
+from embedbase.db import VectorDatabase
 
 
 class Weaviate(VectorDatabase):

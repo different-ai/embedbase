@@ -25,8 +25,8 @@ if __name__ == "__main__":
         name="embedbase",
         packages=find_packages(),
         include_package_data=True,
-        version="0.5.9",
-        description="",
+        version="0.6.0",
+        description="Open-source API for to easily create, store, and retrieve embeddings",
         install_requires=install_requires,
         extras_require=extras_require,
         classifiers=[
