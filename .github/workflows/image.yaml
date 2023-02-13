@@ -26,18 +26,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Embedbase production with full dependencies
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          platforms: linux/amd64
-          push: true
-          build-args: FLAVOR=all
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
-            ghcr.io/${{ github.repository_owner }}/embedbase:latest
-      
       - name: Build and push Embedbase production with minimal dependencies
         uses: docker/build-push-action@v2
         with:
@@ -60,6 +48,18 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
 
+      - name: Build and push Embedbase production with full dependencies
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: FLAVOR=all
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
+            ghcr.io/${{ github.repository_owner }}/embedbase:latest
+      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
