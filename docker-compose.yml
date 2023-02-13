@@ -4,8 +4,8 @@ services:
   embedbase:
     image: embedbase
     build:
-      context: docker
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: docker/Dockerfile.dev
     ports:
       - "8000:8000"
     command: uvicorn search.api:app --reload --log-level debug --host 0.0.0.0
