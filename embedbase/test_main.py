@@ -53,7 +53,38 @@ async def test_refresh_small_documents():
             },
         )
         assert response.status_code == 200
-        assert response.json().get("status", "") == "success"
+        json_response = response.json()
+        assert json_response.get("status", "") == "success"
+        assert len(json_response.get("inserted_ids")) == 10
+
+
+@pytest.mark.asyncio
+async def test_sync_no_id_collision():
+    df = pd.DataFrame(
+        [
+            "foo"
+            for _ in range(10)
+        ],
+        columns=["text"],
+    )
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
+            "/v1/dev",
+            json={
+                "documents": [
+                    {
+                        "data": text,
+                    }
+                    for i, text in enumerate(df.text.tolist())
+                ],
+            },
+        )
+        assert response.status_code == 200
+        json_response = response.json()
+        assert json_response.get("status", "") == "success"
+        # make sure all ids are unique
+        assert len(set(json_response.get("inserted_ids"))) == 10
+
 
 
 def test_embed():

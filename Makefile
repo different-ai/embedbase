@@ -7,7 +7,8 @@ LOCAL_PORT="8000"
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
 	. env/bin/activate; \
-	pip install .[all]
+	pip install .[all]; \
+	pip install -r requirements-test.txt
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
@@ -18,6 +19,7 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_main.py::test_clear; \
 	python3 -m pytest -s test_main.py::test_semantic_search; \
 	python3 -m pytest -s test_main.py::test_refresh_small_documents; \
+	python3 -m pytest -s test_main.py::test_sync_no_id_collision; \
 	python3 -m pytest -s test_main.py::test_embed; \
 	python3 -m pytest -s test_main.py::test_embed_large_text; \
 	python3 -m pytest -s test_main.py::test_upload; \

@@ -29,7 +29,7 @@ from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
 from typing import List, Tuple
-
+import uuid
 
 settings = get_settings()
 MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
@@ -50,6 +50,7 @@ app = FastAPI()
 if settings.sentry:
     logger.info("Enabling Sentry")
     import sentry_sdk
+
     sentry_sdk.init(
         dsn=settings.sentry,
         # Set traces_sample_rate to 1.0 to capture 100%
@@ -188,7 +189,6 @@ def embed(
     after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
-
 def get_namespace(request: Request, vault_id: str) -> str:
     return f"{request.scope.get('uid')}/{vault_id}"
 
@@ -268,12 +268,12 @@ async def add(
                 logger.error(f"Error fetching {ids}: {e}", exc_info=True)
                 raise e
 
-        existing_documents = await asyncio.gather(*[_fetch(ids) for ids in ids_to_fetch])
+        existing_documents = await asyncio.gather(
+            *[_fetch(ids) for ids in ids_to_fetch]
+        )
         flat_existing_documents = itertools.chain.from_iterable(
             [doc.vectors.values() for doc in existing_documents]
         )
-
-        # TODO: might do also with https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
 
         # remove rows that have the same hash
         exisiting_contents = []
@@ -287,8 +287,13 @@ async def add(
             )
         ]
     else:
-        # generate ids using hash + time
-        df.id = df.hash.apply(lambda x: f"{x}-{int(time.time() * 1000)}")
+        # generate ids using hash of uuid + time to avoid collisions
+        df.id = df.apply(
+            lambda x: hashlib.sha256(
+                (str(uuid.uuid4()) + str(time.time())).encode()
+            ).hexdigest(),
+            axis=1,
+        )
 
     diff = df_length - len(df)
 
