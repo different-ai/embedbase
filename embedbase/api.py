@@ -21,7 +21,6 @@ import numpy as np
 from embedbase.pinecone_db import Pinecone
 from embedbase.settings import Settings, get_settings
 import openai
-import sentry_sdk
 
 from tenacity import retry
 from tenacity.wait import wait_exponential
@@ -46,8 +45,11 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+app = FastAPI()
+
 if settings.sentry:
     logger.info("Enabling Sentry")
+    import sentry_sdk
     sentry_sdk.init(
         dsn=settings.sentry,
         # Set traces_sample_rate to 1.0 to capture 100%
@@ -59,8 +61,6 @@ if settings.sentry:
             "profiles_sample_rate": 1.0,
         },
     )
-
-app = FastAPI()
 
 if settings.auth == "firebase":
     from firebase_admin import auth
@@ -218,8 +218,6 @@ async def add(
     """
     namespace = get_namespace(request, vault_id)
 
-    sentry_sdk.set_user({"id": vault_id})
-
     documents = request_body.documents
     # TODO: temporarily we ignore too big documents because pinecone doesn't support them
     df = DataFrame(
@@ -351,7 +349,6 @@ async def delete(
     Delete a document from the index
     """
     namespace = get_namespace(request, vault_id)
-    sentry_sdk.set_user({"id": vault_id})
 
     ids = request_body.ids
     logger.info(f"Deleting {len(ids)} documents")
@@ -374,7 +371,6 @@ async def semantic_search(
     """
     query = request_body.query
     namespace = get_namespace(request, vault_id)
-    sentry_sdk.set_user({"id": vault_id})
 
     top_k = 5  # TODO might fail if index empty?
     if request_body.top_k > 0:

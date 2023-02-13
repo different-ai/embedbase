@@ -8,8 +8,8 @@ WORKDIR $APP_HOME
 COPY . ./
 
 ENV PORT 8080
-# TODO: flavors
-RUN pip install --no-cache-dir .[all]
+ARG FLAVOR=all
+RUN pip install --no-cache-dir .[$FLAVOR]
 
 ENTRYPOINT ["docker/docker-entrypoint.sh"]
 CMD ["embedbase"]
