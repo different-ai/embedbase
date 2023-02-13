@@ -1,6 +1,8 @@
 # python garbage
 __pycache__
 .pytest_cache
+*.egg-info
+build
 
 # python virtual environment
 env

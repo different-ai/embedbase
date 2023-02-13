@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 from multiprocessing.pool import ThreadPool
 import time
@@ -15,11 +16,10 @@ from search.models import (
     SearchRequest,
 )
 from fastapi.responses import JSONResponse
-import pinecone
 import urllib.parse
 import numpy as np
+from search.pinecone_db import Pinecone
 from search.settings import Settings, get_settings
-from .utils import BatchGenerator, too_big_rows
 import openai
 import sentry_sdk
 
@@ -29,7 +29,7 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-from typing import Tuple
+from typing import List, Tuple
 
 
 settings = get_settings()
@@ -129,18 +129,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pinecone.init(
-    api_key=settings.pinecone_api_key, environment=settings.pinecone_environment
+vector_database = Pinecone(
+    api_key=settings.pinecone_api_key,
+    environment=settings.pinecone_environment,
+    index_name=settings.pinecone_index,
 )
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
-pinecone_index = settings.pinecone_index
-index = pinecone.Index(pinecone_index, pool_threads=8)
 
 
 @app.on_event("startup")
-def startup_event():
-    result = index.fetch(ids=["foo"])  # TODO: container startup check
+async def startup_event():
+    result = await vector_database.fetch(ids=["foo"])  # TODO: container startup check
     if result:
         logger.info("Properly connected to Pinecone")
     else:
@@ -188,61 +188,26 @@ def embed(
     after=after_log(logger, logging.ERROR),
     stop=stop_after_attempt(3),
 )
-def upload_embeddings_to_vector_database(df: DataFrame, namespace: str):
-    # TODO: batch size should depend on payload
-    df_batcher = BatchGenerator(UPLOAD_BATCH_SIZE)
-    logger.info("Uploading vectors namespace..")
-    start_time_upload = time.time()
-    batches = [batch_df for batch_df in df_batcher(df)]
-
-    def _insert(batch_df: DataFrame):
-        bigs = too_big_rows(batch_df)
-        if len(bigs) > 0:
-            logger.info(f"Ignoring {len(bigs)} rows that are too big")
-        # remove rows that are too big, in the right axis
-        batch_df = batch_df.drop(bigs, axis=0)
-        response = index.upsert(
-            vectors=zip(
-                # pinecone needs to have the document path url encoded
-                batch_df.id.apply(urllib.parse.quote).tolist(),
-                batch_df.embedding,
-                [
-                    {
-                        "data": data,
-                    }
-                    for data in batch_df.data
-                ],
-            ),
-            namespace=namespace,
-            async_req=True,
-        )
-        logger.info(f"Uploaded {len(batch_df)} vectors")
-        return response
-
-    [response.get() for response in map(_insert, batches)]
-
-    logger.info(f"Uploaded in {time.time() - start_time_upload} seconds")
-
 
 def get_namespace(request: Request, vault_id: str) -> str:
     return f"{request.scope.get('uid')}/{vault_id}"
 
 
 @app.get("/v1/{vault_id}/clear")
-def clear(
+async def clear(
     request: Request,
     vault_id: str,
     _: Settings = Depends(get_settings),
 ):
     namespace = get_namespace(request, vault_id)
 
-    index.delete(delete_all=True, namespace=namespace)
+    await vector_database.clear(namespace=namespace)
     logger.info("Cleared index")
     return JSONResponse(status_code=200, content={"status": "success"})
 
 
 @app.post("/v1/{vault_id}")
-def add(
+async def add(
     request: Request,
     vault_id: str,
     request_body: AddRequest,
@@ -280,9 +245,7 @@ def add(
         return JSONResponse(status_code=200, content={"status": "success"})
 
     # add column "hash" based on "data"
-    df.hash = df.data.apply(
-        lambda x: hashlib.sha256(x.encode()).hexdigest()
-    )
+    df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     df_length = len(df)
     existing_hashes = []
@@ -295,20 +258,19 @@ def add(
         # in the index metadata
         ids_to_fetch = df.id.apply(urllib.parse.quote).tolist()
         # split in chunks of n because fetch has a limit of size
+        # TODO: abstract away batching
         n = 200
         ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
         logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
 
-        def _fetch(ids):
+        async def _fetch(ids) -> List[dict]:
             try:
-                return index.fetch(ids=ids, namespace=namespace)
+                return await vector_database.fetch(ids=ids, namespace=namespace)
             except Exception as e:
                 logger.error(f"Error fetching {ids}: {e}", exc_info=True)
                 raise e
 
-        with ThreadPool(len(ids_to_fetch)) as pool:
-            existing_documents = pool.map(lambda n: _fetch(n), ids_to_fetch)
-        # flatten vectors.values()
+        existing_documents = await asyncio.gather(*[_fetch(ids) for ids in ids_to_fetch])
         flat_existing_documents = itertools.chain.from_iterable(
             [doc.vectors.values() for doc in existing_documents]
         )
@@ -328,9 +290,7 @@ def add(
         ]
     else:
         # generate ids using hash + time
-        df.id = df.hash.apply(
-            lambda x: f"{x}-{int(time.time() * 1000)}"
-        )
+        df.id = df.hash.apply(lambda x: f"{x}-{int(time.time() * 1000)}")
 
     diff = df_length - len(df)
 
@@ -364,7 +324,7 @@ def add(
     # # merge s column into a single column , ignore index
     # df.embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: problem is that pinecone doesn't support this large of an input
-    upload_embeddings_to_vector_database(df, namespace)
+    await vector_database.update(df, namespace, batch_size=UPLOAD_BATCH_SIZE)
 
     logger.info(f"Indexed & uploaded {len(df)} sentences")
     end_time = time.time()
@@ -379,8 +339,9 @@ def add(
         },
     )
 
+
 @app.delete("/v1/{vault_id}")
-def delete(
+async def delete(
     request: Request,
     vault_id: str,
     request_body: DeleteRequest,
@@ -395,14 +356,14 @@ def delete(
     ids = request_body.ids
     logger.info(f"Deleting {len(ids)} documents")
     quoted_ids = [urllib.parse.quote(id) for id in ids]
-    index.delete(ids=quoted_ids, namespace=namespace)
+    await vector_database.delete(ids=quoted_ids, namespace=namespace)
     logger.info(f"Deleted {len(ids)} documents")
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
 
 
 @app.post("/v1/{vault_id}/search")
-def semantic_search(
+async def semantic_search(
     request: Request,
     vault_id: str,
     request_body: SearchRequest,
@@ -422,16 +383,14 @@ def semantic_search(
 
     logger.info(f"Query {request_body.query} created embedding, querying index")
 
-    query_response = index.query(
+    query_response = await vector_database.search(
         top_k=top_k,
-        include_values=True,
-        include_metadata=True,
         vector=query_embedding,
         namespace=namespace,
     )
 
     similarities = []
-    for match in query_response.matches:
+    for match in query_response:
         logger.debug(f"Match id: {match.id}")
         decoded_id = urllib.parse.unquote(match.id)
         logger.debug(f"Decoded id: {decoded_id}")

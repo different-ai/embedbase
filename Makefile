@@ -6,9 +6,8 @@ LOCAL_PORT="8000"
 
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
-	source env/bin/activate; \
-	pip install -r requirements.txt; \
-	pip install -r requirements-test.txt
+	. env/bin/activate; \
+	pip install .[all]
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API

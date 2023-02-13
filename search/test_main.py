@@ -1,26 +1,33 @@
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from pandas import DataFrame
-from .api import app, embed, upload_embeddings_to_vector_database, index, no_batch_embed
+import pytest
+from search.pinecone_db import Pinecone
+
+from search.settings import get_settings
+from .api import app, embed, no_batch_embed
 import pandas as pd
 import math
 from random import randint
 import numpy as np
 
-
-def test_clear():
-    with TestClient(app=app) as client:
-        response = client.get(
-            "/v1/dev/clear",
+@pytest.mark.asyncio
+async def test_clear():
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.get(
+            "/v1/dev/clear",    
         )
         assert response.status_code == 200
         assert response.json().get("status", "") == "success"
 
-def test_semantic_search():
-    with TestClient(app=app) as client:
-        response = client.post("/v1/dev/search", json={"query": "bob"})
+@pytest.mark.asyncio
+async def test_semantic_search():
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post("/v1/dev/search", json={"query": "bob"})
         assert response.status_code == 200
 
-def test_refresh_small_documents():
+@pytest.mark.asyncio
+async def test_refresh_small_documents():
     df = pd.DataFrame(
         [
             "".join(
@@ -33,8 +40,8 @@ def test_refresh_small_documents():
         ],
         columns=["text"],
     )
-    with TestClient(app=app) as client:
-        response = client.post(
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
             "/v1/dev",
             json={
                 "documents": [
@@ -58,7 +65,8 @@ def test_embed_large_text():
     data = no_batch_embed("".join("a" * 10_000))
     assert len(data) == 1536
 
-def test_upload():
+@pytest.mark.asyncio
+async def test_upload():
     data = embed(["hello world", "hello world"])
     df = DataFrame(
         [
@@ -75,18 +83,24 @@ def test_upload():
             "id",
         ],
     )
-    upload_embeddings_to_vector_database(df, "unit_test_test_upload")
-    results = index.query(
+    settings = get_settings()
+    vector_database = Pinecone(
+        api_key=settings.pinecone_api_key,
+        environment=settings.pinecone_environment,
+        index_name=settings.pinecone_index,
+    )
+    await vector_database.update(df, "unit_test_test_upload")
+
+    results = await vector_database.search(
         data[0]["embedding"],
         top_k=2,
-        include_values=True,
         namespace="unit_test_test_upload",
     )
-    assert results.matches[0]["id"] == "1"
-    assert results.matches[1]["id"] == "0"
+    assert results[0]["id"] == "1"
+    assert results[1]["id"] == "0"
 
-
-def test_ignore_document_that_didnt_change():
+@pytest.mark.asyncio
+async def test_ignore_document_that_didnt_change():
     df = pd.DataFrame(
         [
             ("".join(
@@ -99,11 +113,11 @@ def test_ignore_document_that_didnt_change():
         ],
         columns=["text", "id"],
     )
-    with TestClient(app=app) as client:
-        response = client.get(
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.get(
             "/v1/dev/clear",
         )
-        response = client.post(
+        response = await client.post(
             "/v1/dev",
             json={
                 "documents": [
@@ -119,8 +133,8 @@ def test_ignore_document_that_didnt_change():
         ids = response.json().get("inserted_ids", [])
         # add to df
         df["id"] = ids
-    with TestClient(app=app) as client:
-        response = client.post(
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
             "/v1/dev",
             json={
                 "documents": [
