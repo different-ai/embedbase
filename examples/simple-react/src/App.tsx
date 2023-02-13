@@ -5,7 +5,7 @@ const hashCode = (s: string) => s.split('').reduce((a, b) => (((a << 5) - a) + b
 
 function App() {
   const [search, setSearch] = React.useState('');
-  const [documents, setDocuments] = React.useState<{content: string; color: string}[]>([]);
+  const [documents, setDocuments] = React.useState<{data: string; color: string}[]>([]);
   const handleSearchBarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   }
@@ -25,15 +25,13 @@ function App() {
       // set to the document found in documents
       // red if close enough otherwise black
       setDocuments(documents.map((document) => {
-          return { content: document.content, color: 
-            (document.content === topOne.document_content && 
-              topOne.score > 0.8) ? 'red' : 'black' };
+          return { data: document.data, color: 
+            (document.data === topOne.data && 
+              topOne.score > 0.6) ? 'red' : 'black' };
       }));
     });
   };
   const addDocument = () => {
-    // hash of search bar + time
-    const id = hashCode(search + Date.now().toString());
     fetch('http://localhost:8000/v1/dev', {
       method: 'POST',
       headers: {
@@ -44,11 +42,11 @@ function App() {
           data: search,
         }],
       }),
-    }).then(() => setDocuments([...documents, { content: search, color: 'black' }]));
+    }).then(() => setDocuments([...documents, { data: search, color: 'black' }]));
   }
   const clearIndex = () => {
     // /v1/search/clear
-    fetch('http://localhost:8000/dev/clear', {
+    fetch('http://localhost:8000/v1/dev/clear', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +68,7 @@ function App() {
           {documents.map((document, i) => (
             <li key={i} style={{ color: document.color,
               fontSize: '20px', margin: '10px 0' }}
-            >{document.content}</li>
+            >{document.data}</li>
           ))}
         </ul>
       </div>
