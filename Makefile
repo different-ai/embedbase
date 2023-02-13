@@ -43,7 +43,7 @@ docker/push: docker/build/prod ## [Local development] Push the docker image to r
 	docker push ${LATEST_IMAGE_URL}
 
 release: ## [Local development] Release a new version of the API.
-	echo "Releasing version ${VERSION}"; \
+	@echo "Releasing version ${VERSION}"; \
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${VERSION}: $$COMMIT'"; \

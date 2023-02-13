@@ -38,5 +38,7 @@ jobs:
           echo $EMBEDBASE_TEST_CONFIG | yq -P > config.yaml
 
       - name: Run tests
-        run: make test
+        run: |
+          . env/bin/activate
+          make test
   
