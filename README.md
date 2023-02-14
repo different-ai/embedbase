@@ -6,7 +6,7 @@
 
 # Embedbase
 
-Open-source API for to easily create, store, and retrieve embeddings.
+Open-source API to easily create, store, and retrieve embeddings.
 
 You can join the waitlist to make use of the hosted version [here](https://yep.so/p/embedase)
 
