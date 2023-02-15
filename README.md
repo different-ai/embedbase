@@ -179,6 +179,6 @@ Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 ## To Do
 - [x] add docker-compose ✅ 2023-02-01
 - [ ] launch hosted version
-- [x] ability to use own middleare
+- [x] ability to use own middleware
 - [x] document how to add custom sentry config
 - [ ] add natural language search
