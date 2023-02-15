@@ -112,7 +112,7 @@ Right now we just support simple firebase auth. We'll be adding more integration
 `config.yaml`
 ```
 authentication: firebase
-firebase_service_account_path ./service_account.json
+firebase_service_account_path: ./service_account.json
 ```
 
 [Get an **ID token** from your client](https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients)
