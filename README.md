@@ -8,8 +8,7 @@
 
 Open-source API to easily create, store, and retrieve embeddings.
 
-You can join the waitlist to make use of the hosted version [here](https://yep.so/p/embedase)
-
+[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
 
 > Used by [AVA](https://github.com/louis030195/obsidian-ava) and serving ~100k requests a day.
 
@@ -111,7 +110,7 @@ Result:
 Right now we just support simple firebase auth. We'll be adding more integrations as we go.
 
 `config.yaml`
-```
+```yaml
 auth: firebase
 # make sure to have "service_account.json" at this path
 firebase_service_account_path: ./service_account.json
@@ -127,6 +126,15 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).
 
+## Observability
+
+You can use [sentry](https://sentry.io/welcome/) for error reporting. You can set your own sentry config in `config.yaml`
+
+`config.yaml`
+```yaml
+sentry: YOUR_DSN
+```
+
 ## Deployment
 
 Please see [deployment](./docs/DEPLOYMENT.md) for more information.
@@ -139,6 +147,5 @@ Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 - [ ] launch hosted version
 - [ ] ability to use own storage middleware
 - [ ] ability to use own auth middleare
-- [ ] document how to add custom sentry config
-- [ ] release sync sdk
+- [x] document how to add custom sentry config
 - [ ] add natural language search
