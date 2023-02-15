@@ -185,15 +185,8 @@ def embed(
     return openai.Embedding.create(input=input, model=model)["data"]
 
 
-@retry(
-    wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.INFO),
-    after=after_log(logger, logging.ERROR),
-    stop=stop_after_attempt(3),
-)
 def get_namespace(request: Request, vault_id: str) -> str:
     return f"{request.scope.get('uid')}/{vault_id}"
-
 
 @app.get("/v1/{vault_id}/clear")
 async def clear(
