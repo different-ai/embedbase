@@ -62,7 +62,8 @@ openai_organization: "org-xxxxx"
 
 ```ts
 const URL = 'http://localhost:8000'
-fetch(`${URL}/v1/dev`, {
+const VAULT_ID = 'people'
+fetch(`${URL}/v1/${VAULT_ID}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -78,7 +79,7 @@ fetch(`${URL}/v1/dev`, {
 ### Searching
 
 ```ts
-fetch(`${URL}/v1/dev/search`, {
+fetch(`${URL}/v1/${VAULT_ID}/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +121,8 @@ firebase_service_account_path: ./service_account.json
 
 ```bash
 TOKEN="foo"
-curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"query": "Bob"}' http://localhost:8080/v1/dev/search | jq '.'
+const VAULT_ID = "people"
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"query": "Bob"}' http://localhost:8080/v1/${VAULT_ID}/search | jq '.'
 ```
 
 You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).

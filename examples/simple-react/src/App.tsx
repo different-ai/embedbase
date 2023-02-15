@@ -1,8 +1,8 @@
 import React from 'react';
 
-const hashCode = (s: string) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0)
 
-
+const BASE_URL = 'http://0.0.0.0:8000';
+const VAULT_ID = 'dev';
 function App() {
   const [search, setSearch] = React.useState('');
   const [documents, setDocuments] = React.useState<{data: string; color: string}[]>([]);
@@ -11,7 +11,7 @@ function App() {
   }
   const colourizeDocuments = () => {
     if (!search) return;
-    fetch('http://localhost:8000/v1/dev/search', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ function App() {
     });
   };
   const addDocument = () => {
-    fetch('http://localhost:8000/v1/dev', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,8 +45,7 @@ function App() {
     }).then(() => setDocuments([...documents, { data: search, color: 'black' }]));
   }
   const clearIndex = () => {
-    // /v1/search/clear
-    fetch('http://localhost:8000/v1/dev/clear', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}/clear`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
