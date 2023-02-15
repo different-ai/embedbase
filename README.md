@@ -104,8 +104,9 @@ Result:
 }
 ```
 
+## Customisation
 
-## Authentication
+### Authentication
 
 Right now we just support simple firebase auth. We'll be adding more integrations as we go.
 
@@ -126,7 +127,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).
 
-## Observability
+### Observability
 
 You can use [sentry](https://sentry.io/welcome/) for error reporting. You can set your own sentry config in `config.yaml`
 
@@ -134,6 +135,39 @@ You can use [sentry](https://sentry.io/welcome/) for error reporting. You can se
 ```yaml
 sentry: YOUR_DSN
 ```
+
+### Custom middleware
+
+Currently adding middleware is very similar to [how it is done in FastAPI](https://fastapi.tiangolo.com/tutorial/middleware).
+
+```py
+# MYROOTPROJECT/middlewares/my_custom_middleware/my_custom_middleware.py
+def middleware(app: FastAPI):
+    @app.middleware("http")
+    async def my_custom_middleware(request: Request, call_next) -> Tuple[str, str]:
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
+```
+
+```dockerfile
+# MYROOTPROJECT/Dockerfile
+FROM ghcr.io/another-ai/embedbase:latest
+# if you have some custom dependencies
+# COPY requirements.txt requirements.txt
+# RUN pip install -r requirements.txt && rm requirements.txt
+COPY ./middlewares/my_custom_middleware/my_custom_middleware.py /app/middlewares/my_custom_middleware.py
+```
+
+```yaml
+# MYROOTPROJECT/config.yaml
+# ...
+middlewares:
+  - middlewares.my_custom_middleware
+```
+
 
 ## Deployment
 
