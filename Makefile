@@ -32,7 +32,7 @@ docker/build/prod: ## [Local development] Build the docker image.
 	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./docker/Dockerfile
 
 docker/run/dev: ## [Local development] Run the development docker image.
-	docker-compose up
+	docker-compose up --build
 
 docker/run/prod:
 # note we don't use buildx here to use local platform cpu

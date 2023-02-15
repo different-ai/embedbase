@@ -111,7 +111,8 @@ Right now we just support simple firebase auth. We'll be adding more integration
 
 `config.yaml`
 ```
-authentication: firebase
+auth: firebase
+# make sure to have "service_account.json" at this path
 firebase_service_account_path: ./service_account.json
 ```
 

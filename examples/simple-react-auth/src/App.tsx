@@ -3,14 +3,11 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// To apply the default browser preference instead of explicitly setting it.
-// firebase.auth().useDeviceLanguage();
-const hashCode = (s: string) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0)
-
 // read firebase config from fb.json
 const firebaseConfig = require('./fb.json');
-const app = initializeApp(firebaseConfig);
-
+initializeApp(firebaseConfig);
+const BASE_URL = 'http://0.0.0.0:8000';
+const VAULT_ID = 'dev';
 function App() {
   const [search, setSearch] = React.useState('');
   const [documents, setDocuments] = React.useState<{data: string; color: string}[]>([]);
@@ -28,7 +25,7 @@ function App() {
   }
   const colourizeDocuments = () => {
     if (!search) return;
-    fetch('http://localhost:8000/v1/dev/search', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +47,7 @@ function App() {
     }).catch((err) => alert(err));
   };
   const addDocument = () => {
-    fetch('http://localhost:8000/v1/dev', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,7 +62,7 @@ function App() {
       .catch((err) => alert(err));
   }
   const clearIndex = () => {
-    fetch('http://localhost:8000/v1/dev/clear', {
+    fetch(`${BASE_URL}/v1/${VAULT_ID}/clear`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

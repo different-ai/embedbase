@@ -36,7 +36,7 @@ MAX_DOCUMENT_LENGTH = int(os.environ.get("MAX_DOCUMENT_LENGTH", "1000"))
 PORT = os.environ.get("PORT", 8080)
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
-logger = logging.getLogger("search")
+logger = logging.getLogger("embedbase")
 logger.setLevel(settings.log_level)
 handler = logging.StreamHandler()
 handler.setLevel(settings.log_level)
@@ -64,6 +64,7 @@ if settings.sentry:
     )
 
 if settings.auth == "firebase":
+    logger.info("Enabling Firebase Auth")
     from firebase_admin import auth
 
     @app.middleware("http")
@@ -97,11 +98,12 @@ if settings.auth == "firebase":
         try:
             token = token.strip()
             decoded_token = auth.verify_id_token(token)
+            # add uid to scope
+            request.scope["uid"] = decoded_token["uid"]
         except Exception as err:
+            logger.warning(f"Error verifying token: {err}")
             return JSONResponse(status_code=401, content={"error": "invalid token"})
 
-        # add uid to scope
-        request.scope["uid"] = decoded_token["userId"]
         response = await call_next(request)
         return response
 
