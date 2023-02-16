@@ -142,9 +142,8 @@ Currently adding middleware is very similar to [how it is done in FastAPI](https
 
 ```py
 # MYROOTPROJECT/middlewares/my_custom_middleware/my_custom_middleware.py
-def middleware(app: FastAPI):
-    @app.middleware("http")
-    async def my_custom_middleware(request: Request, call_next) -> Tuple[str, str]:
+class MyCustomMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Tuple[str, str]:
         start_time = time.time()
         response = await call_next(request)
         process_time = time.time() - start_time
@@ -165,8 +164,30 @@ COPY ./middlewares/my_custom_middleware/my_custom_middleware.py /app/middlewares
 # MYROOTPROJECT/config.yaml
 # ...
 middlewares:
-  - middlewares.my_custom_middleware
+  - middlewares.my_custom_middleware.my_custom_middleware.MyCustomMiddleware
 ```
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"query": "Bob"}' http://localhost:8080/v1/people/search | jq '.'
+```
+
+```json
+{
+  "query": "Bob",
+  "similarities": [
+    {
+      "score": 0.828773,
+      "id": "ABCU75FEBE",
+      "data": "Elon is sipping a tea on Mars",
+    }
+  ],
+  "headers": {
+    "x-process-time": "0.0001239776611328125"
+  }
+}
+```
+
+Please see [examples](./examples/simple-react-custom-middleware) for more details and a concrete example.
 
 
 ## Deployment

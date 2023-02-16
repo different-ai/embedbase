@@ -2,11 +2,19 @@
 
 This is a simple React app that is using **Embedbase**.
 
+Add this to your `config.yaml`:
+```yaml
+# ...
+middlewares:
+  - middlewares.processing_time
+# ...
+```
+
 ```bash
 docker-compose up
 ```
 
-Start the front-end in another terminal:
+Start the front-end from another terminal:
 
 ```bash
 npm i

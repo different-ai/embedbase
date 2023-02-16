@@ -1,6 +1,5 @@
 import asyncio
 import hashlib
-from multiprocessing.pool import ThreadPool
 import time
 from pandas import DataFrame
 import os
@@ -9,6 +8,7 @@ import itertools
 import typing
 import logging
 from fastapi import Depends, FastAPI, Request, status
+from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from embedbase.models import (
     DeleteRequest,
@@ -44,8 +44,33 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+middlewares = []
+if settings.middlewares:
+    from starlette.middleware import Middleware
+    for i, m in enumerate(settings.middlewares):
+        # import python file at path m
+        # and add the first class found to the list
 
-app = FastAPI()
+        try:
+            logger.debug("Importing middleware", m)
+            segments = m.split(".")
+            logger.debug("Segments", segments)
+            module_name = ".".join(segments[0:-1])
+            logger.debug("Module name", module_name)
+            class_name = segments[-1]
+            logger.debug("Class name", class_name)
+            module = __import__(module_name, fromlist=[class_name])
+            logger.debug("Module", module)
+            dirs = dir(module)
+            logger.debug("Dirs", dirs)
+            middleware_class = getattr(module, class_name)
+            logger.debug("Middleware class", middleware_class)
+            middlewares.append(Middleware(middleware_class))
+        except Exception as e:
+            logger.error(f"Error loading middleware {m}: {e}")
+
+
+app = FastAPI(middleware=middlewares)
 
 if settings.sentry:
     logger.info("Enabling Sentry")
@@ -108,20 +133,6 @@ if settings.auth == "firebase":
         return response
 
 
-if settings.middlewares:
-    for i, m in enumerate(settings.middlewares):
-        # import python file at path m
-        # and call middleware(app)
-
-        try:
-            module = __import__(m, fromlist=["middleware"])
-            module.middleware(app)
-            # Verify contents of the module:
-            print(dir(module))
-
-            logger.info(f"Loaded middleware {m}")
-        except Exception as e:
-            logger.error(f"Error loading middleware {m}: {e}")
 
 
 app.add_middleware(

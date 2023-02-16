@@ -12,5 +12,9 @@ openai_api_key: "sk-xxxxxxx"
 openai_organization: "org-xxxxx"
 
 # authentication
-# authentication: firebase # only firebase is supported for now
+# auth: firebase # only firebase is supported for now
 # firebase_service_account_path: "path/to/service-account.json"
+
+# middlewares:
+#   - middlewares.enrich.enrich.Enrich
+#   - middlewares.processing_time.processing_time.ProcessingTime

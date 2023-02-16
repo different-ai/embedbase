@@ -11,6 +11,15 @@ It is identical to [simple-react](https://github.com/another-ai/embedbase/tree/m
     b. On the Sign in method tab, enable the Google sign-in method and click Save.
 
 3. [Get your Firebase config](https://console.firebase.google.com/u/0/project/obsidian-ai/settings/general/web:NjRmMWIwZDAtMmE3OC00YTM5LThlMjItYzcxZWUzM2I2NjQ5) and add it to the `src/fb.json` file 
-4. `npm i`
-5. `npm start`
 
+
+```bash
+docker-compose up
+```
+
+Start the front-end in another terminal:
+
+```bash
+npm i
+npm start
+```
