@@ -175,6 +175,16 @@ Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 
 [Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
 
+## Development
+
+We recommend using Gitpod for development.
+
+[![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
+
+Make sure to add a variable in your Gitpod dashboard `EMBEDBASE_CONFIG`as a JSON value.
+
+> To create a json from yaml: `yq -o=json eval config.yaml`
+
 
 ## To Do
 - [x] add docker-compose ✅ 2023-02-01
