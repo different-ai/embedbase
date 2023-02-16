@@ -2,8 +2,8 @@ import time
 from typing import Tuple
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-class CustomHeaderMiddleware(BaseHTTPMiddleware):
-    async def processing_time(request: Request, call_next) -> Tuple[str, str]:
+class ProcessingTime(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Tuple[str, str]:
         start_time = time.time()
         response = await call_next(request)
         process_time = time.time() - start_time

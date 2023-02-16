@@ -6,7 +6,8 @@ Add this to your `config.yaml`:
 ```yaml
 # ...
 middlewares:
-  - middlewares.processing_time
+  - middlewares.enrich.enrich.Enrich
+  - middlewares.processing_time.processing_time.ProcessingTime
 # ...
 ```
 

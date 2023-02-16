@@ -52,7 +52,7 @@ if settings.middlewares:
         # and add the first class found to the list
 
         try:
-            logger.debug("Importing middleware", m)
+            logger.info("Importing middleware", m)
             segments = m.split(".")
             logger.debug("Segments", segments)
             module_name = ".".join(segments[0:-1])
@@ -66,6 +66,7 @@ if settings.middlewares:
             middleware_class = getattr(module, class_name)
             logger.debug("Middleware class", middleware_class)
             middlewares.append(Middleware(middleware_class))
+            logger.info("Loaded middleware", m)
         except Exception as e:
             logger.error(f"Error loading middleware {m}: {e}")
 

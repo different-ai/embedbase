@@ -10,6 +10,6 @@ services:
       - PORT=8000
     volumes:
       - ./config.yaml:/app/config.yaml
-      - ./middlewares/processing_time/processing_time.py:/app/middlewares/processing_time.py
-      - ./middlewares/enrich/enrich.py:/app/middlewares/enrich.py
+      - ./middlewares/processing_time/processing_time.py:/app/middlewares/processing_time/processing_time.py
+      - ./middlewares/enrich/enrich.py:/app/middlewares/enrich/enrich.py
 
