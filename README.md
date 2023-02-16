@@ -181,7 +181,7 @@ We recommend using Gitpod for development.
 
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
 
-Make sure to add a variable in your Gitpod dashboard `EMBEDBASE_CONFIG`as a JSON value.
+Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/variables) `EMBEDBASE_CONFIG`as a JSON value.
 
 > To create a json from yaml: `yq -o=json eval config.yaml`
 
