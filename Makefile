@@ -23,7 +23,8 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_main.py::test_embed; \
 	python3 -m pytest -s test_main.py::test_embed_large_text; \
 	python3 -m pytest -s test_main.py::test_upload; \
-	python3 -m pytest -s test_main.py::test_ignore_document_that_didnt_change
+	python3 -m pytest -s test_main.py::test_ignore_document_that_didnt_change; \
+	python3 -m pytest -s test_main.py::test_save_clear_data
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.

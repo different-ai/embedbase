@@ -25,6 +25,7 @@ class Settings(YamlModel):
     sentry: typing.Optional[str] = None
     firebase_service_account_path: typing.Optional[str] = None
     middlewares: typing.Optional[typing.List[str]] = None
+    save_clear_data: bool = True
 
 @lru_cache()
 def get_settings():

@@ -47,6 +47,7 @@ logger.addHandler(handler)
 middlewares = []
 if settings.middlewares:
     from starlette.middleware import Middleware
+
     for i, m in enumerate(settings.middlewares):
         # import python file at path m
         # and add the first class found to the list
@@ -134,8 +135,6 @@ if settings.auth == "firebase":
         return response
 
 
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -199,6 +198,7 @@ def embed(
 
 def get_namespace(request: Request, vault_id: str) -> str:
     return f"{request.scope.get('uid')}/{vault_id}"
+
 
 @app.get("/v1/{vault_id}/clear")
 async def clear(
@@ -283,10 +283,8 @@ async def add(
         )
 
         # remove rows that have the same hash
-        exisiting_contents = []
         for doc in flat_existing_documents:
             existing_hashes.append(doc.id)
-            exisiting_contents.append(doc.get("metadata", {}).get("data"))
         df = df[
             ~df.apply(
                 lambda x: x.hash in existing_hashes,
@@ -334,7 +332,12 @@ async def add(
     # # merge s column into a single column , ignore index
     # df.embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: problem is that pinecone doesn't support this large of an input
-    await vector_database.update(df, namespace, batch_size=UPLOAD_BATCH_SIZE)
+    await vector_database.update(
+        df,
+        namespace,
+        batch_size=UPLOAD_BATCH_SIZE,
+        save_clear_data=settings.save_clear_data,
+    )
 
     logger.info(f"Indexed & uploaded {len(df)} sentences")
     end_time = time.time()
@@ -406,7 +409,7 @@ async def semantic_search(
             {
                 "score": match.score,
                 "id": decoded_id,
-                "data": match.metadata.get("data", None),
+                "data": match.get("metadata", {}).get("data", None),
             }
         )
     return JSONResponse(

@@ -26,10 +26,13 @@ class VectorDatabase(ABC):
         df: DataFrame,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = 100,
+        save_clear_data: bool = True,
     ) -> Coroutine:
         """
         :param vectors: list of vectors
         :param namespace: namespace
+        :param batch_size: batch size
+        :param save_clear_data: save clear data
         """
         raise NotImplementedError
 

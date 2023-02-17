@@ -39,10 +39,13 @@ class Pinecone(VectorDatabase):
         df: DataFrame,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = 100,
+        save_clear_data: bool = True,
     ) -> Coroutine:
         """
         :param vectors: list of vectors
         :param namespace: namespace
+        :param batch_size: batch size
+        :param save_clear_data: save clear data
         """
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
@@ -62,6 +65,9 @@ class Pinecone(VectorDatabase):
                         }
                         for data in batch_df.data
                     ],
+                ) if save_clear_data else zip(
+                    batch_df.id.apply(urllib.parse.quote).tolist(),
+                    batch_df.embedding,
                 ),
                 namespace=namespace or self.default_namespace,
                 async_req=True,
@@ -98,4 +104,4 @@ class Pinecone(VectorDatabase):
         :param namespace: namespace
         """
         # HACK: stupid hack "%" because pinecone doc is incorrect and u need to pass ids & clear_all
-        self.index.delete(ids=["%"], clear_all=True, namespace=namespace or self.default_namespace)
+        self.index.delete(delete_all=True, namespace=namespace or self.default_namespace)
