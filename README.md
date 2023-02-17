@@ -156,6 +156,11 @@ sentry: YOUR_DSN
 
 ### Custom middleware
 
+Example production middlewares:
+
+- Playground Embedbase instance is [open source](https://github.com/another-ai/embedbase-hosted)
+- [Embedbase-ava](https://github.com/another-ai/embedbase-ava) serve hundreds of thousands of requests per day to [Obsidian users](https://app.anotherai.co/)
+
 Currently adding middleware is very similar to [how it is done in FastAPI](https://fastapi.tiangolo.com/tutorial/middleware).
 
 ```py
@@ -206,7 +211,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"query": "Bob"}' http://lo
 ```
 
 Please see [examples](./examples/simple-react-custom-middleware) for more details and a concrete example.
-
 
 ## Deployment
 
