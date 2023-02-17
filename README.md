@@ -1,4 +1,24 @@
+<br />
+<p align="center">
+  <h1 align="center">Embedbase</h1>
+
+  <p align="center">
+    Give your users search superpowers by going beyond traditional or full-text search.  
+    <br />
+    <a href="https://app.embedbase.xyz/login">Try the sandbox playground now</a>
+    ·
+    <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
+    ·
+    <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=bug">Report Bug</a>
+    <br />
+  </p>
+</p>
+
+# Status
+
 ⚠️ Alpha version 
+
+The codebase is under heavy development and the documentation is constantly evolving. Give it a try and let us know what you think by creating an issue. Watch [releases](https://github.com/another-ai/embedbase/releases) of this repo to get notified of updates. And give us a star if you like it!
 
 **There are ongoing efforts to make it more modular and easy to use**
 
