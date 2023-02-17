@@ -28,8 +28,6 @@ The codebase is under heavy development and the documentation is constantly evol
 
 Open-source API to easily create, store, and retrieve embeddings.
 
-[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
-
 > Used by [AVA](https://github.com/louis030195/obsidian-ava) and serving ~100k requests a day.
 
 ## Example 
