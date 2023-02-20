@@ -22,7 +22,7 @@ The codebase is under heavy development and the documentation is constantly evol
 
 **There are ongoing efforts to make it more modular and easy to use**
 
-[![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
 
 # Embedbase
 
