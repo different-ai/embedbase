@@ -1,11 +1,13 @@
 <br />
 <p align="center">
   <h1 align="center">Embedbase</h1>
+<h3 align="center">Get your embeddings-powered app off localhost</h3>
 
   <p align="center">
-    Give your users search superpowers by going beyond traditional or full-text search.  
     <br />
-    <a href="https://app.embedbase.xyz/login">Try the sandbox playground now</a>
+    <p>Open-source API to easily create, store, and retrieve embeddings.</p>
+    <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
+    <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
     ·
     <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
     ·
@@ -13,6 +15,56 @@
     <br />
   </p>
 </p>
+
+## Usage
+### Inserting data
+
+```ts
+const URL = 'http://localhost:8000'
+const VAULT_ID = 'people'
+fetch(`${URL}/v1/${VAULT_ID}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      documents: [{
+        data: 'Elon is sipping a tea on Mars',
+      }],
+    }),
+  });
+```
+
+
+### Searching
+
+```ts
+fetch(`${URL}/v1/${VAULT_ID}/search`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: 'Something about a red planet',
+    }),
+  });
+```
+
+Result:
+
+```json
+{
+  "query": "Something about a red planet",
+  "similarities": [
+    {
+      "score": 0.828773,
+      "id": "ABCU75FEBE",
+      "data": "Elon is sipping a tea on Mars",
+    }
+  ]
+}
+```
+
 
 # Status
 
@@ -24,11 +76,6 @@ The codebase is under heavy development and the documentation is constantly evol
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
 
-# Embedbase
-
-Open-source API to easily create, store, and retrieve embeddings.
-
-> Used by [AVA](https://github.com/louis030195/obsidian-ava) and serving ~100k requests a day.
 
 ## Example 
 
@@ -75,52 +122,6 @@ openai_organization: "org-xxxxx"
 
 ## Usage
 
-### Inserting data
-
-```ts
-const URL = 'http://localhost:8000'
-const VAULT_ID = 'people'
-fetch(`${URL}/v1/${VAULT_ID}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      documents: [{
-        data: 'Elon is sipping a tea on Mars',
-      }],
-    }),
-  });
-```
-
-### Searching
-
-```ts
-fetch(`${URL}/v1/${VAULT_ID}/search`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: 'Something about a red planet',
-    }),
-  });
-```
-
-Result:
-
-```json
-{
-  "query": "Something about a red planet",
-  "similarities": [
-    {
-      "score": 0.828773,
-      "id": "ABCU75FEBE",
-      "data": "Elon is sipping a tea on Mars",
-    }
-  ]
-}
-```
 
 ## Customisation
 
@@ -231,7 +232,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 
 ## To Do
 - [x] add docker-compose ✅ 2023-02-01
-- [ ] launch hosted version
+- [x] launch hosted version
 - [x] ability to use own middleware
 - [x] document how to add custom sentry config
 - [ ] add natural language search
