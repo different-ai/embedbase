@@ -76,6 +76,8 @@ The codebase is under heavy development and the documentation is constantly evol
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
 
+Check out the [docs](https://docs.embedbase.xyz) for more info.
+
 
 ## Example 
 
