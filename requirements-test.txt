@@ -14,3 +14,4 @@ jupyter
 # for automatically removing unused imports
 autoflake
 pyyaml
+requests-mock

@@ -420,17 +420,21 @@ async def semantic_search(
 
 # health check endpoint
 @app.get("/health")
-def health():
+def health(request: Request):
     """
     Return the status of the API
     """
     logger.info("Health check")
+    # get headers
+    headers = request.headers
     # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
     r = requests.post(
         f"http://0.0.0.0:{PORT}/v1/test",
         json={
             "documents": [],
         },
+        # forward headers
+        headers=headers,
     )
     r.raise_for_status()
     logger.info("Health check successful")

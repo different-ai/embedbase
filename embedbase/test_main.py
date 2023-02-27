@@ -262,3 +262,23 @@ async def test_save_clear_data():
         json_response = response.json()
         assert len(json_response.get("similarities")) > 0
         assert json_response.get("similarities")[0].get("data") is None
+
+
+@pytest.mark.asyncio
+async def test_health_properly_forward_headers():
+    import requests_mock
+    # mock http://0.0.0.0:8000/v1/test
+    with requests_mock.Mocker(
+        real_http=True,
+        case_sensitive=True,
+    ) as m:
+        m.post("http://0.0.0.0:8080/v1/test")
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.get(
+                "/health",
+                headers={"Authorization": "Bearer 123"},
+            )
+            # TODO: any way to listen to the request and check the headers?
+            # without using pcap or hacks like that lol?
+            assert response.status_code == 200
+            assert response.json().get("status", "") == "success"
