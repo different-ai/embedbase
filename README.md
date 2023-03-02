@@ -5,7 +5,7 @@
 
   <p align="center">
     <br />
-    <p>Open-source API to easily create, store, and retrieve embeddings.</p>
+    <p>Free and open-source API to easily create, store, and retrieve embeddings.</p>
     <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
     ·
@@ -77,10 +77,6 @@ The codebase is under heavy development and the documentation is constantly evol
 
 **There are ongoing efforts to make it more modular and easy to use**
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
-
-
-
 ## Example 
 
 This example shows how you could use Embedbase to display the most similar documents.
@@ -91,13 +87,22 @@ https://user-images.githubusercontent.com/25003283/216080514-9d40f912-7201-419e-
 
 [See code here](./examples/simple-react/README.md)
 
+# Development
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
+
+We recommend using Gitpod for development.
+
+Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/variables) `EMBEDBASE_CONFIG`as a JSON value.
+
+> To create a json from yaml: `yq -o=json eval config.yaml`
+
 ## Current Stack
 
 * [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
 * [pinecone](https://www.pinecone.io/) to store vectors & documents
 * [fastapi](https://github.com/tiangolo/fastapi) 
 * [firebase](https://firebase.google.com/) for auth (optional)
-
 
 ## Installation
 
@@ -124,14 +129,12 @@ openai_organization: "org-xxxxx"
 
 `docker-compose up`
 
-## Usage
-
 
 ## Customisation
 
 ### Authentication
 
-Right now we just support simple firebase auth. We'll be adding more integrations as we go.
+Right now, we just support simple firebase auth. We'll be adding more integrations as we go.
 
 `config.yaml`
 ```yaml
@@ -221,22 +224,4 @@ Please see [examples](./examples/simple-react-custom-middleware) for more detail
 
 Please see [deployment](./docs/DEPLOYMENT.md) for more information.
 
-[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
-
-## Development
-
-We recommend using Gitpod for development.
-
-[![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
-
-Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/variables) `EMBEDBASE_CONFIG`as a JSON value.
-
-> To create a json from yaml: `yq -o=json eval config.yaml`
-
-
-## To Do
-- [x] add docker-compose ✅ 2023-02-01
-- [x] launch hosted version
-- [x] ability to use own middleware
-- [x] document how to add custom sentry config
-- [ ] add natural language search
+[Don’t want to handle infra? Try the hosted version now.](https://app.embedbase.xyz/signup)
