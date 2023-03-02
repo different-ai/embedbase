@@ -1,8 +1,10 @@
 ## Cloud Run deployment
 
-[Don’t want to handle infra? We’re launching a hosted version soon. Just click here to be first to know when it comes out](https://yep.so/p/embedase?ref=github).
+[Don’t want to handle infra? You can try the hosted version now for **free**](https://app.embedbase.xyz/signup)
 
 ### Setup
+
+You can deploy Embedbase on Google Cloud run this way, feel free to [book a demo](https://cal.com/potato/20min).
 
 ```bash
 # login to gcloud
