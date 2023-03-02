@@ -18,8 +18,29 @@
 
 Check out the [docs](https://docs.embedbase.xyz) for more info.
 
+## Table of Contents
 
-## Usage
+- [Get started for free](#get-started-for-free)
+- [Docs and support](#docs-and-support)
+- [Contributing](#contributing)
+<!-- TODO: - [Open-source vs hosted](#open-source-vs-hosted) -->
+
+## Get started for free
+
+### Embedbase Cloud
+
+The fastest and most reliable way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/signup).
+
+### Open-source hobby deploy
+
+Deploy a hobby instance in one line with Docker:
+
+ ```bash 
+docker-compose up
+ ``` 
+
+Good for local development. See our [docs for more info on self-hosting](./docs/DEPLOYMENT.md).
+
 ### Inserting data
 
 ```ts
@@ -68,26 +89,13 @@ Result:
 }
 ```
 
+## Docs and support
 
-# Status
+Check out our [tutorials](https://docs.embedbase.xyz) for step-by-step guides, how-to's, and best practices.
 
-⚠️ Alpha version 
+Ask a question in our [Discord community](https://discord.gg/DYE6VFTJET) to get support.
 
-The codebase is under heavy development and the documentation is constantly evolving. Give it a try and let us know what you think by creating an issue. Watch [releases](https://github.com/another-ai/embedbase/releases) of this repo to get notified of updates. And give us a star if you like it!
-
-**There are ongoing efforts to make it more modular and easy to use**
-
-## Example 
-
-This example shows how you could use Embedbase to display the most similar documents.
-
-e.g. tesla is most most similar to car in list`[dog, wolf, giraffe, car,robot]`
-
-https://user-images.githubusercontent.com/25003283/216080514-9d40f912-7201-419e-80e3-11ad4fd52ac6.mov
-
-[See code here](./examples/simple-react/README.md)
-
-# Development
+## Contributing
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
 
@@ -97,16 +105,16 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 
 > To create a json from yaml: `yq -o=json eval config.yaml`
 
-## Current Stack
+### Current Stack
 
 * [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
 * [pinecone](https://www.pinecone.io/) to store vectors & documents
 * [fastapi](https://github.com/tiangolo/fastapi) 
 * [firebase](https://firebase.google.com/) for auth (optional)
 
-## Installation
+### Installation
 
-### Prerequisite
+#### Prerequisite
 * Pinecone account & one index
 * Openai account
 
@@ -125,14 +133,14 @@ openai_api_key: "sk-xxxxxxx"
 openai_organization: "org-xxxxx"
 ```
 
-### Docker
+#### Docker
 
 `docker-compose up`
 
 
-## Customisation
+### Customisation
 
-### Authentication
+#### Authentication
 
 Right now, we just support simple firebase auth. We'll be adding more integrations as we go.
 
@@ -153,7 +161,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 You can only get ID tokens through Firebase client SDK, there is [an example to use authentication with React](https://github.com/another-ai/embedbase/tree/main/examples/simple-react-auth).
 
-### Observability
+#### Observability
 
 You can use [sentry](https://sentry.io/welcome/) for error reporting. You can set your own sentry config in `config.yaml`
 
@@ -162,7 +170,7 @@ You can use [sentry](https://sentry.io/welcome/) for error reporting. You can se
 sentry: YOUR_DSN
 ```
 
-### Custom middleware
+#### Custom middleware
 
 Example production middlewares:
 
@@ -220,8 +228,11 @@ curl -X POST -H "Content-Type: application/json" -d '{"query": "Bob"}' http://lo
 
 Please see [examples](./examples/simple-react-custom-middleware) for more details and a concrete example.
 
-## Deployment
+<!--
+TODO
+## Open-source vs. hosted
 
-Please see [deployment](./docs/DEPLOYMENT.md) for more information.
+This repo is available under the [MIT expat license](https://github.com/another-ai/embedbase/blob/master/LICENSE). 
 
-[Don’t want to handle infra? Try the hosted version now.](https://app.embedbase.xyz/signup)
+To learn more, [book a demo](https://cal.com/potato/20min).
+-->
