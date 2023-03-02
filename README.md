@@ -46,10 +46,14 @@ Good for local development. See our [docs for more info on self-hosting](./docs/
 ```ts
 const URL = 'http://localhost:8000'
 const VAULT_ID = 'people'
+// if using the hosted version
+const API_KEY = '<https://app.embedbase.xyz/signup>'
 fetch(`${URL}/v1/${VAULT_ID}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // if using the hosted version, uncomment
+      // 'Authorization': `Bearer ${API_KEY}`
     },
     body: JSON.stringify({
       documents: [{
@@ -67,6 +71,7 @@ fetch(`${URL}/v1/${VAULT_ID}/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // 'Authorization': `Bearer ${API_KEY}`
     },
     body: JSON.stringify({
       query: 'Something about a red planet',
