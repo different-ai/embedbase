@@ -16,16 +16,22 @@ run: ## [DEVELOPMENT] Run the API
 
 test: ## [Local development] Run tests with pytest.
 	cd embedbase; \
-	python3 -m pytest -s test_main.py::test_clear; \
-	python3 -m pytest -s test_main.py::test_semantic_search; \
-	python3 -m pytest -s test_main.py::test_refresh_small_documents; \
-	python3 -m pytest -s test_main.py::test_sync_no_id_collision; \
-	python3 -m pytest -s test_main.py::test_embed; \
-	python3 -m pytest -s test_main.py::test_embed_large_text; \
-	python3 -m pytest -s test_main.py::test_upload; \
-	python3 -m pytest -s test_main.py::test_ignore_document_that_didnt_change; \
-	python3 -m pytest -s test_main.py::test_save_clear_data; \
-	python3 -m pytest -s test_main.py::test_health_properly_forward_headers
+	python3 -m pytest -s test_db.py::test_search; \
+	python3 -m pytest -s test_db.py::test_fetch; \
+	python3 -m pytest -s test_db.py::test_fetch_by_hash; \
+	python3 -m pytest -s test_db.py::test_clear; \
+	python3 -m pytest -s test_db.py::test_upload; \
+	python3 -m pytest -s test_end_to_end.py::test_clear; \
+	python3 -m pytest -s test_end_to_end.py::test_semantic_search; \
+	python3 -m pytest -s test_end_to_end.py::test_refresh_small_documents; \
+	python3 -m pytest -s test_end_to_end.py::test_sync_no_id_collision; \
+	python3 -m pytest -s test_end_to_end.py::test_embed; \
+	python3 -m pytest -s test_end_to_end.py::test_embed_large_text; \
+	python3 -m pytest -s test_end_to_end.py::test_ignore_document_that_didnt_change; \
+	python3 -m pytest -s test_end_to_end.py::test_save_clear_data; \
+	python3 -m pytest -s test_end_to_end.py::test_health_properly_forward_headers; \
+# TODO in api.py
+# python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.

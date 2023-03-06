@@ -118,7 +118,7 @@ We recommend using Gitpod for development.
 
 Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/variables) `EMBEDBASE_CONFIG`as a JSON value.
 
-> To create a json from yaml: `yq -o=json eval config.yaml`
+> To create a json from yaml: `yq -o=json eval config.yaml` or `cat config.yaml | yq` depending on your `yq` version
 
 ### Current Stack
 

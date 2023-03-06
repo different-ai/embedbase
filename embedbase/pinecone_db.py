@@ -3,7 +3,6 @@ from pandas import DataFrame
 from embedbase.utils import BatchGenerator, too_big_rows
 from embedbase.db import VectorDatabase
 import urllib.parse
-import pinecone
 
 
 class Pinecone(VectorDatabase):
@@ -18,12 +17,17 @@ class Pinecone(VectorDatabase):
         :param api_key: api key
         :param pinecone_environment: pinecone environment
         """
-        pinecone.init(
-            api_key=api_key,
-            pinecone_environment=environment,
-        )
-        self.index = pinecone.Index(index_name, pool_threads=8)
-        self.default_namespace = default_namespace
+        try:
+            import pinecone
+
+            pinecone.init(
+                api_key=api_key,
+                pinecone_environment=environment,
+            )
+            self.index = pinecone.Index(index_name, pool_threads=8)
+            self.default_namespace = default_namespace
+        except ImportError:
+            raise ImportError("Please install pinecone with `pip install pinecone`")
 
     async def fetch(
         self, ids: List[str], namespace: Optional[str] = None
@@ -32,7 +36,32 @@ class Pinecone(VectorDatabase):
         :param ids: list of ids
         :return: list of vectors
         """
-        return self.index.fetch(ids, namespace=namespace or self.default_namespace)
+        return list(
+            self.index.fetch(
+                ids, namespace=namespace or self.default_namespace
+            ).vectors.values()
+        )
+
+    async def fetch_by_hash(
+        self, hashes: List[str], namespace: Optional[str] = None
+    ) -> List[dict]:
+        """
+        :param hashes: list of hashes
+        :param namespace: namespace
+        :return: list of vectors
+        """
+        raise NotImplementedError("Pinecone does not support this operation")
+        # TODO: check the limit of number of hashes for metadata filter
+        return self.index.query(
+            vector=[0] * 1536,
+            filter={
+                "hash": {"$in": hashes},
+            },
+            top_k=len(hashes),
+            include_metadata=True,
+            include_values=True,
+            namespace=namespace or self.default_namespace,
+        )
 
     async def update(
         self,
@@ -62,12 +91,24 @@ class Pinecone(VectorDatabase):
                     [
                         {
                             "data": data,
+                            "hash": hash,
                         }
-                        for data in batch_df.data
+                        for data, hash in zip(
+                            batch_df.data,
+                            batch_df.hash,
+                        )
                     ],
-                ) if save_clear_data else zip(
+                )
+                if save_clear_data
+                else zip(
                     batch_df.id.apply(urllib.parse.quote).tolist(),
                     batch_df.embedding,
+                    [
+                        {
+                            "hash": hash,
+                        }
+                        for hash in batch_df.hash
+                    ],
                 ),
                 namespace=namespace or self.default_namespace,
                 async_req=True,
@@ -91,17 +132,21 @@ class Pinecone(VectorDatabase):
         :param namespace: namespace
         :return: list of vectors
         """
-        return self.index.query(
-            vector,
-            top_k=top_k,
-            namespace=namespace or self.default_namespace,
-            include_values=True,
-            include_metadata=True,
-        ).matches
+        return [
+            {"id": m.id, "data": m.get("metadata", {}).get("data", "")}
+            for m in self.index.query(
+                vector,
+                top_k=top_k,
+                namespace=namespace or self.default_namespace,
+                include_values=True,
+                include_metadata=True,
+            ).matches
+        ]
 
     async def clear(self, namespace: Optional[str]) -> None:
         """
         :param namespace: namespace
         """
-        # HACK: stupid hack "%" because pinecone doc is incorrect and u need to pass ids & clear_all
-        self.index.delete(delete_all=True, namespace=namespace or self.default_namespace)
+        self.index.delete(
+            delete_all=True, namespace=namespace or self.default_namespace
+        )

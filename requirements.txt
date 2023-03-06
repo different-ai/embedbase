@@ -1,6 +1,5 @@
 fastapi
 uvicorn[standard]
-pinecone-client
 pandas
 openai
 tenacity

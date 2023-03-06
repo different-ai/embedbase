@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Coroutine, List, Optional, Tuple
+from typing import Coroutine, List, Optional
 
 from pandas import DataFrame
 
@@ -15,6 +15,17 @@ class VectorDatabase(ABC):
     ) -> List[dict]:
         """
         :param ids: list of ids
+        :param namespace: namespace
+        :return: list of vectors
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def fetch_by_hash(
+        self, hashes: List[str], namespace: Optional[str] = None
+    ) -> List[dict]:
+        """
+        :param hashes: list of hashes
         :param namespace: namespace
         :return: list of vectors
         """
@@ -61,3 +72,5 @@ class VectorDatabase(ABC):
         :param namespace: namespace
         """
         raise NotImplementedError
+
+

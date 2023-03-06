@@ -18,8 +18,11 @@ from embedbase.models import (
 from fastapi.responses import JSONResponse
 import urllib.parse
 import numpy as np
+from embedbase.db import VectorDatabase
 from embedbase.pinecone_db import Pinecone
-from embedbase.settings import Settings, get_settings
+from embedbase.supabase_db import Supabase
+from embedbase.weaviate_db import Weaviate
+from embedbase.settings import Settings, get_settings, VectorDatabaseEnum
 import openai
 
 from tenacity import retry
@@ -143,22 +146,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-vector_database = Pinecone(
-    api_key=settings.pinecone_api_key,
-    environment=settings.pinecone_environment,
-    index_name=settings.pinecone_index,
-)
+
+def get_vector_database() -> VectorDatabase:
+    if settings.vector_database == VectorDatabaseEnum.pinecone:
+        return Pinecone(
+            api_key=settings.pinecone_api_key,
+            environment=settings.pinecone_environment,
+            index_name=settings.pinecone_index,
+        )
+    elif settings.vector_database == VectorDatabaseEnum.supabase:
+        return Supabase(
+            url=settings.supabase_url,
+            key=settings.supabase_key,
+        )
+    elif settings.vector_database == VectorDatabaseEnum.weaviate:
+        return Weaviate()
+    else:
+        raise Exception(
+            "Invalid vector database, it must be pinecone, supabase or weaviate"
+        )
+
+
+vector_database = get_vector_database()
+
 openai.api_key = settings.openai_api_key
 openai.organization = settings.openai_organization
 
 
 @app.on_event("startup")
 async def startup_event():
-    result = await vector_database.fetch(ids=["foo"])  # TODO: container startup check
-    if result:
-        logger.info("Properly connected to Pinecone")
-    else:
-        raise Exception("Could not connect to Pinecone")
     logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
 
 
@@ -278,16 +294,14 @@ async def add(
         existing_documents = await asyncio.gather(
             *[_fetch(ids) for ids in ids_to_fetch]
         )
-        flat_existing_documents = itertools.chain.from_iterable(
-            [doc.vectors.values() for doc in existing_documents]
-        )
+        flat_existing_documents = itertools.chain.from_iterable(existing_documents)
 
         # remove rows that have the same hash
         for doc in flat_existing_documents:
-            existing_hashes.append(doc.id)
+            existing_hashes.append(doc["id"])
         df = df[
             ~df.apply(
-                lambda x: x.hash in existing_hashes,
+                lambda x: x["hash"] in existing_hashes,
                 axis=1,
             )
         ]
@@ -402,14 +416,13 @@ async def semantic_search(
 
     similarities = []
     for match in query_response:
-        logger.debug(f"Match id: {match.id}")
-        decoded_id = urllib.parse.unquote(match.id)
-        logger.debug(f"Decoded id: {decoded_id}")
+        decoded_id = urllib.parse.unquote(match["id"])
+        logger.debug(f"ID: {decoded_id}")
         similarities.append(
             {
-                "score": match.score,
+                "score": match["score"],
                 "id": decoded_id,
-                "data": match.get("metadata", {}).get("data", None),
+                "data": match["data"],
             }
         )
     return JSONResponse(

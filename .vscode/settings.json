@@ -6,4 +6,9 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
+    // default formatter python
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+    },
 }

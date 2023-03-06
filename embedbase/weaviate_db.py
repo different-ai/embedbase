@@ -9,7 +9,7 @@ class Weaviate(VectorDatabase):
     ):
         """
         """
-        pass
+        raise NotImplementedError
     async def fetch(
         self, ids: List[str], namespace: Optional[str] = None
     ) -> List[dict]:
@@ -19,15 +19,27 @@ class Weaviate(VectorDatabase):
         """
         raise NotImplementedError
 
+    async def fetch_by_hash(
+        self, hashes: List[str], namespace: Optional[str] = None
+    ) -> List[dict]:
+        """
+        :param hashes: list of hashes
+        :param namespace: namespace
+        :return: list of vectors
+        """
+        raise NotImplementedError
+
     async def update(
         self,
         df: DataFrame,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = 100,
+        save_clear_data: bool = True,
     ) -> Coroutine:
         """
         :param vectors: list of vectors
         :param namespace: namespace
+        :param save_clear_data: save clear data
         """
         raise NotImplementedError
 

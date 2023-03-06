@@ -9,7 +9,10 @@ tasks:
         eval $(gp env -e)
         pip3 install yq
         echo "$EMBEDBASE_CONFIG" | yq -y > config.yaml
-
+    - name: Global dev installs
+      command: |
+        export PIP_USER=false
+        pip install autoflake
 vscode:
   # list as bullet points installed extensions:
   # code --list-extensions | xargs -L 1 echo - 

@@ -16,3 +16,14 @@ firebase_admin
 
 #/observability
 sentry-sdk[fastapi]
+
+#/pinecone
+pinecone-client
+
+#/supabase
+supabase
+
+# HACK: currently supabase mode by default
+
+#/minimal
+supabase
