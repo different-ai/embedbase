@@ -27,8 +27,7 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 - [What are people building with Embedbase?](#use-cases)
-<!-- TODO: - [Open-source vs hosted](#open-source-vs-hosted) -->
-
+- [Open-source vs hosted](#open-source-vs-hosted)
 
 ## Use Cases
 
@@ -122,25 +121,37 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 
 ### Current Stack
 
-* [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
-* [pinecone](https://www.pinecone.io/) to store vectors & documents
-* [fastapi](https://github.com/tiangolo/fastapi) 
-* [firebase](https://firebase.google.com/) for auth (optional)
+* Embeddings
+  - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
+  - [ ] local (BERT, etc.)
+* Vector database
+  - [x] [supabase](https://supabase.com/)
+  - [x] [pinecone](https://www.pinecone.io/)
+  - [ ] local (sqlite, etc.)
+* [fastapi](https://github.com/tiangolo/fastapi)
+* Authentication (optional)
+  - [x] [firebase](https://firebase.google.com/)
+  - [ ] [supabase](https://supabase.com/)
 
-### Installation
+### Configuration
 
 #### Prerequisite
-* Pinecone account & one index
+* Either
+  * Supabase account & database (documentation coming soon, [book a call](https://cal.com/potato/20min) for help)
+  * Pinecone account & one index
 * Openai account
 
 minimal `config.yaml` (see `config.example.yaml`)
 
 ```
-# https://app.pinecone.io/
-pinecone_index: "my index name"
-# replace this with your environment
-pinecone_environment: "us-east1-gcp"
-pinecone_api_key: ""
+vector_database: supabase # or pinecone
+
+supabase_url: <get me here https://supabase.com>
+supabase_key: <get me here https://supabase.com>
+# or
+pinecone_index: "<get me here https://app.pinecone.io>"
+pinecone_environment: "<get me here https://app.pinecone.io>"
+pinecone_api_key: "<get me here https://app.pinecone.io>"
 
 # https://platform.openai.com/account/api-keys
 openai_api_key: "sk-xxxxxxx"
@@ -152,13 +163,10 @@ openai_organization: "org-xxxxx"
 
 `docker-compose up`
 
-<!--
-TODO
-## Open-source vs. hosted
 
-This repo is available under the [MIT expat license](https://github.com/another-ai/embedbase/blob/master/LICENSE). 
+## Open-source vs hosted
+
+This repo is available under the [MIT license](https://github.com/another-ai/embedbase/blob/master/LICENSE). 
 
 To learn more, [book a demo](https://cal.com/potato/20min).
--->
-
 
