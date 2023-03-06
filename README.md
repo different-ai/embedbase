@@ -23,6 +23,7 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Get started for free](#get-started-for-free)
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
+- [What are people building with Embedbase?](#use-cases)
 <!-- TODO: - [Open-source vs hosted](#open-source-vs-hosted) -->
 
 ## Get started for free
@@ -150,3 +151,7 @@ This repo is available under the [MIT expat license](https://github.com/another-
 
 To learn more, [book a demo](https://cal.com/potato/20min).
 -->
+
+#### Use Cases
+
+- [Chat-GPT-powered search for markdown documentation](https://app.gumroad.com/products/lnsqp/edit)
