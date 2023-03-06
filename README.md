@@ -143,7 +143,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 
 minimal `config.yaml` (see `config.example.yaml`)
 
-```
+```yaml
 vector_database: supabase # or pinecone
 
 supabase_url: <get me here https://supabase.com>
