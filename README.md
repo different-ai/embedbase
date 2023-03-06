@@ -20,19 +20,20 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Table of Contents
 
-- [Get started for free](#get-started-for-free)
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 - [What are people building with Embedbase?](#use-cases)
 <!-- TODO: - [Open-source vs hosted](#open-source-vs-hosted) -->
 
-## Get started for free
 
-### Embedbase Cloud
+## Use Cases
 
-The fastest and most reliable way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/signup).
+- [Chat-GPT-powered search for markdown documentation](https://app.gumroad.com/products/lnsqp/edit)
+- [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 
-### Open-source hobby deploy
+## Embedbase Flavours
+
+### Self-hosted
 
 Deploy a hobby instance in one line with Docker:
 
@@ -40,7 +41,11 @@ Deploy a hobby instance in one line with Docker:
 docker-compose up
  ``` 
 
-Good for local development. See our [docs for more info on self-hosting](./docs/DEPLOYMENT.md).
+
+### Managed Instance
+
+The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
+
 
 ### Inserting data
 
@@ -152,6 +157,4 @@ This repo is available under the [MIT expat license](https://github.com/another-
 To learn more, [book a demo](https://cal.com/potato/20min).
 -->
 
-#### Use Cases
 
-- [Chat-GPT-powered search for markdown documentation](https://app.gumroad.com/products/lnsqp/edit)
