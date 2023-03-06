@@ -32,7 +32,7 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Use Cases
 
-- [Chat-GPT-powered search for markdown documentation](https://app.gumroad.com/products/lnsqp/edit)
+- [Chat-GPT-powered search for markdown documentation](https://differentai.gumroad.com/l/chatgpt-documentation)
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 
 ## Embedbase Flavours
