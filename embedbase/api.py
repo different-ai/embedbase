@@ -288,7 +288,7 @@ async def add(
         df,
         namespace,
         batch_size=UPLOAD_BATCH_SIZE,
-        save_clear_data=settings.save_clear_data,
+        save_clear_data=request_body.store_data,
     )
 
     logger.info(f"Indexed & uploaded {len(df)} sentences")

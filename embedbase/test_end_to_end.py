@@ -187,7 +187,6 @@ async def test_save_clear_data():
         ["bob is a human"],
         columns=["text"],
     )
-    settings.save_clear_data = False
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
             "/v1/unit_test",
@@ -198,6 +197,7 @@ async def test_save_clear_data():
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
+                "store_data": False,
             },
         )
         assert response.status_code == 200

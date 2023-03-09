@@ -12,6 +12,7 @@ class Document(BaseModel):
 
 class AddRequest(BaseModel):
     documents: List[Document]
+    store_data: bool = True
 
 class DeleteRequest(BaseModel):
     ids: List[str]

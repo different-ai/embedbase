@@ -33,7 +33,6 @@ class Settings(YamlModel):
     sentry: typing.Optional[str] = None
     firebase_service_account_path: typing.Optional[str] = None
     middlewares: typing.Optional[typing.List[str]] = None
-    save_clear_data: bool = True
     supabase_url: typing.Optional[str] = None
     supabase_key: typing.Optional[str] = None
 
