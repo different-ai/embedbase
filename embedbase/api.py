@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import time
 from pandas import DataFrame
+import pandas as pd
 import os
 from functools import lru_cache
 import itertools
@@ -18,7 +19,7 @@ from embedbase.models import (
 from fastapi.responses import JSONResponse
 import urllib.parse
 import numpy as np
-from embedbase.db import VectorDatabase
+from embedbase.db import VectorDatabase, batch_fetch
 from embedbase.pinecone_db import Pinecone
 from embedbase.supabase_db import Supabase
 from embedbase.weaviate_db import Weaviate
@@ -226,7 +227,7 @@ async def clear(
 
     await vector_database.clear(namespace=namespace)
     logger.info("Cleared index")
-    return JSONResponse(status_code=200, content={"status": "success"})
+    return JSONResponse(status_code=200)
 
 
 @app.post("/v1/{vault_id}")
@@ -242,13 +243,11 @@ async def add(
     namespace = get_namespace(request, vault_id)
 
     documents = request_body.documents
-    # TODO: temporarily we ignore too big documents because pinecone doesn't support them
     df = DataFrame(
         [
             doc.dict()
             for doc in documents
-            if doc.data is None
-            or (doc.data is not None and len(doc.data) < MAX_DOCUMENT_LENGTH)
+            if doc.data is not None
         ],
         columns=[
             "id",
@@ -263,7 +262,9 @@ async def add(
 
     if not df.data.any():
         logger.info("No documents to index, exiting")
-        return JSONResponse(status_code=200, content={"status": "success"})
+        return JSONResponse(
+            status_code=200, content={"results": df.to_dict(orient="records")}
+        )
 
     # add column "hash" based on "data"
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
@@ -278,24 +279,7 @@ async def add(
         # filter out documents that didn't change by checking their hash
         # in the index metadata
         ids_to_fetch = df.id.apply(urllib.parse.quote).tolist()
-        # split in chunks of n because fetch has a limit of size
-        # TODO: abstract away batching
-        n = 200
-        ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
-        logger.info(f"Fetching {len(ids_to_fetch)} chunks of {n} ids")
-
-        async def _fetch(ids) -> List[dict]:
-            try:
-                return await vector_database.fetch(ids=ids, namespace=namespace)
-            except Exception as e:
-                logger.error(f"Error fetching {ids}: {e}", exc_info=True)
-                raise e
-
-        existing_documents = await asyncio.gather(
-            *[_fetch(ids) for ids in ids_to_fetch]
-        )
-        flat_existing_documents = itertools.chain.from_iterable(existing_documents)
-
+        flat_existing_documents = await batch_fetch(vector_database, ids_to_fetch, namespace)
         # remove rows that have the same hash
         for doc in flat_existing_documents:
             existing_hashes.append(doc["id"])
@@ -325,9 +309,8 @@ async def add(
         return JSONResponse(
             status_code=200,
             content={
-                "status": "success",
-                "ignored_ids": existing_hashes,
-                "inserted_ids": df.id.tolist(),
+                # embeddings, ids and data are returned
+                "results": df.to_dict(orient="records"),
             },
         )
 
@@ -335,17 +318,17 @@ async def add(
     response = embed(df.data.tolist(), settings.model)
     df.embedding = [e["embedding"] for e in response]
 
-    # TODO average the embeddings over "embedding" column grouped by index, merge back into df
-    # s = (
-    #     df.apply(lambda x: pd.Series(x["embedding"]), axis=1)
-    #     .groupby(level=0)
-    #     .mean()
-    #     .reset_index()
-    #     .drop("index", axis=1)
-    # )
+    # average the embeddings over "embedding" column grouped by index, merge back into df
+    s = (
+        df.apply(lambda x: pd.Series(x["embedding"]), axis=1)
+        .groupby(level=0)
+        .mean()
+        .reset_index()
+        .drop("index", axis=1)
+    )
     # # merge s column into a single column , ignore index
-    # df.embedding = s.apply(lambda x: x.tolist(), axis=1)
-    # TODO: problem is that pinecone doesn't support this large of an input
+    df.embedding = s.apply(lambda x: x.tolist(), axis=1)
+    # TODO: pinecone doesn't support this large of an input?
     await vector_database.update(
         df,
         namespace,
@@ -360,9 +343,8 @@ async def add(
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
-            "status": "success",
-            "ignored_ids": existing_hashes,
-            "inserted_ids": df.id.tolist(),
+            # embeddings, ids and data are returned
+            "results": df.to_dict(orient="records"),
         },
     )
 
@@ -385,7 +367,7 @@ async def delete(
     await vector_database.delete(ids=quoted_ids, namespace=namespace)
     logger.info(f"Deleted {len(ids)} documents")
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
+    return JSONResponse(status_code=status.HTTP_200_OK)
 
 
 @app.post("/v1/{vault_id}/search")
@@ -454,5 +436,4 @@ def health(request: Request):
 
     return JSONResponse(
         status_code=200,
-        content={"status": "success"},
     )

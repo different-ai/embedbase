@@ -41,8 +41,7 @@ async def test_clear():
         )
         assert response.status_code == 200
         json_response = response.json()
-        assert json_response.get("status", "") == "success"
-        assert len(json_response.get("inserted_ids")) == 10
+        assert len(json_response.get("results")) == 10
 
     await clear_dataset()
     # search now
@@ -91,8 +90,7 @@ async def test_refresh_small_documents():
         )
         assert response.status_code == 200
         json_response = response.json()
-        assert json_response.get("status", "") == "success"
-        assert len(json_response.get("inserted_ids")) == 10
+        assert len(json_response.get("results")) == 10
 
 
 @pytest.mark.asyncio
@@ -115,9 +113,9 @@ async def test_sync_no_id_collision():
         )
         assert response.status_code == 200
         json_response = response.json()
-        assert json_response.get("status", "") == "success"
         # make sure all ids are unique
-        assert len(set(json_response.get("inserted_ids"))) == 10
+        ids = list(set([e["id"] for e in json_response.get("results")]))
+        assert len(ids) == 10
 
 
 def test_embed():
@@ -162,8 +160,7 @@ async def test_ignore_document_that_didnt_change():
             },
         )
         assert response.status_code == 200
-        assert response.json().get("status", "") == "success"
-        ids = response.json().get("inserted_ids", [])
+        ids = [e["id"] for e in response.json().get("results", [])]
         # add to df
         df["id"] = ids
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -180,7 +177,7 @@ async def test_ignore_document_that_didnt_change():
             },
         )
         assert response.status_code == 200
-        assert len(response.json().get("ignored_ids")) == 10
+        assert len(response.json().get("results")) == 10
 
 
 @pytest.mark.asyncio
@@ -205,8 +202,7 @@ async def test_save_clear_data():
         )
         assert response.status_code == 200
         json_response = response.json()
-        assert json_response.get("status", "") == "success"
-        assert len(json_response.get("inserted_ids")) == 1
+        assert len(json_response.get("results")) == 1
     # now search shouldn't have the "data" field in the response
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
@@ -237,13 +233,12 @@ async def test_health_properly_forward_headers():
             # TODO: any way to listen to the request and check the headers?
             # without using pcap or hacks like that lol?
             assert response.status_code == 200
-            assert response.json().get("status", "") == "success"
-
 
 
 
 @pytest.mark.asyncio
-async def test_adding_twice_the_same_data_is_ignored(): # TODO: implement in api.py
+async def test_adding_twice_the_same_data_is_ignored(): 
+    # TODO: need clarification on the relationship between add and update
     await clear_dataset()
     d = [
         "The lion is the king of the jungle",
@@ -252,7 +247,7 @@ async def test_adding_twice_the_same_data_is_ignored(): # TODO: implement in api
     ]
     df = pd.DataFrame({"data": d})
 
-    async def _i(ins=3, ign=0):
+    async def _i(results_length):
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.post(
                 f"/v1/{namespace}",
@@ -267,14 +262,12 @@ async def test_adding_twice_the_same_data_is_ignored(): # TODO: implement in api
             )
             assert response.status_code == 200
             json_response = response.json()
-            assert json_response.get("status", "") == "success"
-            assert len(json_response.get("inserted_ids")) == ins
-            assert len(json_response.get("ignored_ids")) == ign
+            assert len(json_response.get("results")) == results_length
 
     # insert twice the same ting
-    await _i()
+    await _i(3)
     # should have been ignored
-    await _i(0, 3)
+    await _i(0)
 
     # search should not have duplicates
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -290,3 +283,36 @@ async def test_adding_twice_the_same_data_is_ignored(): # TODO: implement in api
             sorted([e["data"] for e in json_response.get("similarities")])
         ):
             assert lion == sorted(d)[idx], f"{lion} != {sorted(d)[idx]}"
+
+@pytest.mark.asyncio
+async def test_insert_large_documents():
+    await clear_dataset()
+    # large texts > 10.000 characters
+    d = ["".join("a" * 10_000) for _ in range(10)]
+    df = pd.DataFrame({"data": d})
+    
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
+            f"/v1/{namespace}",
+            json={
+                "documents": [
+                    {
+                        "data": data,
+                    }
+                    for i, data in enumerate(df.data.tolist())
+                ],
+            },
+        )
+        assert response.status_code == 200
+        json_response = response.json()
+        assert len(json_response.get("results")) == 10
+
+    # now search
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
+            f"/v1/{namespace}/search", json={"query": "a", "top_k": 100}
+        )
+        assert response.status_code == 200
+        json_response = response.json()
+        assert json_response.get("query", "") == "a"
+        assert len(json_response.get("similarities")) == 10

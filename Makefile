@@ -30,6 +30,7 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_end_to_end.py::test_ignore_document_that_didnt_change; \
 	python3 -m pytest -s test_end_to_end.py::test_save_clear_data; \
 	python3 -m pytest -s test_end_to_end.py::test_health_properly_forward_headers; \
+	python3 -m pytest -s test_end_to_end.py::test_insert_large_documents
 # TODO in api.py
 # python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored
 	@echo "Done testing"

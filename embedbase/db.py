@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Coroutine, List, Optional
-
+import asyncio
 from pandas import DataFrame
+import itertools
 
-# TODO: make this less Pinecone specific
+
 class VectorDatabase(ABC):
     """
     Base class for all vector databases
@@ -74,3 +75,22 @@ class VectorDatabase(ABC):
         raise NotImplementedError
 
 
+async def batch_fetch(
+    vector_database: VectorDatabase, ids_to_fetch: List[str], namespace: str
+):
+    """
+    :param vector_database: vector database
+    :param ids_to_fetch: list of ids
+    :param namespace: namespace
+    """
+    n = 200
+    ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
+
+    async def _fetch(ids) -> List[dict]:
+        try:
+            return await vector_database.fetch(ids=ids, namespace=namespace)
+        except Exception as e:
+            raise e
+
+    existing_documents = await asyncio.gather(*[_fetch(ids) for ids in ids_to_fetch])
+    return itertools.chain.from_iterable(existing_documents)
