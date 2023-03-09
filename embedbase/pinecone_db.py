@@ -1,8 +1,10 @@
-from typing import Coroutine, List, Optional
-from pandas import DataFrame
-from embedbase.utils import BatchGenerator, too_big_rows
-from embedbase.db import VectorDatabase
 import urllib.parse
+from typing import Coroutine, List, Optional
+
+from pandas import DataFrame
+
+from embedbase.db import VectorDatabase
+from embedbase.utils import BatchGenerator, too_big_rows
 
 
 class Pinecone(VectorDatabase):
@@ -132,15 +134,22 @@ class Pinecone(VectorDatabase):
         :param namespace: namespace
         :return: list of vectors
         """
+        matches = self.index.query(
+            vector,
+            top_k=top_k,
+            namespace=namespace or self.default_namespace,
+            include_values=True,
+            include_metadata=True,
+        ).matches
         return [
-            {"id": m.id, "data": m.get("metadata", {}).get("data", "")}
-            for m in self.index.query(
-                vector,
-                top_k=top_k,
-                namespace=namespace or self.default_namespace,
-                include_values=True,
-                include_metadata=True,
-            ).matches
+            {
+                "id": m.id,
+                "data": m.get("metadata", {}).get("data", ""),
+                "score": m.score,
+                "hash": m.get("metadata", {}).get("hash", ""),
+                "embedding": m.values,
+            }
+            for m in matches
         ]
 
     async def clear(self, namespace: Optional[str]) -> None:

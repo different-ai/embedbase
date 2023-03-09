@@ -60,6 +60,7 @@ async def test_search():
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
         assert results[0]["data"] == d[0], f"failed for {vector_database}"
+        assert results[0]["embedding"], f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio

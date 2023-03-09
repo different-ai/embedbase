@@ -1,11 +1,9 @@
-import asyncio
 import hashlib
 import time
 from pandas import DataFrame
 import pandas as pd
 import os
 from functools import lru_cache
-import itertools
 import typing
 import logging
 from fastapi import Depends, FastAPI, Request, status
@@ -33,7 +31,6 @@ from tenacity.before import before_log
 from tenacity.after import after_log
 from tenacity.stop import stop_after_attempt
 import requests
-from typing import List, Tuple
 import uuid
 
 settings = get_settings()
@@ -363,6 +360,8 @@ async def semantic_search(
                 "score": match["score"],
                 "id": decoded_id,
                 "data": match["data"],
+                "hash": match["hash"], # TODO: probably shouldn't return this
+                "embedding": match["embedding"],
             }
         )
     return JSONResponse(
