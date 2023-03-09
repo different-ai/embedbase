@@ -5,3 +5,4 @@ openai
 tenacity
 gunicorn
 pydantic_yaml[pyyaml]
+tiktoken

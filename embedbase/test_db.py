@@ -12,7 +12,7 @@ from embedbase.supabase_db import Supabase
 from embedbase.test_utils import namespace
 
 
-from .api import embed
+from .embeddings import embed
 import pandas as pd
 
 settings = get_settings()

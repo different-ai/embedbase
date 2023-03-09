@@ -26,7 +26,6 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_end_to_end.py::test_refresh_small_documents; \
 	python3 -m pytest -s test_end_to_end.py::test_sync_no_id_collision; \
 	python3 -m pytest -s test_end_to_end.py::test_embed; \
-	python3 -m pytest -s test_end_to_end.py::test_embed_large_text; \
 	python3 -m pytest -s test_end_to_end.py::test_ignore_document_that_didnt_change; \
 	python3 -m pytest -s test_end_to_end.py::test_save_clear_data; \
 	python3 -m pytest -s test_end_to_end.py::test_health_properly_forward_headers; \

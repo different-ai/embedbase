@@ -6,7 +6,8 @@ from httpx import AsyncClient
 import pytest
 
 from embedbase.test_utils import clear_dataset, namespace
-from .api import app, embed, no_batch_embed, settings
+from .api import app
+from embedbase.embeddings import embed
 import pandas as pd
 import math
 from random import randint
@@ -121,13 +122,6 @@ async def test_sync_no_id_collision():
 def test_embed():
     data = embed(["hello world", "hello world"])
     assert [len(d["embedding"]) for d in data] == [1536, 1536]
-
-
-def test_embed_large_text():
-    # large text > 10.000 characters
-    data = no_batch_embed("".join("a" * 10_000))
-    assert len(data) == 1536
-
 
 @pytest.mark.asyncio
 async def test_ignore_document_that_didnt_change():
@@ -288,7 +282,7 @@ async def test_adding_twice_the_same_data_is_ignored():
 async def test_insert_large_documents():
     await clear_dataset()
     # large texts > 10.000 characters
-    d = ["".join("a" * 10_000) for _ in range(10)]
+    d = ["".join("agi " * 10_000) for _ in range(10)]
     df = pd.DataFrame({"data": d})
     
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -303,9 +297,7 @@ async def test_insert_large_documents():
                 ],
             },
         )
-        assert response.status_code == 200
-        json_response = response.json()
-        assert len(json_response.get("results")) == 10
+        assert response.status_code == 400
 
     # now search
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -315,4 +307,4 @@ async def test_insert_large_documents():
         assert response.status_code == 200
         json_response = response.json()
         assert json_response.get("query", "") == "a"
-        assert len(json_response.get("similarities")) == 10
+        assert len(json_response.get("similarities")) == 0

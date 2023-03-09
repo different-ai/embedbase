@@ -1,14 +1,12 @@
 import hashlib
 import time
 from pandas import DataFrame
-import pandas as pd
 import os
-from functools import lru_cache
-import typing
 import logging
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
+from embedbase.embeddings import batch_embed, embed, is_too_big
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.models import (
     DeleteRequest,
@@ -17,19 +15,12 @@ from embedbase.models import (
 )
 from fastapi.responses import JSONResponse
 import urllib.parse
-import numpy as np
 from embedbase.db import VectorDatabase, batch_fetch
 from embedbase.pinecone_db import Pinecone
 from embedbase.supabase_db import Supabase
 from embedbase.weaviate_db import Weaviate
 from embedbase.settings import Settings, get_settings, VectorDatabaseEnum
 import openai
-
-from tenacity import retry
-from tenacity.wait import wait_exponential
-from tenacity.before import before_log
-from tenacity.after import after_log
-from tenacity.stop import stop_after_attempt
 import requests
 import uuid
 
@@ -136,40 +127,6 @@ async def startup_event():
     logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")
 
 
-@lru_cache()
-def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)):
-    """
-    Compute the embedding for a given sentence
-    """
-    settings = get_settings()
-    chunks = [sentence]
-    if len(sentence) > 2000:
-        chunks = [sentence[i : i + 2000] for i in range(0, len(sentence), 2000)]
-    embeddings = embed(chunks, settings.model)
-    if len(chunks) > 1:
-        return np.mean([e["embedding"] for e in embeddings], axis=0).tolist()
-    return embeddings[0]["embedding"]
-
-
-@retry(
-    wait=wait_exponential(multiplier=1, min=1, max=3),
-    before=before_log(logger, logging.INFO),
-    after=after_log(logger, logging.ERROR),
-    stop=stop_after_attempt(3),
-)
-def embed(
-    input: typing.List[str], model: str = "text-embedding-ada-002"
-) -> typing.List[dict]:
-    """
-    Embed a list of sentences using OpenAI's API and retry on failure
-    Only supports OpenAI's embedding models for now
-    :param input: list of sentences to embed
-    :param model: model to use
-    :return: list of embeddings
-    """
-    return openai.Embedding.create(input=input, model=model)["data"]
-
-
 def get_namespace(request: Request, vault_id: str) -> str:
     return f"{request.scope.get('uid')}/{vault_id}"
 
@@ -198,10 +155,26 @@ async def add(
     Refresh the embeddings for a given file
     """
     namespace = get_namespace(request, vault_id)
-
     documents = request_body.documents
+
+    filtered_data = []
+    for doc in documents:
+        if is_too_big(doc.data):
+            # tell the client that he has
+            # to split the document
+            # for a better experience, pointing to the doc
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "Document is too long, please split it into smaller documents"
+                    + ", please see https://docs.embedbase.xyz/document-is-too-long"
+                },
+            )
+        if doc.data is not None:
+            filtered_data.append(doc.dict())
+
     df = DataFrame(
-        [doc.dict() for doc in documents if doc.data is not None],
+        data=filtered_data,
         columns=[
             "id",
             "data",
@@ -270,19 +243,8 @@ async def add(
         )
 
     # parallelize
-    response = embed(df.data.tolist(), settings.model)
-    df.embedding = [e["embedding"] for e in response]
+    df.embedding = batch_embed(df.data.tolist())
 
-    # average the embeddings over "embedding" column grouped by index, merge back into df
-    s = (
-        df.apply(lambda x: pd.Series(x["embedding"]), axis=1)
-        .groupby(level=0)
-        .mean()
-        .reset_index()
-        .drop("index", axis=1)
-    )
-    # # merge s column into a single column , ignore index
-    df.embedding = s.apply(lambda x: x.tolist(), axis=1)
     # TODO: pinecone doesn't support this large of an input?
     await vector_database.update(
         df,
@@ -338,10 +300,20 @@ async def semantic_search(
     query = request_body.query
     namespace = get_namespace(request, vault_id)
 
+    # if the query is too big, return an error
+    if is_too_big(query):
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "Query is too long"
+                + ", please see https://docs.embedbase.xyz/query-is-too-long"
+            },
+        )
+
     top_k = 5  # TODO might fail if index empty?
     if request_body.top_k > 0:
         top_k = request_body.top_k
-    query_embedding = no_batch_embed(query)
+    query_embedding = embed(query)[0]["embedding"]
 
     logger.info(f"Query {request_body.query} created embedding, querying index")
 
@@ -360,7 +332,7 @@ async def semantic_search(
                 "score": match["score"],
                 "id": decoded_id,
                 "data": match["data"],
-                "hash": match["hash"], # TODO: probably shouldn't return this
+                "hash": match["hash"],  # TODO: probably shouldn't return this
                 "embedding": match["embedding"],
             }
         )
