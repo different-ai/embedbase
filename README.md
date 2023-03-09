@@ -137,7 +137,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 
 #### Prerequisite
 * Either
-  * Supabase account & database (documentation coming soon, [book a call](https://cal.com/potato/20min) for help)
+  * Supabase account & [database configured](https://docs.embedbase.xyz/deployment#using-supabase)
   * Pinecone account & one index
 * Openai account
 
