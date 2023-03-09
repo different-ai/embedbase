@@ -11,6 +11,7 @@ import logging
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
+from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.models import (
     DeleteRequest,
     AddRequest,
@@ -96,48 +97,7 @@ if settings.sentry:
 
 if settings.auth == "firebase":
     logger.info("Enabling Firebase Auth")
-    from firebase_admin import auth
-
-    @app.middleware("http")
-    async def firebase_auth(request: Request, call_next) -> Tuple[str, str]:
-        # extract token from header
-        for name, value in request.headers.items():  # type: bytes, bytes
-            print(name, value)
-            if name == "authorization":
-                authorization = value
-                break
-        else:
-            authorization = None
-
-        if not authorization:
-            return JSONResponse(
-                status_code=401, content={"error": "missing authorization header"}
-            )
-
-        s = authorization.split(" ")
-
-        if len(s) != 2:
-            return JSONResponse(
-                status_code=401, content={"error": "invalid authorization header"}
-            )
-
-        token_type, token = s
-        assert (
-            token_type == "Bearer"
-        ), "Authorization header must be `Bearer` type. Like: `Bearer LONG_JWT`"
-
-        try:
-            token = token.strip()
-            decoded_token = auth.verify_id_token(token)
-            # add uid to scope
-            request.scope["uid"] = decoded_token["uid"]
-        except Exception as err:
-            logger.warning(f"Error verifying token: {err}")
-            return JSONResponse(status_code=401, content={"error": "invalid token"})
-
-        response = await call_next(request)
-        return response
-
+    enable_firebase_auth(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -227,7 +187,7 @@ async def clear(
 
     await vector_database.clear(namespace=namespace)
     logger.info("Cleared index")
-    return JSONResponse(status_code=200)
+    return JSONResponse(status_code=200, content={})
 
 
 @app.post("/v1/{vault_id}")
@@ -244,11 +204,7 @@ async def add(
 
     documents = request_body.documents
     df = DataFrame(
-        [
-            doc.dict()
-            for doc in documents
-            if doc.data is not None
-        ],
+        [doc.dict() for doc in documents if doc.data is not None],
         columns=[
             "id",
             "data",
@@ -279,7 +235,9 @@ async def add(
         # filter out documents that didn't change by checking their hash
         # in the index metadata
         ids_to_fetch = df.id.apply(urllib.parse.quote).tolist()
-        flat_existing_documents = await batch_fetch(vector_database, ids_to_fetch, namespace)
+        flat_existing_documents = await batch_fetch(
+            vector_database, ids_to_fetch, namespace
+        )
         # remove rows that have the same hash
         for doc in flat_existing_documents:
             existing_hashes.append(doc["id"])
@@ -367,7 +325,7 @@ async def delete(
     await vector_database.delete(ids=quoted_ids, namespace=namespace)
     logger.info(f"Deleted {len(ids)} documents")
 
-    return JSONResponse(status_code=status.HTTP_200_OK)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
 
 @app.post("/v1/{vault_id}/search")
@@ -434,6 +392,4 @@ def health(request: Request):
     r.raise_for_status()
     logger.info("Health check successful")
 
-    return JSONResponse(
-        status_code=200,
-    )
+    return JSONResponse(status_code=200, content={})

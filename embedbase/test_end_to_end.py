@@ -29,7 +29,7 @@ async def test_clear():
     )
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -46,7 +46,7 @@ async def test_clear():
     await clear_dataset()
     # search now
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
-        response = await client.post("/v1/dev/search", json={"query": "bob"})
+        response = await client.post("/v1/unit_test/search", json={"query": "bob"})
         assert response.status_code == 200
         json_response = response.json()
         assert json_response.get("query", "") == "bob"
@@ -56,7 +56,7 @@ async def test_clear():
 @pytest.mark.asyncio
 async def test_semantic_search():
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
-        response = await client.post("/v1/dev/search", json={"query": "bob"})
+        response = await client.post("/v1/unit_test/search", json={"query": "bob"})
         assert response.status_code == 200
         json_response = response.json()
         assert json_response.get("query", "") == "bob"
@@ -78,7 +78,7 @@ async def test_refresh_small_documents():
     )
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -101,7 +101,7 @@ async def test_sync_no_id_collision():
     )
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -149,7 +149,7 @@ async def test_ignore_document_that_didnt_change():
     await clear_dataset()
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -165,7 +165,7 @@ async def test_ignore_document_that_didnt_change():
         df["id"] = ids
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -190,7 +190,7 @@ async def test_save_clear_data():
     settings.save_clear_data = False
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev",
+            "/v1/unit_test",
             json={
                 "documents": [
                     {
@@ -206,7 +206,7 @@ async def test_save_clear_data():
     # now search shouldn't have the "data" field in the response
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post(
-            "/v1/dev/search",
+            "/v1/unit_test/search",
             json={"query": "bob"},
         )
         assert response.status_code == 200
