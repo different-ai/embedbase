@@ -107,7 +107,7 @@ Result:
 
 Check out our [tutorials](https://docs.embedbase.xyz) for step-by-step guides, how-to's, and best practices, our documentation is powered by ChatGPT, so you can ask question directly. 
 
-Ask a question in our [Discord community](https://discord.gg/DYE6VFTJET) to get support.
+Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get support.
 
 ## Contributing
 
