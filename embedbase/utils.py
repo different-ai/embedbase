@@ -1,4 +1,5 @@
 from typing import Iterator
+from fastapi import Request
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -58,3 +59,8 @@ def batched(iterable, n):
     it = iter(iterable)
     while (batch := tuple(islice(it, n))):
         yield batch
+
+
+def get_user_id(req: Request) -> str:
+    return req.scope.get("uid")
+

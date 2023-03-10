@@ -3,6 +3,7 @@ from functools import lru_cache
 import typing
 import os
 from pydantic_yaml import YamlModel
+import openai
 
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
 # if can't find config.yaml in .. try . now (local dev)
@@ -13,12 +14,12 @@ if not os.path.exists(SECRET_PATH + "/config.yaml"):
     # exit process with error
     print("ERROR: Missing config.yaml file")
 
-# an enum to pick from either pinecone, weaviate, or supabase
+
 class VectorDatabaseEnum(str, Enum):
     pinecone = "pinecone"
     supabase = "supabase"
     weaviate = "weaviate"
-    
+
 
 class Settings(YamlModel):
     vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
@@ -40,6 +41,11 @@ class Settings(YamlModel):
 @lru_cache()
 def get_settings():
     settings = Settings.parse_file(SECRET_PATH + "/config.yaml")
+
+    # HACK: unless other AI api are supported it's hardcoded here
+    openai.api_key = settings.openai_api_key
+    openai.organization = settings.openai_organization
+
     # if firebase, init firebase
     if settings.auth and settings.auth == "firebase":
         import firebase_admin

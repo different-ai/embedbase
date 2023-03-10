@@ -1,6 +1,6 @@
 import asyncio
 from typing import Coroutine, List, Optional
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from embedbase.db import VectorDatabase
 from embedbase.utils import BatchGenerator
 
@@ -24,72 +24,50 @@ class Supabase(VectorDatabase):
         except ImportError:
             raise ImportError("Please install supabase with `pip install supabase`")
 
-    async def fetch(
-        self, ids: List[str], namespace: Optional[str] = None
+    async def select(
+        self,
+        ids: List[str] = [],
+        hashes: List[str] = [],
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> List[dict]:
-        """
-        :param ids: list of ids
-        :return: list of vectors
-        """
-        return (
-            self.supabase.table("documents")
-            .select("*")
-            .eq("namespace", namespace)
-            .in_("id", ids)
-            .execute()
-            .data
-        )
+        # either ids or hashes must be provided
+        assert ids or hashes, "ids or hashes must be provided"
 
-    async def fetch_by_hash(
-        self, hashes: List[str], namespace: Optional[str] = None
-    ) -> List[dict]:
-        """
-        :param hashes: list of hashes
-        :param namespace: namespace
-        :return: list of vectors
-        """
-        return (
-            self.supabase.table("documents")
-            .select("*")
-            .eq("namespace", namespace)
-            .in_("hash", hashes)
-            .execute()
-            .data
-        )
+        req = self.supabase.table("documents").select("*")
+        if ids:
+            req = req.in_("id", ids)
+        if hashes:
+            req = req.in_("hash", hashes)
+        if dataset_id:
+            req = req.eq("dataset_id", dataset_id)
+        if user_id:
+            req = req.eq("user_id", user_id)
+        return req.execute().data
 
     async def update(
         self,
         df: DataFrame,
-        namespace: Optional[str] = None,
+        dataset_id: str,
+        user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
-        save_clear_data: bool = True,
+        store_data: bool = True,
     ) -> Coroutine:
-        """
-        :param vectors: list of vectors
-        :param namespace: namespace
-        :param save_clear_data: save clear data
-        """
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
 
         async def _insert(batch_df: DataFrame):
-            def _d(row):
-                return (
-                    {
-                        "id": row.id,
-                        "data": row.data,
-                        "embedding": row.embedding,
-                        "hash": row.hash,
-                        "namespace": namespace,
-                    }
-                    if save_clear_data
-                    else {
-                        "id": row.id,
-                        "embedding": row.embedding,
-                        "hash": row.hash,
-                        "namespace": namespace,
-                    }
-                )
+            def _d(row: Series):
+                data = {
+                    "id": row.id,
+                    "embedding": row.embedding,
+                    "hash": row.hash,
+                    "dataset_id": dataset_id,
+                    "user_id": user_id,
+                }
+                if store_data:
+                    data["data"] = row.data
+                return data
 
             response = (
                 self.supabase.table("documents")
@@ -102,49 +80,54 @@ class Supabase(VectorDatabase):
         results = await asyncio.gather(*[_insert(batch_df) for batch_df in batches])
         return results
 
-    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> None:
-        """
-        :param ids: list of ids
-        """
-        return (
-            self.supabase.table("documents")
-            .delete()
-            .eq("namespace", namespace)
-            .in_("id", ids)  # TODO test
-            .execute()
-        )
+    async def delete(
+        self,
+        ids: List[str],
+        dataset_id: str,
+        user_id: Optional[str] = None,
+    ) -> None:
+        req = self.supabase.table("documents").delete().eq("dataset_id", dataset_id)
+        if user_id:
+            req = req.eq("user_id", user_id)
+        return req.in_("id", ids).execute()
 
     async def search(
-        self, vector: List[float], top_k: Optional[int], namespace: Optional[str] = None
+        self,
+        vector: List[float],
+        top_k: Optional[int],
+        dataset_id: str,
+        user_id: Optional[str] = None,
     ) -> List[dict]:
-        """
-        :param vector: vector
-        :param top_k: top k
-        :param namespace: namespace
-        :return: list of vectors
-        """
+        d = {
+            "query_embedding": vector,
+            "similarity_threshold": 0.1,  # TODO: make this configurable
+            "match_count": top_k,
+            "query_dataset_id": dataset_id,
+        }
+        if user_id:
+            d["query_user_id"] = user_id
         return (
             self.supabase.rpc(
                 "match_documents",
-                {
-                    "query_embedding": vector,
-                    "similarity_threshold": 0.1,  # TODO: make this configurable
-                    "match_count": top_k,
-                    "query_namespace": namespace,
-                },
+                d,
             )
             .execute()
             .data
         )
 
-    async def clear(self, namespace: Optional[str]) -> None:
-        """
-        :param namespace: namespace
-        """
-        # TODO: will crash if no namespace?
-        return (
-            self.supabase.table("documents")
-            .delete()
-            .eq("namespace", namespace)
-            .execute()
-        )
+    async def clear(self, dataset_id: str, user_id: Optional[str] = None) -> None:
+        req = self.supabase.table("documents").delete().eq("dataset_id", dataset_id)
+        if user_id:
+            req = req.eq("user_id", user_id)
+        return req.execute()
+
+    async def get_datasets(self, user_id: Optional[str] = None) -> List[str]:
+        # TODO: https://github.com/PostgREST/postgrest/issues/915
+        # HACK: no distinct/group by for uniqueness?
+        # HACK: risky, need to fix for scaling,
+        # HACK: if many datasets / rows will be fucked up
+        req = self.supabase.table("documents").select("dataset_id")
+        if user_id:
+            req = req.eq("user_id", user_id)
+        data = req.execute().data
+        return list(set([d["dataset_id"] for d in data]))

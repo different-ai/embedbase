@@ -12,7 +12,7 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 run: ## [DEVELOPMENT] Run the API
-	uvicorn embedbase.api:app --port ${LOCAL_PORT} --reload --log-level debug 
+	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
 	cd embedbase; \
@@ -22,17 +22,14 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_db.py::test_clear; \
 	python3 -m pytest -s test_db.py::test_upload; \
 	python3 -m pytest -s test_end_to_end.py::test_clear; \
-	python3 -m pytest -s test_end_to_end.py::test_semantic_search; \
 	python3 -m pytest -s test_end_to_end.py::test_refresh_small_documents; \
 	python3 -m pytest -s test_end_to_end.py::test_sync_no_id_collision; \
-	python3 -m pytest -s test_end_to_end.py::test_embed; \
-	python3 -m pytest -s test_end_to_end.py::test_ignore_document_that_didnt_change; \
 	python3 -m pytest -s test_end_to_end.py::test_save_clear_data; \
 	python3 -m pytest -s test_end_to_end.py::test_health_properly_forward_headers; \
-	python3 -m pytest -s test_end_to_end.py::test_insert_large_documents; \
+	python3 -m pytest -s test_end_to_end.py::test_insert_large_documents_should_fail; \
+	python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored; \
+	python3 -m pytest -s test_end_to_end.py::test_get_datasets_without_auth; \
 	python3 -m pytest -s test_auth.py::test_enable_firebase_auth
-# TODO in api.py
-# python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.

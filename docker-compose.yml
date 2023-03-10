@@ -8,7 +8,7 @@ services:
       dockerfile: docker/Dockerfile.dev
     ports:
       - "8000:8000"
-    command: uvicorn embedbase.api:app --reload --log-level debug --host 0.0.0.0
+    command: uvicorn embedbase.__main__:app --reload --log-level debug --host 0.0.0.0
     environment:
       - PYTHONUNBUFFERED=1
       - PORT=8000

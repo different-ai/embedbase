@@ -26,6 +26,8 @@ def is_too_big(text: str):
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=3),
     stop=stop_after_attempt(3),
+    # TODO: send pr/issue on https://github.com/openai/openai-python/blob/94428401b4f71596e4a1331102a6beee9d8f0bc4/openai/__init__.py#L25
+    # To expose openai.AuthenticationError
     retry=retry_if_not_exception_type(openai.InvalidRequestError),
 )
 def embed(

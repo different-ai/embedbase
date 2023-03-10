@@ -4,24 +4,19 @@ Tests at the database abstraction level.
 
 import hashlib
 from typing import List
+
+import pandas as pd
 import pytest
+
 from embedbase.db import VectorDatabase
-from embedbase.pinecone_db import Pinecone
 from embedbase.settings import get_settings
 from embedbase.supabase_db import Supabase
-from embedbase.test_utils import namespace
-
+from embedbase.test_utils import clear_dataset, unit_testing_dataset
 
 from .embeddings import embed
-import pandas as pd
 
 settings = get_settings()
 vector_databases: List[VectorDatabase] = [
-    Pinecone(
-        api_key=settings.pinecone_api_key,
-        environment=settings.pinecone_environment,
-        index_name=settings.pinecone_index,
-    ),
     Supabase(
         url=settings.supabase_url,
         key=settings.supabase_key,
@@ -50,12 +45,12 @@ async def test_search():
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
-        await vector_database.clear(namespace)
-        await vector_database.update(df, namespace)
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(df, unit_testing_dataset)
         results = await vector_database.search(
             embeddings[0]["embedding"],
             top_k=2,
-            namespace=namespace,
+            dataset_id=unit_testing_dataset,
         )
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
@@ -84,15 +79,15 @@ async def test_fetch():
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
-        await vector_database.clear(namespace)
-        await vector_database.update(df, namespace)
-        results = await vector_database.fetch(["0"], namespace)
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(df, unit_testing_dataset)
+        results = await vector_database.select(ids=["0"], dataset_id=unit_testing_dataset)
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
 
+
 @pytest.mark.asyncio
 async def test_fetch_by_hash():
-    del vector_databases[0] # HACK to remove pinecone from this test not supported
     d = [
         "Bob is a human",
         "The quick brown fox jumps over the lazy dog",
@@ -112,11 +107,14 @@ async def test_fetch_by_hash():
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
-        await vector_database.clear(namespace)
-        await vector_database.update(df, namespace)
-        results = await vector_database.fetch_by_hash([df.hash[0]], namespace)
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(df, unit_testing_dataset)
+        results = await vector_database.select(
+            hashes=[df.hash[0]], dataset_id=unit_testing_dataset
+        )
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
+
 
 @pytest.mark.asyncio
 async def test_clear():
@@ -138,24 +136,24 @@ async def test_clear():
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
-        await vector_database.clear(namespace)
-        await vector_database.update(df, namespace)
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(df, unit_testing_dataset)
         results = await vector_database.search(
             data[0]["embedding"],
             top_k=2,
-            namespace=namespace,
+            dataset_id=unit_testing_dataset,
         )
         # dont care about ordering (postgres & pinecone run different algorithms)
-        ids = sorted([result["id"] for result in results]) 
+        ids = sorted([result["id"] for result in results])
         assert ids[0] == "0", f"failed for {vector_database}"
         assert ids[1] == "1", f"failed for {vector_database}"
-        await vector_database.clear(namespace)
+        await vector_database.clear(unit_testing_dataset)
 
     for vector_database in vector_databases:
         results = await vector_database.search(
             data[0]["embedding"],
             top_k=2,
-            namespace=namespace,
+            dataset_id=unit_testing_dataset,
         )
         assert len(results) == 0, f"failed for {vector_database}"
 
@@ -185,15 +183,15 @@ async def test_upload():
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
-        await vector_database.clear(namespace)
-        await vector_database.update(df, namespace)
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(df, unit_testing_dataset)
 
         results = await vector_database.search(
             data[0]["embedding"],
             top_k=2,
-            namespace=namespace,
+            dataset_id=unit_testing_dataset,
         )
         # dont care about ordering (postgres & pinecone run different algorithms)
-        ids = sorted([result["id"] for result in results]) 
+        ids = sorted([result["id"] for result in results])
         assert ids[0] == "0", f"failed for {vector_database}"
         assert ids[1] == "1", f"failed for {vector_database}"

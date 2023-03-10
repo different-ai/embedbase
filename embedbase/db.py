@@ -4,6 +4,8 @@ import asyncio
 from pandas import DataFrame
 import itertools
 
+from embedbase.settings import Settings
+
 
 class VectorDatabase(ABC):
     """
@@ -11,24 +13,19 @@ class VectorDatabase(ABC):
     """
 
     @abstractmethod
-    async def fetch(
-        self, ids: List[str], namespace: Optional[str] = None
+    async def select(
+        self,
+        ids: List[str] = [],
+        hashes: List[str] = [],
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> List[dict]:
         """
         :param ids: list of ids
-        :param namespace: namespace
-        :return: list of vectors
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    async def fetch_by_hash(
-        self, hashes: List[str], namespace: Optional[str] = None
-    ) -> List[dict]:
-        """
         :param hashes: list of hashes
-        :param namespace: namespace
-        :return: list of vectors
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :return: list of documents
         """
         raise NotImplementedError
 
@@ -36,61 +33,60 @@ class VectorDatabase(ABC):
     async def update(
         self,
         df: DataFrame,
-        namespace: Optional[str] = None,
+        dataset_id: str,
+        user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
-        save_clear_data: bool = True,
+        store_data: bool = True,
     ) -> Coroutine:
         """
-        :param vectors: list of vectors
-        :param namespace: namespace
+        :param df: dataframe
+        :param dataset_id: dataset id
+        :param user_id: user id
         :param batch_size: batch size
-        :param save_clear_data: save clear data
+        :param store_data: store data in database?
         """
         raise NotImplementedError
 
     @abstractmethod
-    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> None:
+    async def delete(
+        self, ids: List[str], dataset_id: str, user_id: Optional[str] = None
+    ) -> None:
         """
         :param ids: list of ids
+        :param dataset_id: dataset id
+        :param user_id: user id
         """
         raise NotImplementedError
 
     @abstractmethod
     async def search(
-        self, vector: List[float], top_k: Optional[int], namespace: Optional[str] = None
+        self,
+        vector: List[float],
+        top_k: Optional[int],
+        dataset_id: str,
+        user_id: Optional[str] = None,
     ) -> List[dict]:
         """
         :param vector: vector
         :param top_k: top k
-        :param namespace: namespace
-        :return: list of vectors
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :return: list of documents
         """
         raise NotImplementedError
 
     @abstractmethod
-    async def clear(self, namespace: Optional[str] = None) -> None:
+    async def clear(self, dataset_id: str, user_id: Optional[str] = None) -> None:
         """
-        :param namespace: namespace
+        :param dataset_id: dataset id
+        :param user_id: user id
         """
         raise NotImplementedError
 
-
-async def batch_fetch(
-    vector_database: VectorDatabase, ids_to_fetch: List[str], namespace: str
-):
-    """
-    :param vector_database: vector database
-    :param ids_to_fetch: list of ids
-    :param namespace: namespace
-    """
-    n = 200
-    ids_to_fetch = [ids_to_fetch[i : i + n] for i in range(0, len(ids_to_fetch), n)]
-
-    async def _fetch(ids) -> List[dict]:
-        try:
-            return await vector_database.fetch(ids=ids, namespace=namespace)
-        except Exception as e:
-            raise e
-
-    existing_documents = await asyncio.gather(*[_fetch(ids) for ids in ids_to_fetch])
-    return itertools.chain.from_iterable(existing_documents)
+    @abstractmethod
+    async def get_datasets(self, user_id: Optional[str] = None) -> List[str]:
+        """
+        :param user_id: user id
+        :return: list of datasets
+        """
+        raise NotImplementedError
