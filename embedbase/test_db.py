@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from embedbase.db import VectorDatabase
+from embedbase.db_utils import batch_select
 from embedbase.settings import get_settings
 from embedbase.supabase_db import Supabase
 from embedbase.test_utils import clear_dataset, unit_testing_dataset
@@ -195,3 +196,21 @@ async def test_upload():
         ids = sorted([result["id"] for result in results])
         assert ids[0] == "0", f"failed for {vector_database}"
         assert ids[1] == "1", f"failed for {vector_database}"
+
+
+@pytest.mark.asyncio
+async def test_batch_select_large_content():
+    """
+    should not throw an error
+    """
+    d = []
+    for _ in range(1000):
+        d.append("a" * 1_000_000)
+    hashes = [hashlib.sha256(x.encode()).hexdigest() for x in d]
+    for vector_database in vector_databases:
+        await batch_select(
+            vector_database,
+            hashes,
+            None,
+            None,
+        )

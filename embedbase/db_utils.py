@@ -23,7 +23,9 @@ async def batch_select(
     :param dataset_id: dataset id
     :param user_id: user id
     """
-    n = 200
+    # this depend on the vector database used
+    # supabase cannot deal with 200 for example
+    n = 100
     hashes_to_fetch = [
         hashes_to_fetch[i : i + n] for i in range(0, len(hashes_to_fetch), n)
     ]
