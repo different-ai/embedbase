@@ -16,3 +16,4 @@ autoflake
 pyyaml
 requests-mock
 pytest-mock
+fire

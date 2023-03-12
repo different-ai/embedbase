@@ -20,6 +20,12 @@ class VectorDatabaseEnum(str, Enum):
     supabase = "supabase"
     weaviate = "weaviate"
 
+# an enum to pick from openai or cohere
+class EmbeddingProvider(str, Enum):
+    OPENAI = "openai"
+    COHERE = "cohere"
+
+    
 
 class Settings(YamlModel):
     vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
@@ -36,6 +42,8 @@ class Settings(YamlModel):
     middlewares: typing.Optional[typing.List[str]] = None
     supabase_url: typing.Optional[str] = None
     supabase_key: typing.Optional[str] = None
+    cohere_api_key: typing.Optional[str] = None
+    embedding_provider: EmbeddingProvider = EmbeddingProvider.OPENAI
 
 
 @lru_cache()

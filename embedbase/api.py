@@ -4,7 +4,6 @@ import time
 import urllib.parse
 import uuid
 
-import openai
 import requests
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +11,7 @@ from fastapi.responses import JSONResponse
 from pandas import DataFrame
 
 from embedbase.db_utils import batch_select, get_vector_database
-from embedbase.embeddings import batch_embed, embed, is_too_big
+from embedbase.embeddings import embed, is_too_big
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.logging_utils import get_logger
 from embedbase.middleware_utils import get_middlewares
@@ -60,7 +59,6 @@ def get_app(settings: Settings):
     )
 
     vector_database = get_vector_database(settings)
-
 
     @app.on_event("startup")
     async def startup_event():
@@ -161,10 +159,10 @@ def get_app(settings: Settings):
             f"We will compute embeddings for {rows_without_embeddings}/{len(df)} documents"
         )
 
-        # compute embeddings for documents without embeddings using batch_embed
+        # compute embeddings for documents without embeddings using embed
         if not df[df.embedding.isna()].empty:
             df[df.embedding.isna()] = df[df.embedding.isna()].assign(
-                embedding=batch_embed(df[df.embedding.isna()].data.tolist())
+                embedding=embed(df[df.embedding.isna()].data.tolist())
             )
 
         # only insert if this dataset_id - user_id
@@ -250,7 +248,7 @@ def get_app(settings: Settings):
         top_k = 5  # TODO might fail if index empty?
         if request_body.top_k > 0:
             top_k = request_body.top_k
-        query_embedding = embed(query)[0]["embedding"]
+        query_embedding = embed(query)[0]
 
         logger.info(f"Query {request_body.query} created embedding, querying index")
 

@@ -13,6 +13,9 @@ tasks:
       command: |
         export PIP_USER=false
         pip install autoflake
+    - name: Init Supabase
+      command: |
+        npx supabase login
 vscode:
   # list as bullet points installed extensions:
   # code --list-extensions | xargs -L 1 echo - 

@@ -35,10 +35,10 @@ async def test_search():
         [
             {
                 "data": d[i],
-                "embedding": document["embedding"],
+                "embedding": embedding,
                 "id": str(i),
             }
-            for i, document in enumerate(embeddings)
+            for i, embedding in enumerate(embeddings)
         ],
         columns=["data", "embedding", "id", "hash"],
     )
@@ -48,7 +48,7 @@ async def test_search():
         await vector_database.clear(unit_testing_dataset)
         await vector_database.update(df, unit_testing_dataset)
         results = await vector_database.search(
-            embeddings[0]["embedding"],
+            embeddings[0],
             top_k=2,
             dataset_id=unit_testing_dataset,
         )
@@ -69,10 +69,10 @@ async def test_fetch():
         [
             {
                 "data": d[i],
-                "embedding": document["embedding"],
+                "embedding": embedding,
                 "id": str(i),
             }
-            for i, document in enumerate(embeddings)
+            for i, embedding in enumerate(embeddings)
         ],
         columns=["data", "embedding", "id", "hash"],
     )
@@ -97,10 +97,10 @@ async def test_fetch_by_hash():
         [
             {
                 "data": d[i],
-                "embedding": document["embedding"],
+                "embedding": embedding,
                 "id": str(i),
             }
-            for i, document in enumerate(embeddings)
+            for i, embedding in enumerate(embeddings)
         ],
         columns=["data", "embedding", "id", "hash"],
     )
@@ -119,17 +119,17 @@ async def test_fetch_by_hash():
 @pytest.mark.asyncio
 async def test_clear():
     data = [
-        {"embedding": [0.0] * 1536},
-        {"embedding": [0.0] * 1536},
+        [0.0] * 1536,
+        [0.0] * 1536,
     ]
     df = pd.DataFrame(
         [
             {
                 "data": "Bob is a human",
-                "embedding": document["embedding"],
+                "embedding": embedding,
                 "id": str(i),
             }
-            for i, document in enumerate(data)
+            for i, embedding in enumerate(data)
         ],
         columns=["data", "embedding", "id", "hash"],
     )
@@ -139,7 +139,7 @@ async def test_clear():
         await vector_database.clear(unit_testing_dataset)
         await vector_database.update(df, unit_testing_dataset)
         results = await vector_database.search(
-            data[0]["embedding"],
+            data[0],
             top_k=2,
             dataset_id=unit_testing_dataset,
         )
@@ -151,7 +151,7 @@ async def test_clear():
 
     for vector_database in vector_databases:
         results = await vector_database.search(
-            data[0]["embedding"],
+            data[0],
             top_k=2,
             dataset_id=unit_testing_dataset,
         )
@@ -161,17 +161,17 @@ async def test_clear():
 @pytest.mark.asyncio
 async def test_upload():
     data = [
-        {"embedding": [0.0] * 1536},
-        {"embedding": [0.0] * 1536},
+        [0.0] * 1536,
+        [0.0] * 1536,
     ]
     df = pd.DataFrame(
         [
             {
                 "data": "Bob is a human",
-                "embedding": document["embedding"],
+                "embedding": embedding,
                 "id": str(i),
             }
-            for i, document in enumerate(data)
+            for i, embedding in enumerate(data)
         ],
         columns=[
             "data",
@@ -187,7 +187,7 @@ async def test_upload():
         await vector_database.update(df, unit_testing_dataset)
 
         results = await vector_database.search(
-            data[0]["embedding"],
+            data[0],
             top_k=2,
             dataset_id=unit_testing_dataset,
         )
