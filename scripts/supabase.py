@@ -82,9 +82,20 @@ with (lists = 100);
 """
     raise NotImplementedError
 
+def create_distinct_datasets_view():
+    """
+    Create a view "distinct_datasets" in the database
+    """
+    q = """
+create view distinct_datasets as
+select distinct dataset_id, user_id from documents;
+"""
+    raise NotImplementedError
+
 def main():
     fire.Fire({
         "create_table": create_table,
         "create_search_function": create_search_function,
         "create_index": create_index,
+        "create_distinct_datasets_view": create_distinct_datasets_view,
     })

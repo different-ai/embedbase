@@ -176,19 +176,19 @@ def get_app(settings: Settings):
 
         # filter out documents that already exist
         # in this dataset_id - user_id pair
-        df = df[  # HACK: is it fine to only return client the new documents?
+        new_df = df[  # HACK: is it fine to only return client the new documents?
             ~df.hash.isin([doc["hash"] for doc in existing_documents_in_this_pair])
         ]
 
         await vector_database.update(
-            df,
+            new_df,
             dataset_id,
             user_id,
             batch_size=UPLOAD_BATCH_SIZE,
             store_data=request_body.store_data,
         )
 
-        logger.info(f"Uploaded {len(df)} documents")
+        logger.info(f"Uploaded {len(new_df)} documents")
         end_time = time.time()
         logger.info(f"Uploaded in {end_time - start_time} seconds")
 

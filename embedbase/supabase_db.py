@@ -122,11 +122,7 @@ class Supabase(VectorDatabase):
         return req.execute()
 
     async def get_datasets(self, user_id: Optional[str] = None) -> List[str]:
-        # TODO: https://github.com/PostgREST/postgrest/issues/915
-        # HACK: no distinct/group by for uniqueness?
-        # HACK: risky, need to fix for scaling,
-        # HACK: if many datasets / rows will be fucked up
-        req = self.supabase.table("documents").select("dataset_id")
+        req = self.supabase.table("distinct_datasets").select("dataset_id")
         if user_id:
             req = req.eq("user_id", user_id)
         data = req.execute().data

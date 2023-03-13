@@ -216,8 +216,8 @@ async def test_adding_twice_the_same_data_is_ignored():
 
     # insert twice the same ting
     await _i(3)
-    # should have been ignored
-    await _i(0)
+    # should have been ignored but still return 3 to client
+    await _i(3)
 
     # search should not have duplicates
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
