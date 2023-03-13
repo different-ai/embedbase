@@ -297,19 +297,6 @@ def get_app(settings: Settings):
         """
         Return the status of the API
         """
-        logger.info("Health check")
-        # get headers
-        headers = request.headers
-        # Handle here any business logic for ensuring you're application is healthy (DB connections, etc...)
-        r = requests.post(
-            f"http://0.0.0.0:{PORT}/v1/test",
-            json={
-                "documents": [],
-            },
-            # forward headers
-            headers=headers,
-        )
-        r.raise_for_status()
         logger.info("Health check successful")
 
         return JSONResponse(status_code=200, content={})
