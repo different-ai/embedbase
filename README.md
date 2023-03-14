@@ -5,11 +5,11 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">Get your embeddings-powered app off localhost</h3>
+<h3 align="center">The open source database for ChatGPT</h3>
 
   <p align="center">
     <br />
-    <p>Free and open-source API to easily create, store, and retrieve embeddings.</p>
+    <p>Open-source sdk & api to easily connect data to ChatGPT</p>
     <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
     ·
@@ -26,12 +26,12 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
-- [What are people building with Embedbase?](#use-cases)
+- [What are people building with Embedbase?](#what-are-people-building)
 - [Open-source vs hosted](#open-source-vs-hosted)
 
-## Use Cases
+## What are people building
 
-- [Chat-GPT-powered search for markdown documentation](https://differentai.gumroad.com/l/chatgpt-documentation)
+- [Chat-GPT-powered search for markdown documentation]([https://differentai.gumroad.com/l/chatgpt-documentation](https://github.com/different-ai/chat-gpt-powered-nextra))
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 
 ## Embedbase Flavours
