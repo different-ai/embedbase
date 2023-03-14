@@ -28,17 +28,18 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Contributing](#contributing)
 - [What are people building with Embedbase?](#what-are-people-building)
 - [Open-source vs hosted](#open-source-vs-hosted)
+- [Javascript SDK](#sdk)
 
 ## What are people building
 
-- [Chat-GPT-powered search for markdown documentation]([https://differentai.gumroad.com/l/chatgpt-documentation](https://github.com/different-ai/chat-gpt-powered-nextra))
+- [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 
 ## Embedbase Flavours
 
 ### Self-hosted
 
-Deploy a hobby instance in one line with Docker:
+Deploy an instance in one line with Docker:
 
  ```bash 
 docker-compose up
@@ -48,6 +49,39 @@ docker-compose up
 ### Managed Instance
 
 The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
+
+## How to use 
+### SDK
+
+```js
+import { createClient } from 'embedbase-js'
+
+const question = 'What can I do with Embedbase API?'
+
+const embedbase = createClient(
+  'https://api.embedbase.xyz',
+  'api-key')
+
+const context = await embedbase
+.dataset('embedbase-docs')
+.createContext('What can I do with Embedbase API?', { limit: 3 });
+
+console.log(context) 
+[
+  "Embedbase API allows to store unstructured data...",
+  "Embedbase API has 3 main functions a) provides a plug and play solution to store embeddings b) makes it easy to connect to get the right data into llms c)..",
+  "Embedabase API is self-hostable...",
+]
+
+// refer to https://github.com/openai/openai-node for the exact api
+openai.createCompletion(
+  `Write a response to question: ${question} 
+  based on the follwing context ${context.toString()}`
+)
+// answer:
+// You can use the Embedbase API to store unstructured data and then use the data to connect it to LLMs
+```
+
 
 
 ### Inserting data
