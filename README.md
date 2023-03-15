@@ -160,7 +160,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
   - [ ] local (BERT, etc.)
 * Vector database
   - [x] [supabase](https://supabase.com/)
-  - [x] [pinecone](https://www.pinecone.io/)
+  - [ ] [pinecone](https://www.pinecone.io/)
   - [ ] local (sqlite, etc.)
 * [fastapi](https://github.com/tiangolo/fastapi)
 * Authentication (optional)
@@ -170,9 +170,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 ### Configuration
 
 #### Prerequisite
-* Either
-  * Supabase account & [database configured](https://docs.embedbase.xyz/deployment#using-supabase)
-  * Pinecone account & one index
+* Supabase account & [database configured](https://docs.embedbase.xyz/deployment#using-supabase)
 * Openai account
 
 minimal `config.yaml` (see `config.example.yaml`)
@@ -182,10 +180,6 @@ vector_database: supabase # or pinecone
 
 supabase_url: <get me here https://supabase.com>
 supabase_key: <get me here https://supabase.com>
-# or
-pinecone_index: "<get me here https://app.pinecone.io>"
-pinecone_environment: "<get me here https://app.pinecone.io>"
-pinecone_api_key: "<get me here https://app.pinecone.io>"
 
 # https://platform.openai.com/account/api-keys
 openai_api_key: "sk-xxxxxxx"
