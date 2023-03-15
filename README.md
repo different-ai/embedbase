@@ -9,6 +9,7 @@
 
   <p align="center">
     <br />
+    <a href="https://badge.fury.io/py/embedbase"><img src="https://badge.fury.io/py/embedbase.svg" alt="PyPI version" height="18"></a>
     <p>Open-source sdk & api to easily connect data to ChatGPT</p>
     <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
@@ -21,8 +22,8 @@
     <br />
   </p>
 </p>
-
 Check out the [docs](https://docs.embedbase.xyz) for more info.
+
 
 ## Table of Contents
 
