@@ -4,7 +4,6 @@ import time
 import urllib.parse
 import uuid
 
-import requests
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -21,7 +20,6 @@ from embedbase.utils import get_user_id
 
 
 def get_app(settings: Settings):
-    PORT = os.environ.get("PORT", 8080)
     UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
     logger = get_logger(settings)
@@ -233,6 +231,14 @@ def get_app(settings: Settings):
         Search for a given query in the corpus
         """
         query = request_body.query
+
+        # if query is empty, return empty results
+        if not query:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={"query": query, "similarities": []},
+            )
+
         user_id = get_user_id(request)
 
         # if the query is too big, return an error
