@@ -25,7 +25,6 @@ jobs:
           pip install setuptools wheel twine
 
       - name: Build and publish
-        if: ${{ steps.regex-match.outputs.match != '' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
