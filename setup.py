@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 
 if __name__ == "__main__":
-
     # https://github.com/mautrix/telegram/blob/master/setup.py
     with open("optional-requirements.txt") as reqs:
         extras_require = {}
@@ -14,19 +13,29 @@ if __name__ == "__main__":
             else:
                 current.append(line)
 
-    extras_require["all"] = list({dep for deps in extras_require.values() for dep in deps})
+    extras_require["all"] = list(
+        {dep for deps in extras_require.values() for dep in deps}
+    )
 
     # same for requirements.txt
     with open("requirements.txt") as reqs:
-        install_requires = [line for line in reqs.read().splitlines() if not line.startswith("#")]
-
+        install_requires = [
+            line for line in reqs.read().splitlines() if not line.startswith("#")
+        ]
 
     setup(
+        # TODO: entrypoint?
         name="embedbase",
         packages=find_packages(),
         include_package_data=True,
-        version="0.8.2",
+        version="0.8.3",
         description="The open source database for ChatGPT",
+        long_description=open("README.md", encoding="utf-8").read(),
+        long_description_content_type="text/markdown",
+        python_requires=">=3.8",
+        author="Different AI",
+        url="https://github.com/different-ai/embedbase",
+        license="MIT",
         install_requires=install_requires,
         extras_require=extras_require,
         classifiers=[
