@@ -11,5 +11,6 @@ class Weaviate(VectorDatabase):
         raise NotImplementedError(
             "Weaviate is not supported."
             + "If you want to use Weaviate, please"
-            + " contact us"
+            + " create an issue "
+            + "https://github.com/different-ai/embedbase/issues/new/choose"
         )

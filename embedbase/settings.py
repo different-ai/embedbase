@@ -20,12 +20,12 @@ class VectorDatabaseEnum(str, Enum):
     supabase = "supabase"
     weaviate = "weaviate"
 
+
 # an enum to pick from openai or cohere
 class EmbeddingProvider(str, Enum):
     OPENAI = "openai"
     COHERE = "cohere"
 
-    
 
 class Settings(YamlModel):
     vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
@@ -49,6 +49,20 @@ class Settings(YamlModel):
 @lru_cache()
 def get_settings():
     settings = Settings.parse_file(SECRET_PATH + "/config.yaml")
+
+    if settings.embedding_provider != EmbeddingProvider.OPENAI:
+        raise Exception(
+            "Currently only openai is supported, "
+            + "please create an issue if you want to use another provider "
+            + "https://github.com/different-ai/embedbase/issues/new/choose"
+        )
+
+    if settings.vector_database != VectorDatabaseEnum.supabase:
+        raise Exception(
+            "Currently only supabase is supported, "
+            + "please create an issue if you want to use another database "
+            + "https://github.com/different-ai/embedbase/issues/new/choose"
+        )
 
     # HACK: unless other AI api are supported it's hardcoded here
     openai.api_key = settings.openai_api_key

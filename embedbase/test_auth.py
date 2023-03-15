@@ -1,5 +1,6 @@
 import pytest
 from httpx import AsyncClient
+import supabase
 from embedbase.api import get_app
 
 from embedbase.firebase_auth import enable_firebase_auth
@@ -10,7 +11,16 @@ from embedbase.test_utils import clear_dataset, unit_testing_dataset
 @pytest.mark.asyncio
 async def test_enable_firebase_auth():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     # before enabling auth, we should be able to make queries
     # without any authorization header

@@ -14,7 +14,3 @@ openai_organization: "org-xxxxx"
 # authentication
 # auth: firebase # only firebase is supported for now
 # firebase_service_account_path: "path/to/service-account.json"
-
-# middlewares:
-#   - middlewares.enrich.enrich.Enrich
-#   - middlewares.processing_time.processing_time.ProcessingTime

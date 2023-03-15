@@ -16,5 +16,6 @@ class Pinecone(VectorDatabase):
         raise NotImplementedError(
             "Pinecone is not supported."
             + "If you want to use Pinecone, please"
-            + " contact us"
+            + " create an issue "
+            + "https://github.com/different-ai/embedbase/issues/new/choose"
         )

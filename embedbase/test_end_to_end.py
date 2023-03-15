@@ -8,12 +8,10 @@ from random import randint
 import numpy as np
 import pandas as pd
 import pytest
-import pytest_mock
-
+import supabase
 from httpx import AsyncClient
 
-from embedbase.embeddings import embed
-from embedbase.settings import Settings, get_settings
+from embedbase.settings import get_settings
 from embedbase.test_utils import clear_dataset, unit_testing_dataset
 
 from .api import get_app
@@ -22,7 +20,16 @@ from .api import get_app
 @pytest.mark.asyncio
 async def test_clear():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     df = pd.DataFrame(
         [
@@ -67,7 +74,16 @@ async def test_clear():
 @pytest.mark.asyncio
 async def test_refresh_small_documents():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     df = pd.DataFrame(
         [
@@ -101,7 +117,16 @@ async def test_refresh_small_documents():
 @pytest.mark.asyncio
 async def test_sync_no_id_collision():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     df = pd.DataFrame(
         ["foo" for _ in range(10)],
@@ -129,7 +154,16 @@ async def test_sync_no_id_collision():
 @pytest.mark.asyncio
 async def test_save_clear_data():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     df = pd.DataFrame(
         ["bob is a human"],
@@ -168,7 +202,16 @@ async def test_health_properly_forward_headers():
     import requests_mock
 
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     # mock http://0.0.0.0:8000/v1/test
     with requests_mock.Mocker(
         real_http=True,
@@ -188,7 +231,16 @@ async def test_health_properly_forward_headers():
 @pytest.mark.asyncio
 async def test_adding_twice_the_same_data_is_ignored():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     await clear_dataset()
     d = [
         "The lion is the king of the jungle",
@@ -238,7 +290,17 @@ async def test_adding_twice_the_same_data_is_ignored():
 @pytest.mark.asyncio
 async def test_insert_large_documents_should_fail():
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
+
     await clear_dataset()
     # large texts > 10.000 characters
     d = ["".join("agi " * 10_000) for _ in range(10)]
@@ -277,7 +339,16 @@ async def test_get_datasets_without_auth():
     """
     await clear_dataset()
     settings = get_settings()
-    app = get_app(settings)
+    app = (
+        get_app(settings)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+        .run()
+    )
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.get(
             f"/v1/datasets",
@@ -320,7 +391,11 @@ async def test_get_datasets_without_auth():
         # should have "unit_testing_dataset" in the list
         ds_id = [e["dataset_id"] for e in json_response.get("datasets")]
         assert unit_testing_dataset in ds_id
-        ds = [e for e in json_response.get("datasets") if e["dataset_id"] == unit_testing_dataset][0]
+        ds = [
+            e
+            for e in json_response.get("datasets")
+            if e["dataset_id"] == unit_testing_dataset
+        ][0]
         assert ds["documents_count"] == 3
 
 
@@ -334,13 +409,30 @@ async def test_get_datasets_with_auth(mocker):
     should create a dataset by inserting some data
     and get a list of dataset, only his own
     """
-    # TODO: does not FUCKING work?
-    mocker.patch("embedbase.utils.get_user_id", return_value="user1")
     settings = get_settings()
-    app = get_app(settings)
+
+    async def add_uid(request, call_next):
+        request.scope["uid"] = "test"
+        response = await call_next(request)
+        return response
+
+    app = (
+        get_app(settings)
+        .use(add_uid)
+        .use(
+            supabase.client.Client(
+                settings.supabase_url,
+                settings.supabase_key,
+            )
+        )
+    ).run()
 
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.get(
             f"/v1/datasets",
         )
-        print(response.json())
+        assert response.status_code == 200
+        json_response = response.json()
+        # TODO: iterate on this test by insert first docs with this user then
+        # check datasets
+        assert json_response.get("datasets") == []
