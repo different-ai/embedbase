@@ -19,6 +19,11 @@ jobs:
         id: get_version
         run: echo "VERSION=$(python3 setup.py --version)" >> $GITHUB_ENV
         
+      - name: Publish a Python distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1 
         with:
