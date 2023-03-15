@@ -16,6 +16,8 @@
     <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
     ·
     <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=bug">Report Bug</a>
+    ·
+    <a href="https://discord.gg/pMNeuGrDky">Join our Discord</a>
     <br />
   </p>
 </p>
