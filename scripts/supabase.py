@@ -87,8 +87,10 @@ def create_distinct_datasets_view():
     Create a view "distinct_datasets" in the database
     """
     q = """
-create view distinct_datasets as
-select distinct dataset_id, user_id from documents;
+CREATE OR REPLACE VIEW distinct_datasets AS
+SELECT dataset_id, user_id, COUNT(*) AS documents_count
+FROM documents
+GROUP BY dataset_id, user_id;
 """
     raise NotImplementedError
 

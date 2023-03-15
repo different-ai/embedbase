@@ -84,7 +84,7 @@ class VectorDatabase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_datasets(self, user_id: Optional[str] = None) -> List[str]:
+    async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
         """
         :param user_id: user id
         :return: list of datasets

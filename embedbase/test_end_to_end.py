@@ -285,7 +285,8 @@ async def test_get_datasets_without_auth():
         assert response.status_code == 200
         json_response = response.json()
         # shouldn't have "unit_testing_dataset" in the list
-        assert unit_testing_dataset not in json_response.get("datasets")
+        ds_id = [e["dataset_id"] for e in json_response.get("datasets")]
+        assert unit_testing_dataset not in ds_id
 
     d = [
         "The lion is the king of the jungle",
@@ -317,7 +318,10 @@ async def test_get_datasets_without_auth():
         assert response.status_code == 200
         json_response = response.json()
         # should have "unit_testing_dataset" in the list
-        assert unit_testing_dataset in json_response.get("datasets")
+        ds_id = [e["dataset_id"] for e in json_response.get("datasets")]
+        assert unit_testing_dataset in ds_id
+        ds = [e for e in json_response.get("datasets") if e["dataset_id"] == unit_testing_dataset][0]
+        assert ds["documents_count"] == 3
 
 
 @pytest.mark.asyncio

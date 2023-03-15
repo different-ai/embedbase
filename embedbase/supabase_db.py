@@ -121,9 +121,9 @@ class Supabase(VectorDatabase):
             req = req.eq("user_id", user_id)
         return req.execute()
 
-    async def get_datasets(self, user_id: Optional[str] = None) -> List[str]:
-        req = self.supabase.table("distinct_datasets").select("dataset_id")
+    async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
+        req = self.supabase.table("distinct_datasets").select("dataset_id", "documents_count")
         if user_id:
             req = req.eq("user_id", user_id)
         data = req.execute().data
-        return list(set([d["dataset_id"] for d in data]))
+        return data
