@@ -1,7 +1,7 @@
 import asyncio
 import os
-from abc import ABC
 from typing import Awaitable, Callable, Tuple, Union
+import warnings
 from fastapi import FastAPI, Request
 from supabase.client import Client
 from fastapi.middleware import Middleware
@@ -28,7 +28,7 @@ from embedbase.utils import get_user_id
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
-class Embedbase(ABC):
+class Embedbase:
     def __init__(self, settings: Settings, **kwargs):
         self._kwargs = kwargs
         self.settings = settings
@@ -42,18 +42,9 @@ class Embedbase(ABC):
             Middleware,
             Callable[[Scope], Awaitable[Tuple[str, str]]],
         ],
+        **kwargs,
     ) -> "Embedbase":
         """ """
-        if isinstance(plugin, Client):
-            self.logger.debug("Enabling Supabase")
-            self.db = Supabase(
-                url=plugin.supabase_url,
-                key=plugin.supabase_key,
-            )
-        if isinstance(plugin, Middleware):
-            self.logger.debug(f"Enabling Middleware {plugin}")
-            self.fastapi_app.add_middleware(plugin)
-
         if asyncio.iscoroutinefunction(plugin):
             self.logger.debug(f"Enabling Middleware {plugin}")
 
@@ -61,6 +52,21 @@ class Embedbase(ABC):
             async def middleware(request: Request, call_next):
                 return await plugin(request, call_next)
 
+        elif isinstance(plugin, Client):
+            self.logger.debug("Enabling Supabase")
+            self.db = Supabase(
+                url=plugin.supabase_url,
+                key=plugin.supabase_key,
+            )
+        elif "CORSMiddleware" in str(plugin):
+            self.logger.debug(f"Enabling CORSMiddleware")
+            self.fastapi_app.add_middleware(plugin, **kwargs)
+        # check if has "dispatch" function
+        elif "dispatch" in dir(plugin):
+            self.logger.debug(f"Enabling Middleware {plugin}")
+            self.fastapi_app.add_middleware(plugin)
+        else:
+            warnings.warning(f"Plugin {plugin} is not supported")
         return self
 
     def run(self) -> FastAPI:
