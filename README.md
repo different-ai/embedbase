@@ -156,7 +156,9 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 ### Current Stack
 
 * Embeddings
-  - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings) for vectorization
+  - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings)
+  - [ ] [cohere embeddings](https://cohere.ai/embed)
+  - [ ] [Google PaLM embeddings](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
   - [ ] local (BERT, etc.)
 * Vector database
   - [x] [supabase](https://supabase.com/)
@@ -186,6 +188,12 @@ openai_api_key: "sk-xxxxxxx"
 # https://platform.openai.com/account/org-settings
 openai_organization: "org-xxxxx"
 ```
+
+#### Python
+
+To run a `uvicorn server` that automatically reloads on code changes:
+
+`make run`
 
 #### Docker
 
