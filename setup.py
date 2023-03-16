@@ -27,7 +27,7 @@ setup(
     name="embedbase",
     packages=find_packages(),
     include_package_data=True,
-    version="0.8.6",
+    version="0.8.7",
     description="The open source database for ChatGPT",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

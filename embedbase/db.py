@@ -1,10 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Coroutine, List, Optional
-import asyncio
 from pandas import DataFrame
-import itertools
-
-from embedbase.settings import Settings
 
 
 class VectorDatabase(ABC):

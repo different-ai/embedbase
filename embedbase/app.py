@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from supabase.client import Client
 from fastapi.middleware import Middleware
 from starlette.types import Scope
+from embedbase.db import VectorDatabase
 from embedbase.logging_utils import get_logger
 from embedbase.models import DeleteRequest, SearchRequest
 from embedbase.settings import Settings
@@ -38,7 +39,7 @@ class Embedbase:
     def use(
         self,
         plugin: Union[
-            Ve,
+            VectorDatabase,
             Middleware,
             Callable[[Scope], Awaitable[Tuple[str, str]]],
         ],
@@ -52,12 +53,9 @@ class Embedbase:
             async def middleware(request: Request, call_next):
                 return await plugin(request, call_next)
 
-        elif isinstance(plugin, Client):
-            self.logger.debug("Enabling Supabase")
-            self.db = Supabase(
-                url=plugin.supabase_url,
-                key=plugin.supabase_key,
-            )
+        elif isinstance(plugin, VectorDatabase):
+            self.logger.debug(f"Enabling Database {plugin}")
+            self.db = plugin
         elif "CORSMiddleware" in str(plugin):
             self.logger.debug(f"Enabling CORSMiddleware")
             self.fastapi_app.add_middleware(plugin, **kwargs)
@@ -66,7 +64,7 @@ class Embedbase:
             self.logger.debug(f"Enabling Middleware {plugin}")
             self.fastapi_app.add_middleware(plugin)
         else:
-            warnings.warning(f"Plugin {plugin} is not supported")
+            warnings.warn(f"Plugin {plugin} is not supported")
         return self
 
     def run(self) -> FastAPI:
