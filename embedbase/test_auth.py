@@ -1,10 +1,10 @@
 import pytest
 from httpx import AsyncClient
-import supabase
 from embedbase.api import get_app
 
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.settings import get_settings
+from embedbase.supabase_db import Supabase
 from embedbase.test_utils import clear_dataset, unit_testing_dataset
 
 
@@ -14,7 +14,7 @@ async def test_enable_firebase_auth():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )

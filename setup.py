@@ -33,6 +33,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.8",
     author="Different AI",
+    author_email="louis@embedbase.xyz",
     url="https://github.com/different-ai/embedbase",
     license="MIT",
     install_requires=install_requires,

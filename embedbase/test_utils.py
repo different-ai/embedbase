@@ -1,7 +1,7 @@
 from httpx import AsyncClient
-import supabase
 
 from embedbase.settings import get_settings
+from embedbase.supabase_db import Supabase
 
 from .api import get_app
 
@@ -13,7 +13,7 @@ async def clear_dataset(dataset_id: str = unit_testing_dataset):
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )

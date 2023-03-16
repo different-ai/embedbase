@@ -8,10 +8,10 @@ from random import randint
 import numpy as np
 import pandas as pd
 import pytest
-import supabase
 from httpx import AsyncClient
 
 from embedbase.settings import get_settings
+from embedbase.supabase_db import Supabase
 from embedbase.test_utils import clear_dataset, unit_testing_dataset
 
 from .api import get_app
@@ -23,7 +23,7 @@ async def test_clear():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -77,7 +77,7 @@ async def test_refresh_small_documents():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -120,7 +120,7 @@ async def test_sync_no_id_collision():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -157,7 +157,7 @@ async def test_save_clear_data():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -205,7 +205,7 @@ async def test_health_properly_forward_headers():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -234,7 +234,7 @@ async def test_adding_twice_the_same_data_is_ignored():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -293,7 +293,7 @@ async def test_insert_large_documents_should_fail():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -342,7 +342,7 @@ async def test_get_datasets_without_auth():
     app = (
         get_app(settings)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
@@ -420,7 +420,7 @@ async def test_get_datasets_with_auth(mocker):
         get_app(settings)
         .use(add_uid)
         .use(
-            supabase.client.Client(
+            Supabase(
                 settings.supabase_url,
                 settings.supabase_key,
             )
