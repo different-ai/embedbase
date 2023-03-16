@@ -29,11 +29,11 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Table of Contents
 
+- [Javascript SDK](#sdk)
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 - [What are people building with Embedbase?](#what-are-people-building)
 - [Open-source vs hosted](#open-source-vs-hosted)
-- [Javascript SDK](#sdk)
 
 ## What are people building
 
