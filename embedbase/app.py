@@ -38,7 +38,7 @@ class Embedbase:
     def use(
         self,
         plugin: Union[
-            Client,
+            Ve,
             Middleware,
             Callable[[Scope], Awaitable[Tuple[str, str]]],
         ],
