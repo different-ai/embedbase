@@ -57,6 +57,8 @@ The fastest way to get started with Embedbase is signing up for free to [Embedba
 ## How to use 
 ### SDK
 
+`npm i embedbase-js`
+
 ```js
 import { createClient } from 'embedbase-js'
 
