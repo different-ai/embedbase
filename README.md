@@ -15,9 +15,9 @@
     <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
     ·
-    <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
+    <a href="https://github.com/different-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
     ·
-    <a href="https://github.com/another-ai/embedbase/issues/new?assignees=&labels=bug">Report Bug</a>
+    <a href="https://github.com/different-ai/embedbase/issues/new?assignees=&labels=bug">Report Bug</a>
     ·
     <a href="https://discord.gg/pMNeuGrDky">Join our Discord</a>
     <br />
@@ -149,7 +149,7 @@ Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get 
 
 ## Contributing
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/another-ai/embedbase)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/different-ai/embedbase)
 
 We recommend using Gitpod for development.
 
@@ -206,7 +206,7 @@ To run a `uvicorn server` that automatically reloads on code changes:
 
 ## Open-source vs hosted
 
-This repo is available under the [MIT license](https://github.com/another-ai/embedbase/blob/master/LICENSE). 
+This repo is available under the [MIT license](https://github.com/different-ai/embedbase/blob/main/LICENSE). 
 
 To learn more, [book a demo](https://cal.com/potato/20min).
 

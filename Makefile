@@ -1,7 +1,7 @@
-LATEST_IMAGE_URL="ghcr.io/another-ai/embedbase:latest"
+LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
 # read version from setup.py
 VERSION="$(shell python3 setup.py --version)"
-IMAGE_URL="ghcr.io/another-ai/embedbase:${VERSION}"
+IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
 LOCAL_PORT="8000"
 
 install: ## [DEVELOPMENT] Install the API dependencies
@@ -59,7 +59,7 @@ release: ## [Local development] Release a new version of the API.
 	git push origin main; \
 	git tag ${VERSION}; \
 	git push origin ${VERSION}
-	@echo "Done, check '\033[0;31mhttps://github.com/another-ai/embedbase/actions\033[0m'"
+	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
 .PHONY: help
 
