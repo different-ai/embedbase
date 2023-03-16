@@ -42,7 +42,26 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Embedbase Flavours
 
-### Self-hosted
+### As a library
+
+```py
+from embedbase import get_app
+
+from embedbase.settings import Settings
+from embedbase.supabase_db import Supabase
+
+settings = Settings(
+    # your config goes here, or use "get_settings" helper to use a config.yaml
+)
+
+app = (
+    get_app(settings)
+    # we use supabase.com as db here, but pick your favourite one
+    .use(Supabase(settings.supabase_url, settings.supabase_key))
+).run()
+```
+
+### Docker
 
 Deploy an instance in one line with Docker:
 
