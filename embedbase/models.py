@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 # TODO: response models once stable
@@ -9,7 +9,7 @@ class Document(BaseModel):
     # TODO: currently only string is supported (later could be images, audio, multi/cross-modal)
     # etc.
     data: str
-    metadata: dict
+    metadata: Optional[dict]
 
 
 class AddRequest(BaseModel):
