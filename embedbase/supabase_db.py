@@ -64,6 +64,7 @@ class Supabase(VectorDatabase):
                     "hash": row.hash,
                     "dataset_id": dataset_id,
                     "user_id": user_id,
+                    "metadata": row.metadata,
                 }
                 if store_data:
                     data["data"] = row.data

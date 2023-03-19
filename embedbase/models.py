@@ -9,6 +9,7 @@ class Document(BaseModel):
     # TODO: currently only string is supported (later could be images, audio, multi/cross-modal)
     # etc.
     data: str
+    metadata: dict
 
 
 class AddRequest(BaseModel):

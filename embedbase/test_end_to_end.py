@@ -50,6 +50,7 @@ async def test_clear():
                 "documents": [
                     {
                         "data": text,
+                        "metadata": {"somethibng": f"test_{i}"},
                     }
                     for i, text in enumerate(df.text.tolist())
                 ],
@@ -58,6 +59,16 @@ async def test_clear():
         assert response.status_code == 200
         json_response = response.json()
         assert len(json_response.get("results")) == 10
+        
+
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+        response = await client.post(
+            f"/v1/{unit_testing_dataset}/search", json={"query": "bob", "top_k": 10}
+        )
+        assert response.status_code == 200
+        json_response = response.json()
+        assert json_response.get("query", "") == "bob"
+        assert len(json_response.get("similarities")) == 10
 
     await clear_dataset()
     # search now

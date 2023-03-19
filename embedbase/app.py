@@ -127,6 +127,7 @@ class Embedbase:
                     "data",
                     "embedding",
                     "hash",
+                    "metadata"
                 ],
             )
 
@@ -291,6 +292,7 @@ class Embedbase:
                         "data": match["data"],
                         "hash": match["hash"],  # TODO: probably shouldn't return this
                         "embedding": match["embedding"],
+                        "metadata": match["metadata"],
                     }
                 )
             return JSONResponse(
