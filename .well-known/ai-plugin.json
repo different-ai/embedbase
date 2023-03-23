@@ -3,10 +3,14 @@
     "name_for_human": "Embedbase",
     "name_for_model": "embedbase",
     "description_for_human": "Open-source sdk & api to easily connect data to ChatGPT",
-    "description_for_model": "You can use Embedbase to get access to any data source from the internet",
-    "api": { "url": "/openapi.json" },
+    "description_for_model": "Plugin for searching through any data sources from the internet to find answers to questions and retrieve relevant information. Use it by checking /datasets whenever a user asks something that might be found in these datasets and then use /search with the chosen dataset and the question to get the answer.",
+    "api": {
+      "type": "openapi",
+      "url": "https://github.com/different-ai/embedbase/blob/main/.well-known/openapi.yaml",
+      "has_user_authentication": false
+    },
     "auth": { "type": "none" },
-    "logo_url": "https://example.com/logo.png",
+    "logo_url": "https://www.embedbase.xyz/_next/static/media/embedbase-long.fec189ed.svg",
     "legal_info_url": "https://embedbase.xyz",
     "contact_email": "louis@embedbase.xyz"
   }

@@ -18,6 +18,7 @@ import uuid
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pandas import DataFrame
 
 from embedbase.db_utils import batch_select
@@ -34,6 +35,8 @@ class Embedbase:
         self._kwargs = kwargs
         self.settings = settings
         self.fastapi_app = FastAPI()
+        self.fastapi_app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
+
         self.logger = get_logger(settings)
 
     def use(
