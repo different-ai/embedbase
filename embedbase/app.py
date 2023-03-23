@@ -35,7 +35,6 @@ class Embedbase:
         self._kwargs = kwargs
         self.settings = settings
         self.fastapi_app = FastAPI()
-        self.fastapi_app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
         self.logger = get_logger(settings)
 
