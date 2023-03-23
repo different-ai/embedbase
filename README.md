@@ -60,6 +60,9 @@ docker-compose up
 
 The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
 
+![Dashboard Screenshot](https://user-images.githubusercontent.com/11430621/227351386-f540fac0-c5fa-485a-bcc9-f23368fe3f63.png)
+
+
 ## How to use 
 ### SDK
 
