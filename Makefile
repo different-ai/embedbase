@@ -61,6 +61,9 @@ release: ## [Local development] Release a new version of the API.
 	git push origin ${VERSION}
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
+openapi:
+	curl localhost:8000/openapi.json | yq -y > .well-known/openapi.yaml
+
 .PHONY: help
 
 help: # Run `make help` to get help on the make commands

@@ -1,0 +1,225 @@
+openapi: 3.0.2
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /v1/{dataset_id}/clear:
+    get:
+      summary: Clear
+      description: Clear the index of a dataset
+      operationId: clear_v1__dataset_id__clear_get
+      parameters:
+        - required: true
+          schema:
+            title: Dataset Id
+            type: string
+          name: dataset_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/{dataset_id}:
+    post:
+      summary: Add
+      description: Index a list of unstructured data (with optional metadata) into
+        a dataset using embeddings
+      operationId: add_v1__dataset_id__post
+      parameters:
+        - required: true
+          schema:
+            title: Dataset Id
+            type: string
+          name: dataset_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete
+      description: Delete a document from the index using its id
+      operationId: delete_v1__dataset_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Dataset Id
+            type: string
+          name: dataset_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/{dataset_id}/search:
+    post:
+      summary: Semantic Search
+      description: Run semantic search in a dataset using embeddings
+      operationId: semantic_search_v1__dataset_id__search_post
+      parameters:
+        - required: true
+          schema:
+            title: Dataset Id
+            type: string
+          name: dataset_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/datasets:
+    get:
+      summary: Get Datasets
+      description: Return a list of available datasets and the number of documents
+        in each
+      operationId: get_datasets_v1_datasets_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /health:
+    get:
+      summary: Health
+      description: Return the status of the API
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    AddRequest:
+      title: AddRequest
+      required:
+        - documents
+      type: object
+      properties:
+        documents:
+          title: Documents
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        store_data:
+          title: Store Data
+          type: boolean
+          default: true
+    DeleteRequest:
+      title: DeleteRequest
+      required:
+        - ids
+      type: object
+      properties:
+        ids:
+          title: Ids
+          type: array
+          items:
+            type: string
+    Document:
+      title: Document
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          title: Data
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    SearchRequest:
+      title: SearchRequest
+      required:
+        - query
+      type: object
+      properties:
+        query:
+          title: Query
+          type: string
+        top_k:
+          title: Top K
+          type: integer
+          default: 6
+    ValidationError:
+      title: ValidationError
+      required:
+        - loc
+        - msg
+        - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string

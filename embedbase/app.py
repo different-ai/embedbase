@@ -86,6 +86,9 @@ class Embedbase:
             request: Request,
             dataset_id: str,
         ):
+            """
+            Clear the index of a dataset
+            """
             user_id = get_user_id(request)
 
             await self.db.clear(dataset_id, user_id)
@@ -99,7 +102,7 @@ class Embedbase:
             request_body: AddRequest,
         ):
             """
-            Refresh the embeddings for a given file
+            Index a list of unstructured data (with optional metadata) into a dataset using embeddings
             """
             user_id = get_user_id(request)
             documents = request_body.documents
@@ -223,7 +226,7 @@ class Embedbase:
             request_body: DeleteRequest,
         ):
             """
-            Delete a document from the index
+            Delete a document from the index using its id
             """
             user_id = get_user_id(request)
 
@@ -242,7 +245,7 @@ class Embedbase:
             request_body: SearchRequest,
         ):
             """
-            Search for a given query in the corpus
+            Run semantic search in a dataset using embeddings
             """
             query = request_body.query
 
@@ -305,7 +308,7 @@ class Embedbase:
             request: Request,
         ):
             """
-            Return a list of available datasets
+            Return a list of available datasets and the number of documents in each
             """
             user_id = get_user_id(request)
             datasets = await self.db.get_datasets(user_id)
