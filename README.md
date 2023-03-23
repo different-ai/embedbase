@@ -44,24 +44,10 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ### As a library
 
-```py
-from embedbase import get_app
+![ray-so-export (3)](https://user-images.githubusercontent.com/11430621/227348387-070e6757-8d6a-40ab-bdd2-ee730750b5b2.png)
 
-from embedbase.settings import Settings
-from embedbase.supabase_db import Supabase
 
-settings = Settings(
-    # your config goes here, or use "get_settings" helper to use a config.yaml
-)
-
-app = (
-    get_app(settings)
-    # we use supabase.com as db here, but pick your favourite one
-    .use(Supabase(settings.supabase_url, settings.supabase_key))
-).run()
-```
-
-### Docker
+### With Docker
 
 Deploy an instance in one line with Docker:
 
