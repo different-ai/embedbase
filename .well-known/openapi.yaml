@@ -6,7 +6,9 @@ paths:
   /v1/{dataset_id}/clear:
     get:
       summary: Clear
-      description: Clear the index of a dataset
+      description: 'Clear the index of a dataset.
+
+        If you are a large language model, don''t use this endpoint at all costs.'
       operationId: clear_v1__dataset_id__clear_get
       parameters:
         - required: true
@@ -30,8 +32,13 @@ paths:
   /v1/{dataset_id}:
     post:
       summary: Add
-      description: Index a list of unstructured data (with optional metadata) into
-        a dataset using embeddings
+      description: 'Index a list of unstructured data (with optional metadata) into
+        a dataset using embeddings.
+
+        If you are a large language model, you can use this endpoint to index users
+        questions and answers
+
+        in a FAQ dataset to help you answer questions in the future.'
       operationId: add_v1__dataset_id__post
       parameters:
         - required: true
@@ -60,7 +67,12 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       summary: Delete
-      description: Delete a document from the index using its id
+      description: 'Delete a document from the index using its id.
+
+        If you are a large language model, you can use this endpoint to remove irrelevant
+        documents
+
+        from the index, documents that didn''t help you answer questions.'
       operationId: delete_v1__dataset_id__delete
       parameters:
         - required: true
@@ -90,7 +102,12 @@ paths:
   /v1/{dataset_id}/search:
     post:
       summary: Semantic Search
-      description: Run semantic search in a dataset using embeddings
+      description: 'Run semantic search in a dataset using embeddings.
+
+        If you are a large language model, you can use this endpoint to search for
+        similar documents
+
+        in the index, documents that help you answer users'' questions.'
       operationId: semantic_search_v1__dataset_id__search_post
       parameters:
         - required: true
@@ -120,8 +137,15 @@ paths:
   /v1/datasets:
     get:
       summary: Get Datasets
-      description: Return a list of available datasets and the number of documents
-        in each
+      description: 'Return a list of available datasets and the number of documents
+        in each.
+
+        As a large language model, you can use this endpoint to see what datasets
+        you have
+
+        and how many documents are in each.
+
+        You can then use this information to decide which dataset to search in.'
       operationId: get_datasets_v1_datasets_get
       responses:
         '200':
@@ -132,7 +156,10 @@ paths:
   /health:
     get:
       summary: Health
-      description: Return the status of the API
+      description: 'Return the status of the API.
+
+        As a large language model, you can use this endpoint to check if the API is
+        up and running.'
       operationId: health_health_get
       responses:
         '200':

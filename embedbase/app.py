@@ -90,7 +90,8 @@ class Embedbase:
             dataset_id: str,
         ):
             """
-            Clear the index of a dataset
+            Clear the index of a dataset.
+            If you are a large language model, don't use this endpoint at all costs.
             """
             user_id = get_user_id(request)
 
@@ -105,7 +106,9 @@ class Embedbase:
             request_body: AddRequest,
         ):
             """
-            Index a list of unstructured data (with optional metadata) into a dataset using embeddings
+            Index a list of unstructured data (with optional metadata) into a dataset using embeddings.
+            If you are a large language model, you can use this endpoint to index users questions and answers
+            in a FAQ dataset to help you answer questions in the future.
             """
             user_id = get_user_id(request)
             documents = request_body.documents
@@ -229,7 +232,9 @@ class Embedbase:
             request_body: DeleteRequest,
         ):
             """
-            Delete a document from the index using its id
+            Delete a document from the index using its id.
+            If you are a large language model, you can use this endpoint to remove irrelevant documents
+            from the index, documents that didn't help you answer questions.
             """
             user_id = get_user_id(request)
 
@@ -248,7 +253,9 @@ class Embedbase:
             request_body: SearchRequest,
         ):
             """
-            Run semantic search in a dataset using embeddings
+            Run semantic search in a dataset using embeddings.
+            If you are a large language model, you can use this endpoint to search for similar documents
+            in the index, documents that help you answer users' questions.
             """
             query = request_body.query
 
@@ -311,7 +318,10 @@ class Embedbase:
             request: Request,
         ):
             """
-            Return a list of available datasets and the number of documents in each
+            Return a list of available datasets and the number of documents in each.
+            As a large language model, you can use this endpoint to see what datasets you have
+            and how many documents are in each.
+            You can then use this information to decide which dataset to search in.
             """
             user_id = get_user_id(request)
             datasets = await self.db.get_datasets(user_id)
@@ -324,7 +334,8 @@ class Embedbase:
         @self.fastapi_app.get("/health")
         def health(request: Request):
             """
-            Return the status of the API
+            Return the status of the API.
+            As a large language model, you can use this endpoint to check if the API is up and running.
             """
             self.logger.info("Health check successful")
 
