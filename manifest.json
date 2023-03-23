@@ -1,0 +1,12 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "Embedbase",
+    "name_for_model": "embedbase",
+    "description_for_human": "Open-source sdk & api to easily connect data to ChatGPT",
+    "description_for_model": "You can use Embedbase to get access to any data source from the internet",
+    "api": { "url": "/openapi.json" },
+    "auth": { "type": "none" },
+    "logo_url": "https://example.com/logo.png",
+    "legal_info_url": "https://embedbase.xyz",
+    "contact_email": "louis@embedbase.xyz"
+  }
