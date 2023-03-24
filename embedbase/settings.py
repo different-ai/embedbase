@@ -29,9 +29,6 @@ class EmbeddingProvider(str, Enum):
 
 class Settings(YamlModel):
     vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
-    pinecone_api_key: typing.Optional[str] = None
-    pinecone_index: typing.Optional[str] = None
-    pinecone_environment: typing.Optional[str] = None
     openai_api_key: str
     openai_organization: str
     model: str = "text-embedding-ada-002"
@@ -39,7 +36,6 @@ class Settings(YamlModel):
     auth: typing.Optional[str] = None
     sentry: typing.Optional[str] = None
     firebase_service_account_path: typing.Optional[str] = None
-    middlewares: typing.Optional[typing.List[str]] = None
     supabase_url: typing.Optional[str] = None
     supabase_key: typing.Optional[str] = None
     cohere_api_key: typing.Optional[str] = None
