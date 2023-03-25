@@ -46,24 +46,24 @@ class Embedbase:
     ) -> "Embedbase":
         """ """
         if asyncio.iscoroutinefunction(plugin):
-            self.logger.debug(f"Enabling Middleware {plugin}")
+            self.logger.info(f"Enabling Middleware {plugin}")
 
             @self.fastapi_app.middleware("http")
             async def middleware(request: Request, call_next):
                 return await plugin(request, call_next)
 
         elif isinstance(plugin, Embedder):
-            self.logger.debug(f"Enabling Embedder {plugin}")
+            self.logger.info(f"Enabling Embedder {plugin}")
             self.embedder = plugin
         elif isinstance(plugin, VectorDatabase):
-            self.logger.debug(f"Enabling Database {plugin}")
+            self.logger.info(f"Enabling Database {plugin}")
             self.db = plugin
         elif "CORSMiddleware" in str(plugin):
-            self.logger.debug(f"Enabling CORSMiddleware")
+            self.logger.info(f"Enabling CORSMiddleware")
             self.fastapi_app.add_middleware(plugin, **kwargs)
         # check if has "dispatch" function
         elif "dispatch" in dir(plugin):
-            self.logger.debug(f"Enabling Middleware {plugin}")
+            self.logger.info(f"Enabling Middleware {plugin}")
             self.fastapi_app.add_middleware(plugin)
         else:
             warnings.warn(f"Plugin {plugin} is not supported")
