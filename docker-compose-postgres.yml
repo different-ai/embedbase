@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  embedbase:
+    container_name: embedbase
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    entrypoint:
+      - "/bin/sh"
+      - "-ecx"
+      - >
+          uvicorn embedbase.__main__:app --reload --log-level debug --host 0.0.0.0
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8000
+      - POSTGRES_DB=embedbase
+      - POSTGRES_PASSWORD=localdb
+      - OPENAI_API_KEY={OPENAI_API_KEY}
+    links:
+      - "postgres:db"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./:/embedbase/data
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres:
+    container_name: postgres
+    image: ankane/pgvector
+    environment:
+      - POSTGRES_DB=embedbase
+      - POSTGRES_PASSWORD=localdb
+    volumes:
+      - data:/var/lib/postgresql/data
+    expose:
+      - "8080"
+      - "5432"
+    ports:
+      - "5432:5432"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "embedbase"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+volumes:
+  data:

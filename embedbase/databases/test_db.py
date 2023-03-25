@@ -8,16 +8,16 @@ from typing import List
 import pandas as pd
 import pytest
 
-from embedbase.db import VectorDatabase
-from embedbase.db_utils import batch_select
+from embedbase.databases import VectorDatabase
+from embedbase.databases.db_utils import batch_select
+from embedbase.databases.postgres_db import Postgres
 from embedbase.settings import get_settings
-from embedbase.supabase_db import Supabase
-from embedbase.test_utils import clear_dataset, unit_testing_dataset
-
-from .embeddings import embed
+from embedbase.databases.supabase_db import Supabase
+from embedbase.test_utils import unit_testing_dataset
 
 settings = get_settings()
 vector_databases: List[VectorDatabase] = [
+    Postgres(),
     Supabase(
         url=settings.supabase_url,
         key=settings.supabase_key,
@@ -31,17 +31,21 @@ async def test_search():
         "Bob is a human",
         "The quick brown fox jumps over the lazy dog",
     ]
-    embeddings = embed(d)
+    embeddings = [
+        [0.0] * 1536,
+        [0.0] * 1536,
+    ]
     df = pd.DataFrame(
         [
             {
                 "data": d[i],
                 "embedding": embedding,
                 "id": str(i),
+                "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
         ],
-        columns=["data", "embedding", "id", "hash"],
+        columns=["data", "embedding", "id", "hash", "metadata"],
     )
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
@@ -56,7 +60,7 @@ async def test_search():
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
         assert results[0]["data"] == d[0], f"failed for {vector_database}"
-        assert results[0]["embedding"], f"failed for {vector_database}"
+        assert len(results[0]["embedding"]) > 0, f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
@@ -65,24 +69,30 @@ async def test_fetch():
         "Bob is a human",
         "The quick brown fox jumps over the lazy dog",
     ]
-    embeddings = embed(d)
+    embeddings = [
+        [0.0] * 1536,
+        [0.0] * 1536,
+    ]
     df = pd.DataFrame(
         [
             {
                 "data": d[i],
                 "embedding": embedding,
                 "id": str(i),
+                "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
         ],
-        columns=["data", "embedding", "id", "hash"],
+        columns=["data", "embedding", "id", "hash", "metadata"],
     )
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
     for vector_database in vector_databases:
         await vector_database.clear(unit_testing_dataset)
         await vector_database.update(df, unit_testing_dataset)
-        results = await vector_database.select(ids=["0"], dataset_id=unit_testing_dataset)
+        results = await vector_database.select(
+            ids=["0"], dataset_id=unit_testing_dataset
+        )
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
 
@@ -93,17 +103,21 @@ async def test_fetch_by_hash():
         "Bob is a human",
         "The quick brown fox jumps over the lazy dog",
     ]
-    embeddings = embed(d)
+    embeddings = [
+        [0.0] * 1536,
+        [0.0] * 1536,
+    ]
     df = pd.DataFrame(
         [
             {
                 "data": d[i],
                 "embedding": embedding,
                 "id": str(i),
+                "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
         ],
-        columns=["data", "embedding", "id", "hash"],
+        columns=["data", "embedding", "id", "hash", "metadata"],
     )
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
@@ -129,10 +143,11 @@ async def test_clear():
                 "data": "Bob is a human",
                 "embedding": embedding,
                 "id": str(i),
+                "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(data)
         ],
-        columns=["data", "embedding", "id", "hash"],
+        columns=["data", "embedding", "id", "hash", "metadata"],
     )
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
@@ -171,6 +186,7 @@ async def test_upload():
                 "data": "Bob is a human",
                 "embedding": embedding,
                 "id": str(i),
+                "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(data)
         ],
@@ -179,6 +195,7 @@ async def test_upload():
             "embedding",
             "id",
             "hash",
+            "metadata",
         ],
     )
     df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())

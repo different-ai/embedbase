@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from embedbase.embeddings import embed
 from embedbase.settings import EmbeddingProvider, get_settings
-from embedbase.supabase_db import Supabase
+from embedbase.databases.supabase_db import Supabase
 
 use_cases = {
     EmbeddingProvider.OPENAI: {

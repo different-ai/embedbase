@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 
 from embedbase.settings import get_settings
-from embedbase.supabase_db import Supabase
+from embedbase.databases.supabase_db import Supabase
 
 from .api import get_app
 

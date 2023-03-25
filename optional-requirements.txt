@@ -23,7 +23,10 @@ pinecone-client
 #/supabase
 supabase
 
-# HACK: currently supabase mode by default
+#/postgres
+psycopg[binary,pool]
+pgvector
 
 #/minimal
+# TODO: shouldn't have anything, need to deprecate this slowly
 supabase

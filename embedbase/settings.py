@@ -19,6 +19,7 @@ class VectorDatabaseEnum(str, Enum):
     pinecone = "pinecone"
     supabase = "supabase"
     weaviate = "weaviate"
+    postgres = "postgres"
 
 
 # an enum to pick from openai or cohere
@@ -30,7 +31,7 @@ class EmbeddingProvider(str, Enum):
 class Settings(YamlModel):
     vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
     openai_api_key: str
-    openai_organization: str
+    openai_organization: typing.Optional[str] = None
     model: str = "text-embedding-ada-002"
     log_level: str = "INFO"
     auth: typing.Optional[str] = None

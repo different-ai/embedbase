@@ -8,5 +8,8 @@ WORKDIR $APP_HOME
 COPY . ./
 
 ENV PORT 8080
+# TODO: once stable, use postgres
+# ARG FLAVOR=postgres
+ARG FLAVOR=all
 
-RUN pip install --no-cache-dir .[all]
+RUN pip install --no-cache-dir .[$FLAVOR]

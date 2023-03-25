@@ -11,7 +11,7 @@ import pytest
 from httpx import AsyncClient
 
 from embedbase.settings import get_settings
-from embedbase.supabase_db import Supabase
+from embedbase.databases.supabase_db import Supabase
 from embedbase.test_utils import clear_dataset, unit_testing_dataset
 
 from .api import get_app

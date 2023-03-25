@@ -3,7 +3,7 @@ from typing import Coroutine, List, Optional
 
 from pandas import DataFrame
 
-from embedbase.db import VectorDatabase
+from embedbase.databases import VectorDatabase
 
 
 class Pinecone(VectorDatabase):

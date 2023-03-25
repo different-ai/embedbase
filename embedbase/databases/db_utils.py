@@ -3,7 +3,7 @@ import asyncio
 import itertools
 from typing import List, Optional
 
-from embedbase.db import VectorDatabase
+from embedbase.databases.db import VectorDatabase
 
 
 async def batch_select(

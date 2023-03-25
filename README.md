@@ -121,6 +121,11 @@ fetch(`${URL}/v1/${VAULT_ID}`, {
   });
 ```
 
+in bash:
+
+  ```bash
+curl -X POST http://localhost:8000/v1/people -H 'Content-Type: application/json' -d '{"documents": [{"data": "Elon is sipping a tea on Mars"}]}'
+
 
 ### Searching
 

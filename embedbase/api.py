@@ -1,20 +1,7 @@
-import hashlib
 import os
-import time
-import urllib.parse
-import uuid
-
-from fastapi import Depends, Request, status
-from fastapi.responses import JSONResponse
-from pandas import DataFrame
 from embedbase.app import Embedbase
 
-from embedbase.db_utils import batch_select
-from embedbase.embeddings import embed, is_too_big
-from embedbase.firebase_auth import enable_firebase_auth
-from embedbase.models import AddRequest, DeleteRequest, SearchRequest
-from embedbase.settings import Settings, get_settings
-from embedbase.utils import get_user_id
+from embedbase.settings import Settings
 
 
 def get_app(settings: Settings) -> Embedbase:
@@ -37,6 +24,7 @@ def get_app(settings: Settings) -> Embedbase:
         )
 
     if settings.auth == "firebase":
+        from embedbase.firebase_auth import enable_firebase_auth
         app.logger.info("Enabling Firebase Auth")
         enable_firebase_auth(app)
 

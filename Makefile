@@ -14,13 +14,18 @@ install: ## [DEVELOPMENT] Install the API dependencies
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
+run/pg: ## [DEVELOPMENT] Run the API with postgres within Docker
+	OPENAI_API_KEY=${OPENAI_API_KEY} docker-compose -f docker-compose-postgres.yml up --build
+
 test: ## [Local development] Run tests with pytest.
+	docker-compose -f docker-compose-postgres-standalone.yml up -d
+	while ! docker-compose -f docker-compose-postgres-standalone.yml exec -T postgres pg_isready -U postgres; do sleep 1; done
 	cd embedbase; \
-	python3 -m pytest -s test_db.py::test_search; \
-	python3 -m pytest -s test_db.py::test_fetch; \
-	python3 -m pytest -s test_db.py::test_fetch_by_hash; \
-	python3 -m pytest -s test_db.py::test_clear; \
-	python3 -m pytest -s test_db.py::test_upload; \
+	python3 -m pytest -s ./databases/test_db.py::test_search; \
+	python3 -m pytest -s ./databases/test_db.py::test_fetch; \
+	python3 -m pytest -s ./databases/test_db.py::test_fetch_by_hash; \
+	python3 -m pytest -s ./databases/test_db.py::test_clear; \
+	python3 -m pytest -s ./databases/test_db.py::test_upload; \
 	python3 -m pytest -s test_end_to_end.py::test_clear; \
 	python3 -m pytest -s test_end_to_end.py::test_refresh_small_documents; \
 	python3 -m pytest -s test_end_to_end.py::test_sync_no_id_collision; \
@@ -30,6 +35,7 @@ test: ## [Local development] Run tests with pytest.
 	python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored; \
 	python3 -m pytest -s test_end_to_end.py::test_get_datasets_without_auth; \
 	python3 -m pytest -s test_auth.py::test_enable_firebase_auth
+	docker-compose -f docker-compose-postgres-standalone.yml down
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.

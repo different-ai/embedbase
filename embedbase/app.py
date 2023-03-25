@@ -3,14 +3,12 @@ import os
 from typing import Awaitable, Callable, Tuple, Union
 import warnings
 from fastapi import FastAPI, Request
-from supabase.client import Client
 from fastapi.middleware import Middleware
 from starlette.types import Scope
-from embedbase.db import VectorDatabase
+from embedbase.databases.db import VectorDatabase
 from embedbase.logging_utils import get_logger
 from embedbase.models import DeleteRequest, SearchRequest
 from embedbase.settings import Settings
-from embedbase.supabase_db import Supabase
 import hashlib
 import time
 import urllib.parse
@@ -18,10 +16,9 @@ import uuid
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from pandas import DataFrame
 
-from embedbase.db_utils import batch_select
+from embedbase.databases.db_utils import batch_select
 from embedbase.embeddings import embed, is_too_big
 from embedbase.models import AddRequest, DeleteRequest, SearchRequest
 from embedbase.settings import Settings
