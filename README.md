@@ -182,6 +182,7 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
   - [ ] local (BERT, etc.)
 * Vector database
   - [x] [supabase](https://supabase.com/)
+  - [x] postgres (alpha release, tested for development)
   - [ ] [pinecone](https://www.pinecone.io/)
   - [ ] local (sqlite, etc.)
 * [fastapi](https://github.com/tiangolo/fastapi)
