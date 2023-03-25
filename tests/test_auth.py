@@ -1,11 +1,12 @@
 import pytest
 from httpx import AsyncClient
 from embedbase.api import get_app
+from embedbase.embedding.openai import OpenAI
 
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.settings import get_settings
-from embedbase.databases.supabase_db import Supabase
-from embedbase.test_utils import clear_dataset, unit_testing_dataset
+from embedbase.database.supabase_db import Supabase
+from tests.test_utils import clear_dataset, unit_testing_dataset
 
 
 @pytest.mark.asyncio
@@ -19,6 +20,7 @@ async def test_enable_firebase_auth():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()

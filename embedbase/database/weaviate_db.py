@@ -1,4 +1,4 @@
-from embedbase.databases import VectorDatabase
+from embedbase.database import VectorDatabase
 
 
 class Weaviate(VectorDatabase):

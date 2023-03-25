@@ -9,12 +9,13 @@ import numpy as np
 import pandas as pd
 import pytest
 from httpx import AsyncClient
+from embedbase.embedding.openai import OpenAI
 
 from embedbase.settings import get_settings
-from embedbase.databases.supabase_db import Supabase
-from embedbase.test_utils import clear_dataset, unit_testing_dataset
+from embedbase.database.supabase_db import Supabase
+from tests.test_utils import clear_dataset, unit_testing_dataset
 
-from .api import get_app
+from embedbase import get_app
 
 
 @pytest.mark.asyncio
@@ -28,6 +29,7 @@ async def test_clear():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()
@@ -93,6 +95,7 @@ async def test_refresh_small_documents():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()
@@ -136,6 +139,7 @@ async def test_sync_no_id_collision():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()
@@ -173,6 +177,7 @@ async def test_save_clear_data():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()
@@ -221,6 +226,7 @@ async def test_health_properly_forward_headers():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     # mock http://0.0.0.0:8000/v1/test
@@ -250,6 +256,7 @@ async def test_adding_twice_the_same_data_is_ignored():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     await clear_dataset()
@@ -309,6 +316,7 @@ async def test_insert_large_documents_should_fail():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
 
@@ -358,6 +366,7 @@ async def test_get_datasets_without_auth():
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
         .run()
     )
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -436,6 +445,7 @@ async def test_get_datasets_with_auth(mocker):
                 settings.supabase_key,
             )
         )
+        .use(OpenAI(settings.openai_api_key))
     ).run()
 
     async with AsyncClient(app=app, base_url="http://localhost:8000") as client:

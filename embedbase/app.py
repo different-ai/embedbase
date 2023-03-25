@@ -5,7 +5,8 @@ import warnings
 from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
 from starlette.types import Scope
-from embedbase.databases.db import VectorDatabase
+from embedbase.database.base import VectorDatabase
+from embedbase.embedding.base import Embedder
 from embedbase.logging_utils import get_logger
 from embedbase.models import DeleteRequest, SearchRequest
 from embedbase.settings import Settings
@@ -18,8 +19,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from pandas import DataFrame
 
-from embedbase.databases.db_utils import batch_select
-from embedbase.embeddings import embed, is_too_big
+from embedbase.database.db_utils import batch_select
 from embedbase.models import AddRequest, DeleteRequest, SearchRequest
 from embedbase.settings import Settings
 from embedbase.utils import get_user_id
@@ -52,6 +52,9 @@ class Embedbase:
             async def middleware(request: Request, call_next):
                 return await plugin(request, call_next)
 
+        elif isinstance(plugin, Embedder):
+            self.logger.debug(f"Enabling Embedder {plugin}")
+            self.embedder = plugin
         elif isinstance(plugin, VectorDatabase):
             self.logger.debug(f"Enabling Database {plugin}")
             self.db = plugin
@@ -111,7 +114,7 @@ class Embedbase:
 
             filtered_data = []
             for doc in documents:
-                if is_too_big(doc.data):
+                if self.embedder.is_too_big(doc.data):
                     # tell the client that he has
                     # to split the document
                     # for a better experience, pointing to the doc
@@ -127,13 +130,7 @@ class Embedbase:
 
             df = DataFrame(
                 data=filtered_data,
-                columns=[
-                    "id",
-                    "data",
-                    "embedding",
-                    "hash",
-                    "metadata"
-                ],
+                columns=["id", "data", "embedding", "hash", "metadata"],
             )
 
             start_time = time.time()
@@ -183,7 +180,7 @@ class Embedbase:
             # compute embeddings for documents without embeddings using embed
             if not df[df.embedding.isna()].empty:
                 df[df.embedding.isna()] = df[df.embedding.isna()].assign(
-                    embedding=embed(df[df.embedding.isna()].data.tolist())
+                    embedding=await self.embedder.embed(df[df.embedding.isna()].data.tolist())
                 )
 
             # only insert if this dataset_id - user_id
@@ -265,7 +262,7 @@ class Embedbase:
             user_id = get_user_id(request)
 
             # if the query is too big, return an error
-            if is_too_big(query):
+            if self.embedder.is_too_big(query):
                 return JSONResponse(
                     status_code=400,
                     content={
@@ -277,7 +274,7 @@ class Embedbase:
             top_k = 5  # TODO might fail if index empty?
             if request_body.top_k > 0:
                 top_k = request_body.top_k
-            query_embedding = embed(query)[0]
+            query_embedding = (await self.embedder.embed(query))[0]
 
             self.logger.info(
                 f"Query {request_body.query} created embedding, querying index"

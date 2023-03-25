@@ -20,21 +20,7 @@ run/pg: ## [DEVELOPMENT] Run the API with postgres within Docker
 test: ## [Local development] Run tests with pytest.
 	docker-compose -f docker-compose-postgres-standalone.yml up -d
 	while ! docker-compose -f docker-compose-postgres-standalone.yml exec -T postgres pg_isready -U postgres; do sleep 1; done
-	cd embedbase; \
-	python3 -m pytest -s ./databases/test_db.py::test_search; \
-	python3 -m pytest -s ./databases/test_db.py::test_fetch; \
-	python3 -m pytest -s ./databases/test_db.py::test_fetch_by_hash; \
-	python3 -m pytest -s ./databases/test_db.py::test_clear; \
-	python3 -m pytest -s ./databases/test_db.py::test_upload; \
-	python3 -m pytest -s test_end_to_end.py::test_clear; \
-	python3 -m pytest -s test_end_to_end.py::test_refresh_small_documents; \
-	python3 -m pytest -s test_end_to_end.py::test_sync_no_id_collision; \
-	python3 -m pytest -s test_end_to_end.py::test_save_clear_data; \
-	python3 -m pytest -s test_end_to_end.py::test_health_properly_forward_headers; \
-	python3 -m pytest -s test_end_to_end.py::test_insert_large_documents_should_fail; \
-	python3 -m pytest -s test_end_to_end.py::test_adding_twice_the_same_data_is_ignored; \
-	python3 -m pytest -s test_end_to_end.py::test_get_datasets_without_auth; \
-	python3 -m pytest -s test_auth.py::test_enable_firebase_auth
+	pytest tests
 	docker-compose -f docker-compose-postgres-standalone.yml down
 	@echo "Done testing"
 

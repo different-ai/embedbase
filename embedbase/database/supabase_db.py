@@ -1,7 +1,7 @@
 import asyncio
 from typing import Coroutine, List, Optional
 from pandas import DataFrame, Series
-from embedbase.databases import VectorDatabase
+from embedbase.database import VectorDatabase
 from embedbase.utils import BatchGenerator
 
 

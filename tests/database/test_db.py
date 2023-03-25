@@ -8,21 +8,28 @@ from typing import List
 import pandas as pd
 import pytest
 
-from embedbase.databases import VectorDatabase
-from embedbase.databases.db_utils import batch_select
-from embedbase.databases.postgres_db import Postgres
+from embedbase.database import VectorDatabase
+from embedbase.database.db_utils import batch_select
+from embedbase.database.postgres_db import Postgres
 from embedbase.settings import get_settings
-from embedbase.databases.supabase_db import Supabase
-from embedbase.test_utils import unit_testing_dataset
+from embedbase.database.supabase_db import Supabase
+from tests.test_utils import unit_testing_dataset
 
-settings = get_settings()
-vector_databases: List[VectorDatabase] = [
-    Postgres(),
-    Supabase(
-        url=settings.supabase_url,
-        key=settings.supabase_key,
-    ),
-]
+vector_databases: List[VectorDatabase] = []
+
+
+# before running any test initialize the databases
+@pytest.fixture(scope="session", autouse=True)
+def init_databases():
+    settings = get_settings()
+
+    vector_databases.append(Postgres())
+    vector_databases.append(
+        Supabase(
+            url=settings.supabase_url,
+            key=settings.supabase_key,
+        )
+    )
 
 
 @pytest.mark.asyncio

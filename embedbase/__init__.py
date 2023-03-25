@@ -1,3 +1,4 @@
 
 from embedbase.api import get_app
-from embedbase.databases import VectorDatabase
+from embedbase.database import VectorDatabase
+from embedbase.embedding import Embedder
