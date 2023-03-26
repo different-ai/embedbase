@@ -36,8 +36,9 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## What are people building
 
-- [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
+- [Smart Contract integration on autopilot](https://solpilot.xyz/)
+- [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
 ## Getting started
 
