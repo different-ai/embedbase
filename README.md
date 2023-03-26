@@ -41,6 +41,9 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Getting started
 
+```bash
+docker-compose -f docker-compose-postgres-standalone.yml up
+```
 
 ```py
 from embedbase import get_app
@@ -66,6 +69,12 @@ app = (
     .use(Postgres())
 ).run()
 ```
+
+```
+uvicorn main:app
+```
+
+🔥 Embedbase now runs! [Time to ship your product](#sdk)
 
 
 ### Managed Instance
