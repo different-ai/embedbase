@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 from embedbase.embedding.openai import OpenAI
 
-from embedbase.settings import get_settings
+from embedbase.settings import get_settings_from_file
 from embedbase.database.supabase_db import Supabase
 
 from embedbase import get_app
@@ -10,7 +10,7 @@ unit_testing_dataset = "unit_test"
 
 
 async def clear_dataset(dataset_id: str = unit_testing_dataset):
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(

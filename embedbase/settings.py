@@ -4,15 +4,6 @@ import typing
 import os
 from pydantic_yaml import YamlModel
 
-SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
-# if can't find config.yaml in .. try . now (local dev)
-if not os.path.exists(SECRET_PATH + "/config.yaml"):
-    SECRET_PATH = "."
-
-if not os.path.exists(SECRET_PATH + "/config.yaml"):
-    # exit process with error
-    print("ERROR: Missing config.yaml file")
-
 
 class VectorDatabaseEnum(str, Enum):
     pinecone = "pinecone"
@@ -41,9 +32,13 @@ class Settings(YamlModel):
     firebase_service_account_path: typing.Optional[str] = None
 
 @lru_cache()
-def get_settings():
-    settings = Settings.parse_file(SECRET_PATH + "/config.yaml")
+def get_settings_from_file(path: str = "config.yaml"):
+    """
+    Read settings from a file, only supports yaml for now
+    """
+    settings = Settings.parse_file(path)
 
+    # TODO: move
     # if firebase, init firebase
     if settings.auth and settings.auth == "firebase":
         import firebase_admin

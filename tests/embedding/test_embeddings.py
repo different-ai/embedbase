@@ -14,7 +14,7 @@ d = [
 
 @pytest.mark.asyncio
 async def test_can_embed():
-    settings = get_settings()
+    settings = get_settings_from_file()
     embedders: Embedder = [
         OpenAI(settings.openai_api_key, settings.openai_organization),
         # Cohere(settings.cohere_api_key)

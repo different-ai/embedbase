@@ -11,7 +11,7 @@ import pytest
 from httpx import AsyncClient
 from embedbase.embedding.openai import OpenAI
 
-from embedbase.settings import get_settings
+from embedbase.settings import get_settings_from_file_from_file
 from embedbase.database.supabase_db import Supabase
 from tests.test_utils import clear_dataset, unit_testing_dataset
 
@@ -20,7 +20,7 @@ from embedbase import get_app
 
 @pytest.mark.asyncio
 async def test_clear():
-    settings = get_settings()
+    settings = get_settings_from_file_from_file()
     app = (
         get_app(settings)
         .use(
@@ -86,7 +86,7 @@ async def test_clear():
 
 @pytest.mark.asyncio
 async def test_refresh_small_documents():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -130,7 +130,7 @@ async def test_refresh_small_documents():
 
 @pytest.mark.asyncio
 async def test_sync_no_id_collision():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -168,7 +168,7 @@ async def test_sync_no_id_collision():
 
 @pytest.mark.asyncio
 async def test_save_clear_data():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -217,7 +217,7 @@ async def test_save_clear_data():
 async def test_health_properly_forward_headers():
     import requests_mock
 
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -247,7 +247,7 @@ async def test_health_properly_forward_headers():
 
 @pytest.mark.asyncio
 async def test_adding_twice_the_same_data_is_ignored():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -307,7 +307,7 @@ async def test_adding_twice_the_same_data_is_ignored():
 
 @pytest.mark.asyncio
 async def test_insert_large_documents_should_fail():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -357,7 +357,7 @@ async def test_get_datasets_without_auth():
     and return a list of datasets
     """
     await clear_dataset()
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
@@ -429,7 +429,7 @@ async def test_get_datasets_with_auth(mocker):
     should create a dataset by inserting some data
     and get a list of dataset, only his own
     """
-    settings = get_settings()
+    settings = get_settings_from_file()
 
     async def add_uid(request, call_next):
         request.scope["uid"] = "test"

@@ -21,7 +21,7 @@ vector_databases: List[VectorDatabase] = []
 # before running any test initialize the databases
 @pytest.fixture(scope="session", autouse=True)
 def init_databases():
-    settings = get_settings()
+    settings = get_settings_from_file()
 
     vector_databases.append(Postgres())
     vector_databases.append(

@@ -79,6 +79,9 @@ class Embedbase:
             raise Exception("You need to use a database!")
             # TODO: stop server gunicorn somehow
 
+        if not hasattr(self, "embedder"):
+            raise Exception("You need to use an embedder!")
+
         @self.fastapi_app.on_event("startup")
         async def startup_event():
             self.logger.info(f"Detected an upload batch size of {UPLOAD_BATCH_SIZE}")

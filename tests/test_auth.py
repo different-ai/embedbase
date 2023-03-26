@@ -4,14 +4,14 @@ from embedbase.api import get_app
 from embedbase.embedding.openai import OpenAI
 
 from embedbase.firebase_auth import enable_firebase_auth
-from embedbase.settings import get_settings
+from embedbase.settings import get_settings_from_file
 from embedbase.database.supabase_db import Supabase
 from tests.test_utils import clear_dataset, unit_testing_dataset
 
 
 @pytest.mark.asyncio
 async def test_enable_firebase_auth():
-    settings = get_settings()
+    settings = get_settings_from_file()
     app = (
         get_app(settings)
         .use(
