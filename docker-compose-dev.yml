@@ -5,7 +5,7 @@ services:
     container_name: embedbase
     build:
       context: .
-      dockerfile: docker/Dockerfile.dev
+      dockerfile: docker/Dockerfile
     entrypoint:
       - "/bin/sh"
       - "-ecx"

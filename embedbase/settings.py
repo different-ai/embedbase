@@ -19,8 +19,8 @@ class EmbeddingProvider(str, Enum):
 
 
 class Settings(YamlModel):
-    openai_api_key: str
-    openai_organization: str
+    openai_api_key: typing.Optional[str] = None
+    openai_organization: typing.Optional[str] = None
     supabase_url: typing.Optional[str] = None
     supabase_key: typing.Optional[str] = None
     

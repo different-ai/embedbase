@@ -14,9 +14,6 @@ install: ## [DEVELOPMENT] Install the API dependencies
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
-run/pg: ## [DEVELOPMENT] Run the API with postgres within Docker
-	OPENAI_API_KEY=${OPENAI_API_KEY} docker-compose -f docker-compose-postgres.yml up --build
-
 test: ## [Local development] Run tests with pytest.
 	docker-compose -f docker-compose-postgres-standalone.yml up -d
 	while ! docker-compose -f docker-compose-postgres-standalone.yml exec -T postgres pg_isready -U postgres; do sleep 1; done

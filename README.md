@@ -144,12 +144,6 @@ fetch(`${URL}/v1/${VAULT_ID}`, {
   });
 ```
 
-in bash:
-
-  ```bash
-curl -X POST http://localhost:8000/v1/people -H 'Content-Type: application/json' -d '{"documents": [{"data": "Elon is sipping a tea on Mars"}]}'
-
-
 ### Searching
 
 ```ts
@@ -192,10 +186,6 @@ Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get 
 
 We recommend using Gitpod for development.
 
-Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/variables) `EMBEDBASE_CONFIG`as a JSON value.
-
-> To create a json from yaml: `yq -o=json eval config.yaml` or `cat config.yaml | yq` depending on your `yq` version
-
 ### Current Stack
 
 * Embeddings
@@ -212,23 +202,6 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 * Authentication (optional)
   - [x] [firebase](https://firebase.google.com/)
   - [ ] [supabase](https://supabase.com/)
-
-### Configuration
-
-#### Prerequisite
-
-* Openai account
-
-#### Python
-
-To run a `uvicorn server` that automatically reloads on code changes:
-
-`make run`
-
-#### Docker
-
-`docker-compose up`
-
 
 ## Open-source vs hosted
 
