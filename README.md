@@ -30,7 +30,6 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 ## Table of Contents
 
 - [Javascript SDK](#sdk)
-- [What are people building with Embedbase?](#what-are-people-building)
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 - [Open-source vs hosted](#open-source-vs-hosted)
@@ -40,9 +39,7 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 
-## Embedbase Flavours
-
-### As a library
+## Getting started
 
 
 ```py
