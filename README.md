@@ -55,6 +55,7 @@ from embedbase.embedding.openai import OpenAI
 settings = Settings()
  
 async def custom_middleware(request, call_next):
+    # customise as you prefer :)
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
