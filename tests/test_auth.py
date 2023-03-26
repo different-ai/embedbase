@@ -5,25 +5,16 @@ from embedbase.embedding.openai import OpenAI
 
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.settings import get_settings_from_file
-from embedbase.database.supabase_db import Supabase
-from tests.test_utils import clear_dataset, unit_testing_dataset
+from embedbase.database.postgres_db import Postgres
+from tests.test_utils import unit_testing_dataset
 
 
 @pytest.mark.asyncio
 async def test_enable_firebase_auth():
     settings = get_settings_from_file()
-    app = (
-        get_app(settings)
-        .use(
-            Supabase(
-                settings.supabase_url,
-                settings.supabase_key,
-            )
-        )
-        .use(OpenAI(settings.openai_api_key))
-        .run()
-    )
-    await clear_dataset()
+    db = Postgres()
+    app = get_app(settings).use(db).use(OpenAI(settings.openai_api_key)).run()
+    await db.clear(unit_testing_dataset)
     # before enabling auth, we should be able to make queries
     # without any authorization header
     enable_firebase_auth(app)

@@ -1,5 +1,3 @@
-vector_database: supabase
-
 # https://supabase.com
 supabase_url: "https://xxxxx.supabase.co"
 supabase_key: "xxxxx"

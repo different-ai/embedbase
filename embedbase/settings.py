@@ -19,8 +19,6 @@ class EmbeddingProvider(str, Enum):
 
 
 class Settings(YamlModel):
-    vector_database: VectorDatabaseEnum = VectorDatabaseEnum.supabase
-    # TODO rethink settings?
     openai_api_key: str
     openai_organization: str
     supabase_url: typing.Optional[str] = None

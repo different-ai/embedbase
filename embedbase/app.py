@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Awaitable, Callable, Tuple, Union
+from typing import Awaitable, Callable, Optional, Tuple, Union
 import warnings
 from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
@@ -28,11 +28,9 @@ UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
 class Embedbase:
-    def __init__(self, settings: Settings, **kwargs):
+    def __init__(self, settings: Optional[Settings], **kwargs):
         self._kwargs = kwargs
-        self.settings = settings
         self.fastapi_app = FastAPI()
-
         self.logger = get_logger(settings)
 
     def use(
@@ -183,7 +181,9 @@ class Embedbase:
             # compute embeddings for documents without embeddings using embed
             if not df[df.embedding.isna()].empty:
                 df[df.embedding.isna()] = df[df.embedding.isna()].assign(
-                    embedding=await self.embedder.embed(df[df.embedding.isna()].data.tolist())
+                    embedding=await self.embedder.embed(
+                        df[df.embedding.isna()].data.tolist()
+                    )
                 )
 
             # only insert if this dataset_id - user_id

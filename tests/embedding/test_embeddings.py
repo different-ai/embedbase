@@ -1,5 +1,5 @@
 import pytest
-from embedbase.settings import get_settings
+from embedbase.settings import get_settings_from_file
 from embedbase.embedding.openai import OpenAI
 from embedbase.embedding.cohere import Cohere
 from embedbase.embedding.base import Embedder

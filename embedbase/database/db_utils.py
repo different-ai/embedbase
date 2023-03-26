@@ -33,6 +33,6 @@ async def batch_select(
         except Exception as e:
             raise e
 
-    existing_documents = await asyncio.gather(*[_fetch(ids) for ids in hashes_to_fetch])
+    existing_documents = await asyncio.gather(*[_fetch(hashes) for hashes in hashes_to_fetch])
     return itertools.chain.from_iterable(existing_documents)
 

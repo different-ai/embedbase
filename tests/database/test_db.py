@@ -7,11 +7,11 @@ from typing import List
 
 import pandas as pd
 import pytest
-
+import numpy as np
 from embedbase.database import VectorDatabase
 from embedbase.database.db_utils import batch_select
 from embedbase.database.postgres_db import Postgres
-from embedbase.settings import get_settings
+from embedbase.settings import get_settings_from_file
 from embedbase.database.supabase_db import Supabase
 from tests.test_utils import unit_testing_dataset
 
@@ -39,8 +39,9 @@ async def test_search():
         "The quick brown fox jumps over the lazy dog",
     ]
     embeddings = [
-        [0.0] * 1536,
-        [0.0] * 1536,
+        # random embedding of length 1536
+        np.random.rand(1536).tolist(),
+        np.random.rand(1536).tolist(),
     ]
     df = pd.DataFrame(
         [
@@ -68,6 +69,7 @@ async def test_search():
         assert results[0]["id"] == "0", f"failed for {vector_database}"
         assert results[0]["data"] == d[0], f"failed for {vector_database}"
         assert len(results[0]["embedding"]) > 0, f"failed for {vector_database}"
+        assert results[0]["score"] > 0, f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
@@ -228,13 +230,32 @@ async def test_batch_select_large_content():
     should not throw an error
     """
     d = []
-    for _ in range(1000):
-        d.append("a" * 1_000_000)
+    for i in range(1000):
+        d.append("a" * i)
     hashes = [hashlib.sha256(x.encode()).hexdigest() for x in d]
     for vector_database in vector_databases:
-        await batch_select(
+        # add documents
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(
+            pd.DataFrame(
+                [
+                    {
+                        "data": x,
+                        "embedding": [0.0] * 1536,
+                        "id": str(i),
+                        "metadata": {"test": "test"},
+                        "hash": hashes[i],
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        results = await batch_select(
             vector_database,
             hashes,
             None,
             None,
         )
+        assert len(list(results)) == len(d), f"failed for {vector_database}"

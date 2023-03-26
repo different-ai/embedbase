@@ -1,13 +1,14 @@
 import logging
+from typing import Optional
 
 from embedbase.settings import Settings
 from logging import Logger
 
-def get_logger(settings: Settings) -> Logger:
+def get_logger(settings: Optional[Settings]) -> Logger:
     logger = logging.getLogger("embedbase")
-    logger.setLevel(settings.log_level)
+    logger.setLevel(settings.log_level or "INFO")
     handler = logging.StreamHandler()
-    handler.setLevel(settings.log_level)
+    handler.setLevel(settings.log_level or "INFO")
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )

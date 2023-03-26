@@ -1,17 +1,13 @@
 import json
-import asyncio
-from typing import Coroutine, List, Optional
+from typing import List, Optional
 
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
-from embedbase.utils import BatchGenerator
 
 
 class Postgres(VectorDatabase):
-    def __init__(
-        self,
-    ):
+    def __init__(self, conn_str="postgresql://postgres:localdb@0.0.0.0/embedbase"):
         """
         Implements a vector database using postgres
         """
@@ -19,12 +15,10 @@ class Postgres(VectorDatabase):
             import psycopg
             from pgvector.psycopg import register_vector
 
-            conn_str = f"postgresql://postgres:localdb@0.0.0.0/embedbase"
             self.conn = psycopg.connect(conn_str, dbname="embedbase")
             self.conn.autocommit = True
             self.conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
             register_vector(self.conn)
-            # self.conn.execute("DROP TABLE IF EXISTS documents")
             self.conn.execute(
                 """
 create table documents (
@@ -145,7 +139,7 @@ where
                 {
                     "id": row[0],
                     "data": row[1],
-                    "embedding": row[2],
+                    "embedding": row[2].tolist(),
                     "hash": row[3],
                     "metadata": row[4],
                 }
@@ -157,8 +151,12 @@ where
         df: DataFrame,
         dataset_id: str,
         user_id: Optional[str] = None,
+        batch_size: Optional[int] = 100,
         store_data: bool = True,
     ):
+        if len(df) == 0:
+            return
+
         def _d(row: Series):
             data = [
                 row.id,
@@ -191,7 +189,6 @@ where
 
         with self.conn.cursor() as cur:
             cur.execute(q, flat_values)
-            self.conn.commit()
 
     async def delete(
         self,
@@ -232,9 +229,9 @@ where
                 {
                     "id": row[0],
                     "data": row[1],
-                    "similarity": row[2],
+                    "score": row[2],
                     "hash": row[3],
-                    "embedding": row[4],
+                    "embedding": row[4].tolist(),
                     "metadata": row[5],
                 }
             )
@@ -251,5 +248,16 @@ where
     async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
         req = "select * from distinct_datasets"
         if user_id:
-            req += f" where user_id = {user_id}"
-        return [dict(row) for row in self.conn.execute(req)]
+            req += f" where user_id = '{user_id}'"
+        results = self.conn.execute(req)
+        if results.rowcount == 0:
+            return []
+        data = []
+        for row in results:
+            data.append(
+                {
+                    "dataset_id": row[0],
+                    "documents_count": row[2],
+                }
+            )
+        return data

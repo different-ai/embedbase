@@ -193,22 +193,8 @@ Make sure to add a variable in your [Gitpod dashboard](https://gitpod.io/user/va
 ### Configuration
 
 #### Prerequisite
-* Supabase account & [database configured](https://docs.embedbase.xyz/deployment#using-supabase)
+
 * Openai account
-
-minimal `config.yaml` (see `config.example.yaml`)
-
-```yaml
-vector_database: supabase # or pinecone
-
-supabase_url: <get me here https://supabase.com>
-supabase_key: <get me here https://supabase.com>
-
-# https://platform.openai.com/account/api-keys
-openai_api_key: "sk-xxxxxxx"
-# https://platform.openai.com/account/org-settings
-openai_organization: "org-xxxxx"
-```
 
 #### Python
 
