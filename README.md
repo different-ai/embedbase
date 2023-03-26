@@ -44,16 +44,31 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ### As a library
 
-![ray-so-export (3)](https://user-images.githubusercontent.com/11430621/227348387-070e6757-8d6a-40ab-bdd2-ee730750b5b2.png)
 
-
-### With Docker
-
-Deploy an instance in one line with Docker:
-
- ```bash 
-docker-compose up
- ``` 
+```py
+from embedbase import get_app
+ 
+from embedbase.settings import Settings
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.openai import OpenAI
+ 
+settings = Settings()
+ 
+async def custom_middleware(request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    return response
+ 
+app = (
+    get_app(settings)
+    .use(process_time)
+    .use(OpenAI("<your key>"))
+    .use(Postgres())
+).run()
+```
 
 
 ### Managed Instance
