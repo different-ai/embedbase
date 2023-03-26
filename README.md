@@ -6,7 +6,7 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">The open source database for ChatGPT</h3>
+<h3 align="center">An API to easily connect your data to ChatGPT</h3>
 
   <p align="center">
     <br />
