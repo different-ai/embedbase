@@ -63,7 +63,7 @@ async def test_search():
         results = await vector_database.search(
             embeddings[0],
             top_k=2,
-            dataset_id=unit_testing_dataset,
+            dataset_ids=[unit_testing_dataset],
         )
         assert len(results) > 0, f"failed for {vector_database}"
         assert results[0]["id"] == "0", f"failed for {vector_database}"
@@ -166,7 +166,7 @@ async def test_clear():
         results = await vector_database.search(
             data[0],
             top_k=2,
-            dataset_id=unit_testing_dataset,
+            dataset_ids=[unit_testing_dataset],
         )
         # dont care about ordering (postgres & pinecone run different algorithms)
         ids = sorted([result["id"] for result in results])
@@ -178,7 +178,7 @@ async def test_clear():
         results = await vector_database.search(
             data[0],
             top_k=2,
-            dataset_id=unit_testing_dataset,
+            dataset_ids=[unit_testing_dataset],
         )
         assert len(results) == 0, f"failed for {vector_database}"
 
@@ -216,7 +216,7 @@ async def test_upload():
         results = await vector_database.search(
             data[0],
             top_k=2,
-            dataset_id=unit_testing_dataset,
+            dataset_ids=[unit_testing_dataset],
         )
         # dont care about ordering (postgres & pinecone run different algorithms)
         ids = sorted([result["id"] for result in results])
