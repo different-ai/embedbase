@@ -6,4 +6,4 @@ from embedbase.embedding.openai import OpenAI
 
 openai_key = os.environ["OPENAI_API_KEY"]
 settings = Settings()
-app = get_app(settings).use(Postgres()).use(OpenAI(openai_key)).run()
+app = get_app(settings).use_db(Postgres()).use_embedder(OpenAI(openai_key)).run()

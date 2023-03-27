@@ -33,16 +33,39 @@ class Embedbase:
         self.fastapi_app = FastAPI()
         self.logger = get_logger(settings)
 
-    def use(
+    def use_db(
+        self,
+        db: VectorDatabase,
+    ) -> "Embedbase":
+        """
+        Use the chosen database to store the embeddings.
+        """
+        self.logger.info(f"Enabling Database {db}")
+        self.db = db
+        return self
+
+    def use_embedder(
+        self,
+        embedder: Embedder,
+    ) -> "Embedbase":
+        """
+        Use the chosen embedder to generate the embeddings.
+        """
+        self.logger.info(f"Enabling Embedder {embedder}")
+        self.embedder = embedder
+        return self
+
+    def use_middleware(
         self,
         plugin: Union[
-            VectorDatabase,
             Middleware,
             Callable[[Scope], Awaitable[Tuple[str, str]]],
         ],
         **kwargs,
     ) -> "Embedbase":
-        """ """
+        """
+        Use the chosen middleware.
+        """
         if asyncio.iscoroutinefunction(plugin):
             self.logger.info(f"Enabling Middleware {plugin}")
 
@@ -50,12 +73,6 @@ class Embedbase:
             async def middleware(request: Request, call_next):
                 return await plugin(request, call_next)
 
-        elif isinstance(plugin, Embedder):
-            self.logger.info(f"Enabling Embedder {plugin}")
-            self.embedder = plugin
-        elif isinstance(plugin, VectorDatabase):
-            self.logger.info(f"Enabling Database {plugin}")
-            self.db = plugin
         elif "CORSMiddleware" in str(plugin):
             self.logger.info(f"Enabling CORSMiddleware")
             self.fastapi_app.add_middleware(plugin, **kwargs)

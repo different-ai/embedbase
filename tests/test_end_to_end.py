@@ -35,12 +35,19 @@ def init_databases():
         )
     )
 
+
 async def run_around_tests():
     for vector_database in vector_databases:
         await vector_database.clear(unit_testing_dataset)
         settings = get_settings_from_file()
-        app = get_app(settings).use(vector_database).use(OpenAI(settings.openai_api_key)).run()
+        app = (
+            get_app(settings)
+            .use_db(vector_database)
+            .use_embedder(OpenAI(settings.openai_api_key))
+            .run()
+        )
         yield app
+
 
 @pytest.mark.asyncio
 async def test_clear():
@@ -100,7 +107,6 @@ async def test_clear():
 @pytest.mark.asyncio
 async def test_refresh_small_documents():
     async for app in run_around_tests():
-
         df = pd.DataFrame(
             [
                 "".join(
@@ -374,9 +380,9 @@ async def test_get_datasets_with_auth():
 
         app = (
             get_app(settings)
-            .use(add_uid)
-            .use(Postgres())
-            .use(OpenAI(settings.openai_api_key))
+            .use_middleware(add_uid)
+            .use_db(Postgres())
+            .use_embedder(OpenAI(settings.openai_api_key))
         ).run()
 
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:

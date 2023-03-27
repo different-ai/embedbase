@@ -13,7 +13,9 @@ from tests.test_utils import unit_testing_dataset
 async def test_enable_firebase_auth():
     settings = get_settings_from_file()
     db = Postgres()
-    app = get_app(settings).use(db).use(OpenAI(settings.openai_api_key)).run()
+    app = (
+        get_app(settings).use_db(db).use_embedder(OpenAI(settings.openai_api_key)).run()
+    )
     await db.clear(unit_testing_dataset)
     # before enabling auth, we should be able to make queries
     # without any authorization header

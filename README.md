@@ -66,9 +66,9 @@ async def custom_middleware(request, call_next):
  
 app = (
     get_app(settings)
-    .use(process_time)
-    .use(OpenAI("<your key>"))
-    .use(Postgres())
+    .use_middleware(custom_middleware)
+    .use_embedder(OpenAI("<your key>"))
+    .use_db(Postgres())
 ).run()
 ```
 
