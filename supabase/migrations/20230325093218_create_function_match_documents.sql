@@ -2,7 +2,7 @@ create or replace function match_documents (
   query_embedding vector(1536),
   similarity_threshold float,
   match_count int,
-  query_dataset_id text,
+  query_dataset_ids text[],
   query_user_id text default null
 )
 returns table (
@@ -26,7 +26,7 @@ begin
     documents.metadata
   from documents
   where 1 - (documents.embedding <=> query_embedding) > similarity_threshold
-    and query_dataset_id = documents.dataset_id
+    and documents.dataset_id = any(query_dataset_ids)
     and (query_user_id is null or query_user_id = documents.user_id)
   order by documents.embedding <=> query_embedding
   limit match_count;

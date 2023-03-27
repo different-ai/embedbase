@@ -59,7 +59,7 @@ class VectorDatabase(ABC):
         self,
         vector: List[float],
         top_k: Optional[int],
-        dataset_id: str,
+        dataset_ids: List[str],
         user_id: Optional[str] = None,
     ) -> List[dict]:
         """

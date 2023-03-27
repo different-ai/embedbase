@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from embedbase.database.base import VectorDatabase
 
-
+# TODO: move this to VectorDatabase
 async def batch_select(
     vector_database: VectorDatabase,
     hashes_to_fetch: List[str],

@@ -45,7 +45,7 @@ create or replace function match_documents (
   query_embedding vector(1536),
   similarity_threshold float,
   match_count int,
-  query_dataset_id text,
+  query_dataset_ids text[],
   query_user_id text default null
 )
 returns table (
@@ -69,7 +69,7 @@ begin
     documents.metadata
   from documents
   where 1 - (documents.embedding <=> query_embedding) > similarity_threshold
-    and query_dataset_id = documents.dataset_id
+    and documents.dataset_id = any(query_dataset_ids)
     and (query_user_id is null or query_user_id = documents.user_id)
   order by documents.embedding <=> query_embedding
   limit match_count;
@@ -208,17 +208,17 @@ where
         self,
         vector: List[float],
         top_k: Optional[int],
-        dataset_id: str,
+        dataset_ids: List[str],
         user_id: Optional[str] = None,
     ) -> List[dict]:
         d = {
             "query_embedding": str(vector),
             "similarity_threshold": 0.1,  # TODO: make this configurable
             "match_count": top_k,
-            "query_dataset_id": dataset_id,
+            "query_dataset_ids": dataset_ids,
             "query_user_id": user_id,
         }
-        q = "select * from match_documents(%(query_embedding)s, %(similarity_threshold)s, %(match_count)s, %(query_dataset_id)s, %(query_user_id)s)"
+        q = "select * from match_documents(%(query_embedding)s, %(similarity_threshold)s, %(match_count)s, %(query_dataset_ids)s, %(query_user_id)s)"
         results = self.conn.execute(q, d)
         if results.rowcount == 0:
             return []

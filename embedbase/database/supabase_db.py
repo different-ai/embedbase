@@ -96,14 +96,14 @@ class Supabase(VectorDatabase):
         self,
         vector: List[float],
         top_k: Optional[int],
-        dataset_id: str,
+        dataset_ids: List[str],
         user_id: Optional[str] = None,
     ) -> List[dict]:
         d = {
             "query_embedding": vector,
             "similarity_threshold": 0.1,  # TODO: make this configurable
             "match_count": top_k,
-            "query_dataset_id": dataset_id,
+            "query_dataset_ids": dataset_ids,
         }
         if user_id:
             d["query_user_id"] = user_id
