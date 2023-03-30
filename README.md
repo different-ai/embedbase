@@ -47,12 +47,9 @@ docker-compose -f docker-compose-postgres-standalone.yml up
 
 ```py
 from embedbase import get_app
- 
-from embedbase.settings import Settings
+
 from embedbase.database.postgres_db import Postgres
 from embedbase.embedding.openai import OpenAI
- 
-settings = Settings()
  
 async def custom_middleware(request, call_next):
     # customise as you prefer :)
@@ -64,7 +61,7 @@ async def custom_middleware(request, call_next):
     return response
  
 app = (
-    get_app(settings)
+    get_app()
     .use_middleware(custom_middleware)
     .use_embedder(OpenAI("<your key>"))
     .use_db(Postgres())
