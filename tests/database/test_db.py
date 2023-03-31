@@ -168,7 +168,6 @@ async def test_clear():
             top_k=2,
             dataset_ids=[unit_testing_dataset],
         )
-        # dont care about ordering (postgres & pinecone run different algorithms)
         ids = sorted([result["id"] for result in results])
         assert ids[0] == "0", f"failed for {vector_database}"
         assert ids[1] == "1", f"failed for {vector_database}"
@@ -218,7 +217,6 @@ async def test_upload():
             top_k=2,
             dataset_ids=[unit_testing_dataset],
         )
-        # dont care about ordering (postgres & pinecone run different algorithms)
         ids = sorted([result["id"] for result in results])
         assert ids[0] == "0", f"failed for {vector_database}"
         assert ids[1] == "1", f"failed for {vector_database}"
