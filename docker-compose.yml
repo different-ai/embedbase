@@ -3,7 +3,7 @@ version: '3'
 services:
   embedbase:
     container_name: embedbase
-    image: ghcr.io/different-ai/embedbase:0.9.1-all
+    image: ghcr.io/different-ai/embedbase:latest
     entrypoint:
       - "/bin/sh"
       - "-ecx"
