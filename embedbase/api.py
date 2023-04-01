@@ -5,10 +5,10 @@ from embedbase.app import Embedbase
 from embedbase.settings import Settings
 
 
-def get_app(settings: Optional[Settings]) -> Embedbase:
+def get_app(settings: Optional[Settings] = None) -> Embedbase:
     app = Embedbase(settings)
 
-    if settings.sentry:
+    if settings and settings.sentry:
         app.logger.info("Enabling Sentry")
         import sentry_sdk
 
@@ -24,7 +24,7 @@ def get_app(settings: Optional[Settings]) -> Embedbase:
             },
         )
 
-    if settings.auth == "firebase":
+    if settings and settings.auth == "firebase":
         from embedbase.firebase_auth import enable_firebase_auth
 
         app.logger.info("Enabling Firebase Auth")
