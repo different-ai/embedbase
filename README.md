@@ -42,7 +42,8 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 ## Getting started
 
 ```bash
-docker-compose -f docker-compose-postgres-standalone.yml up
+# start local postgres
+docker-compose up
 ```
 
 ```py

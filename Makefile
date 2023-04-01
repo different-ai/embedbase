@@ -15,10 +15,10 @@ run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
-	docker-compose -f docker-compose-postgres-standalone.yml up -d
-	while ! docker-compose -f docker-compose-postgres-standalone.yml exec -T postgres pg_isready -U postgres; do sleep 1; done
+	docker-compose up -d
+	while ! docker-compose exec -T postgres pg_isready -U postgres; do sleep 1; done
 	pytest tests
-	docker-compose -f docker-compose-postgres-standalone.yml down
+	docker-compose down
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.
@@ -27,7 +27,7 @@ docker/build/prod: ## [Local development] Build the docker image.
 	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./docker/Dockerfile
 
 docker/run/dev: ## [Local development] Run the development docker image.
-	docker-compose -f docker-compose-dev.yml up --build
+	docker-compose --profile dev up --build
 
 docker/run/prod:
 # note we don't use buildx here to use local platform cpu

@@ -1,9 +1,13 @@
 version: '3'
 
 services:
-  embedbase:
+  embedbase_dev:
     container_name: embedbase
-    image: ghcr.io/different-ai/embedbase:latest
+    profiles:
+      - dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     entrypoint:
       - "/bin/sh"
       - "-ecx"
