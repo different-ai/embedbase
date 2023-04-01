@@ -28,7 +28,7 @@ UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
 class Embedbase:
-    def __init__(self, settings: Optional[Settings], **kwargs):
+    def __init__(self, settings: Optional[Settings] = None, **kwargs):
         self._kwargs = kwargs
         self.fastapi_app = FastAPI()
         self.logger = get_logger(settings)
