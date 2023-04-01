@@ -33,6 +33,10 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 
+## Examples
+
+Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
+
 ## What are people building
 
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
