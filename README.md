@@ -28,10 +28,10 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## Table of Contents
 
+- [Getting started](#getting-started)
 - [Javascript SDK](#sdk)
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
-- [Open-source vs hosted](#open-source-vs-hosted)
 
 ## What are people building
 
@@ -173,36 +173,10 @@ Result:
 
 ## Docs and support
 
-Check out our [tutorials](https://docs.embedbase.xyz) for step-by-step guides, how-to's, and best practices, our documentation is powered by ChatGPT, so you can ask question directly. 
+Check out our [tutorials](https://docs.embedbase.xyz) for step-by-step guides, how-to's, and best practices, our documentation is powered by GPT-4, so you can ask question directly. 
 
 Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get support.
 
 ## Contributing
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/different-ai/embedbase)
-
-We recommend using Gitpod for development.
-
-### Current Stack
-
-* Embeddings
-  - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings)
-  - [ ] [cohere embeddings](https://cohere.ai/embed)
-  - [ ] [Google PaLM embeddings](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
-  - [ ] local (BERT, etc.)
-* Vector database
-  - [x] [supabase](https://supabase.com/)
-  - [x] postgres (alpha release, tested for development)
-  - [ ] [pinecone](https://www.pinecone.io/)
-  - [ ] local (sqlite, etc.)
-* [fastapi](https://github.com/tiangolo/fastapi)
-* Authentication (optional)
-  - [x] [firebase](https://firebase.google.com/)
-  - [ ] [supabase](https://supabase.com/)
-
-## Open-source vs hosted
-
-This repo is available under the [MIT license](https://github.com/different-ai/embedbase/blob/main/LICENSE). 
-
-To learn more, [book a demo](https://cal.com/potato/20min).
-
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
