@@ -6,15 +6,12 @@ from embedbase.utils import BatchGenerator
 
 
 class Supabase(VectorDatabase):
-    def __init__(
-        self,
-        url: str,
-        key: str,
-    ):
+    def __init__(self, url: str, key: str, **kwargs):
         """
         :param url: supabase url
         :param key: supabase key
         """
+        super().__init__(**kwargs)
         try:
             from supabase import create_client, Client
 
@@ -123,7 +120,9 @@ class Supabase(VectorDatabase):
         return req.execute()
 
     async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
-        req = self.supabase.table("distinct_datasets").select("dataset_id", "documents_count")
+        req = self.supabase.table("distinct_datasets").select(
+            "dataset_id", "documents_count"
+        )
         if user_id:
             req = req.eq("user_id", user_id)
         data = req.execute().data

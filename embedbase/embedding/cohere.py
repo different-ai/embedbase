@@ -49,10 +49,5 @@ class Cohere(Embedder):
     def is_too_big(self, text: str) -> bool:
         raise NotImplementedError()
 
-    async def embed(self, input: typing.List[str]) -> typing.List[typing.List[float]]:
-        """
-        Embed a list of texts
-        :param texts: list of texts
-        :return: list of embeddings
-        """
+    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
         return embed_retry(self.co, input)

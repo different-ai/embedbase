@@ -25,9 +25,9 @@ class Embedder(ABC):
         """
 
     @abstractmethod
-    async def embed(self, input: typing.List[str]) -> typing.List[typing.List[float]]:
+    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
         """
-        Embed a list of texts
+        Embed a list of texts or a text
         :param texts: list of texts
         :return: list of embeddings
         """
