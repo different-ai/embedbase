@@ -40,7 +40,7 @@ Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 ## What are people building
 
 - [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
-- [Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/)
+- [Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
 - [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
 ## Getting started
