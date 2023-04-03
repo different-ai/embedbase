@@ -90,11 +90,11 @@ GROUP BY dataset_id, user_id;
 
         except ImportError:
             raise ImportError(
-                "Please install pgvector and psycopg with `pip install pgvector psycopg`"
+                "Please install pgvector and psycopg with `pip install pgvector psycopg[binary]`"
             )
         except psycopg.OperationalError:
             raise psycopg.OperationalError(
-                "Please install postgresql and create a database named embedbase"
+                "Please run a postgresql and create a database named embedbase"
             )
         except Exception as e:
             print(e)
