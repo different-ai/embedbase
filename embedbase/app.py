@@ -28,7 +28,7 @@ UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
 class Embedbase:
-    def __init__(self, settings: Optional[Settings], **kwargs):
+    def __init__(self, settings: Optional[Settings] = None, **kwargs):
         self._kwargs = kwargs
         self.fastapi_app = FastAPI()
         self.logger = get_logger(settings)
@@ -176,9 +176,18 @@ class Embedbase:
                 None,
                 None,
             )
+
+            def update_embedding(row, existing_documents):
+                for doc in existing_documents:
+                    if row["hash"] == doc["hash"]:
+                        return doc["embedding"]
+                return row["embedding"]
+            
             # add existing embeddings to the dataframe
-            for doc in existing_documents:
-                df.loc[df.hash == doc["hash"], "embedding"] = doc["embedding"]
+            df["embedding"] = df.apply(
+                update_embedding, args=(existing_documents,), axis=1
+            )
+
 
             # generate ids using hash of uuid + time to avoid collisions
             df.id = df.apply(
@@ -403,7 +412,7 @@ class Embedbase:
             self.logger.info(
                 f"Query {request_body.query} created embedding, querying index"
             )
-            
+
             query_response = await self.db.search(
                 top_k=top_k,
                 vector=query_embedding,
@@ -429,6 +438,5 @@ class Embedbase:
                 status_code=status.HTTP_200_OK,
                 content={"query": query, "similarities": similarities},
             )
-
 
         return self.fastapi_app

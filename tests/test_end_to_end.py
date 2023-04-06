@@ -248,12 +248,7 @@ async def test_adding_twice_the_same_data_is_ignored():
         # insert twice the same ting
         await _i(3)
         # should have been ignored but still return 3 to client
-        try:
-            await _i(3)
-        except ValueError as e:
-            # ValueError: Must have equal len keys and value when setting with an iterable
-            # HACK: weird bug with postgres pandas error, fix ASAP
-            return
+        await _i(3)
 
         # search should not have duplicates
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -395,9 +390,21 @@ async def test_get_datasets_with_auth():
             # check datasets
             assert json_response.get("datasets") == []
 
+
 @pytest.mark.asyncio
 async def test_cross_search_on_multiple_datasets():
+    dataset_is = [
+        f"{unit_testing_dataset}_lions",
+        f"{unit_testing_dataset}_giraffes",
+    ]
     async for app in run_around_tests():
+        # clear all datasets
+        for e in dataset_is:
+            async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+                response = await client.get(
+                    f"/v1/{e}/clear",
+                )
+                assert response.status_code == 200
         lions = [
             "The lion is the king of the jungle",
             "The lion is a large cat",
@@ -443,16 +450,19 @@ async def test_cross_search_on_multiple_datasets():
 
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.post(
-                f"/exo/search", json={
+                f"/exo/search",
+                json={
                     "query": "Lions and giraffes are animals that are found in Africa",
                     "top_k": 4,
-                    "dataset_ids": [f"{unit_testing_dataset}_lions", f"{unit_testing_dataset}_giraffes"]
-                }
+                    "dataset_ids": dataset_is
+                },
             )
             assert response.status_code == 200
             json_response = response.json()
             assert len(json_response.get("similarities")) == 4
             # words "lion" and "giraffe" should be found
-            sentences = '\n'.join([e["data"] for e in json_response.get("similarities")])
+            sentences = "\n".join(
+                [e["data"] for e in json_response.get("similarities")]
+            )
             assert "lion" in sentences
             assert "giraffe" in sentences

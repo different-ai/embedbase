@@ -7,10 +7,13 @@ from embedbase.database import VectorDatabase
 
 
 class Postgres(VectorDatabase):
-    def __init__(self, conn_str="postgresql://postgres:localdb@0.0.0.0/embedbase"):
+    def __init__(
+        self, conn_str="postgresql://postgres:localdb@0.0.0.0/embedbase", **kwargs
+    ):
         """
         Implements a vector database using postgres
         """
+        super().__init__(**kwargs)
         try:
             import psycopg
             from pgvector.psycopg import register_vector
@@ -20,11 +23,11 @@ class Postgres(VectorDatabase):
             self.conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
             register_vector(self.conn)
             self.conn.execute(
-                """
+                f"""
 create table documents (
     id text primary key,
     data text,
-    embedding vector (1536),
+    embedding vector ({self._dimensions}),
     hash text,
     dataset_id text,
     user_id text,
@@ -40,9 +43,9 @@ with (lists = 100);
 """
             )
             self.conn.execute(
-                """
+                f"""
 create or replace function match_documents (
-  query_embedding vector(1536),
+  query_embedding vector({self._dimensions}),
   similarity_threshold float,
   match_count int,
   query_dataset_ids text[],
@@ -53,7 +56,7 @@ returns table (
   data text,
   score float,
   hash text,
-  embedding vector(1536),
+  embedding vector({self._dimensions}),
   metadata json
 )
 language plpgsql
@@ -87,11 +90,11 @@ GROUP BY dataset_id, user_id;
 
         except ImportError:
             raise ImportError(
-                "Please install pgvector and psycopg with `pip install pgvector psycopg`"
+                "Please install pgvector and psycopg with `pip install pgvector psycopg[binary]`"
             )
         except psycopg.OperationalError:
             raise psycopg.OperationalError(
-                "Please install postgresql and create a database named embedbase"
+                "Please run a postgresql and create a database named embedbase"
             )
         except Exception as e:
             print(e)

@@ -7,6 +7,8 @@ class VectorDatabase(ABC):
     """
     Base class for all vector databases
     """
+    def __init__(self, dimensions: int = 1536):
+        self._dimensions = dimensions
 
     @abstractmethod
     async def select(

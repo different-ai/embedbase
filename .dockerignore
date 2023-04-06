@@ -4,7 +4,7 @@
 
 # Allow files and directories
 !docker/docker-entrypoint.sh
-!embedbase/*.py
+!embedbase/**/*.py
 !setup.py
 !requirements.txt
 !optional-requirements.txt
