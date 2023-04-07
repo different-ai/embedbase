@@ -14,7 +14,7 @@
     <a href="https://badge.fury.io/py/embedbase"><img alt="PyPI" src="https://img.shields.io/pypi/v/embedbase?color=black&style=for-the-badge"></a>
     <p>Open-source sdk & api to easily connect data to ChatGPT</p>
     <p>Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
-    <a href="https://app.embedbase.xyz/signup">Try the sandbox playground now</a>
+    <a href="https://app.embedbase.xyz/signup">Try Embedbase Cloud now</a>
     ·
     <a href="https://github.com/different-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
     ·
