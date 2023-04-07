@@ -23,4 +23,4 @@ jobs:
         with:
           version: 1.0.0
 
-      - run: npm run functions-deploy
+      - run: supabase functions deploy apiKey --no-verify-jwt --project-ref $SUPABASE_PROJECT_ID
