@@ -161,7 +161,23 @@ class Embedbase:
                 )
 
             # add column "hash" based on "data"
-            df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
+            def hash_fn(x: str | dict) -> str:
+                if isinstance(x, str):
+                    return hashlib.sha256(x.encode()).hexdigest()
+                elif isinstance(x, dict):
+                    # check that "image" and "text" are in the dict
+                    if "image" not in x or "text" not in x:
+                        raise ValueError("image and text must be in the dict if using a dict")
+                    image = x["image"]
+                    text = x["text"]
+                    import base64
+                    # hash the image and text
+                    image_hash = hashlib.sha256(base64.b64decode(image)).hexdigest()
+                    text_hash = hashlib.sha256(text.encode()).hexdigest()
+                    # return the hash of the image and text
+                    return hashlib.sha256((image_hash + text_hash).encode()).hexdigest()
+                
+            df.hash = df.data.apply(hash_fn)
 
             df_length = len(df)
 
@@ -303,7 +319,15 @@ class Embedbase:
             top_k = 5  # TODO might fail if index empty?
             if request_body.top_k > 0:
                 top_k = request_body.top_k
-            query_embedding = (await self.embedder.embed(query))[0]
+            embeddings = await self.embedder.embed(query)
+            if not embeddings:
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "The query could not be embedded"
+                    },
+                )
+            query_embedding = embeddings[0]
 
             self.logger.info(
                 f"Query {request_body.query} created embedding, querying index"

@@ -26,7 +26,7 @@ class Postgres(VectorDatabase):
                 f"""
 create table documents (
     id text primary key,
-    data text,
+    data json,
     embedding vector ({self._dimensions}),
     hash text,
     dataset_id text,
@@ -53,7 +53,7 @@ create or replace function match_documents (
 )
 returns table (
   id text,
-  data text,
+  data json,
   score float,
   hash text,
   embedding vector({self._dimensions}),
@@ -163,7 +163,7 @@ where
         def _d(row: Series):
             data = [
                 row.id,
-                row.data if store_data else None,
+                json.dumps(row.data) if store_data else None,
                 row.embedding,
                 row.hash,
                 dataset_id,
