@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "functions-deploy": "supabase functions deploy apiKey --no-verify-jwt --project-ref $SUPABASE_PROJECT_ID",
-    "functions-secrets": "supabase secrets set --env-file ./supabase/.env.local"
+    "lint": "next lint"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.4.4",

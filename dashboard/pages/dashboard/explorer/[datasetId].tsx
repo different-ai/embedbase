@@ -221,7 +221,7 @@ export default function Index({ datasetId, documents, page, count }) {
   return (
     <Dashboard>
       <div className="py-8">
-        <SearchSection datasetId={datasetId} />
+        {/* <SearchSection datasetId={datasetId} /> */}
         <DataTable
           documents={documents}
           page={page}
