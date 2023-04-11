@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.4.4",
+    "@dqbd/tiktoken": "^1.0.4",
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",
     "@sentry/nextjs": "^7.46.0",

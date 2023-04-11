@@ -3,6 +3,10 @@ import { OpenAIStream, OpenAIPayload } from '../../lib/utils'
 import { defaultChatSystem } from '../../utils/constants'
 import { NextApiRequest, NextApiResponse } from 'next'
 
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('OPENAI_API_KEY is not set')
+}
+
 export const config = {
   runtime: 'edge',
 }

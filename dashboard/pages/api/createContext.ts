@@ -3,6 +3,23 @@ import { splitText } from "embedbase-js/dist/main/split";
 import { EMBEDBASE_CLOUD_URL } from "../../utils/constants";
 import { nearestNeighbors } from "../../utils/vectors";
 import { CreateContextResponse } from "../../utils/types";
+import { get_encoding, TiktokenEncoding } from '@dqbd/tiktoken'
+
+export const merge = async (chunks: string[], maxLen = 1800) => {
+  let curLen = 0;
+  const tokenizer = get_encoding('cl100k_base')
+
+  const context = [];
+  for (const chunk of chunks) {
+    const nTokens = tokenizer.encode(chunk).length;
+    curLen += nTokens + 4;
+    if (curLen > maxLen) {
+      break;
+    }
+    context.push(chunk);
+  }
+  return context.join('\n\n###\n\n');
+};
 
 export async function getEmbeddings(strings: string[]) {
   const model = 'text-embedding-ada-002'
@@ -95,9 +112,8 @@ const createContext = async (
     }
     return r.data;
   });
-  const mergedResults = datas.join("\n");
-  const chunks = splitText(mergedResults, {});
-  return { chunkedContext: chunks[0].chunk, contexts: topResults };
+  const chunkedContext = await merge(datas);
+  return { chunkedContext: chunkedContext, contexts: topResults };
 };
 
 // 2. Get a context from a dataset
