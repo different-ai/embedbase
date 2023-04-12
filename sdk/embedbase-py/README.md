@@ -33,7 +33,7 @@ We plan to document this library in the near future on our [documentation](https
 ## Getting started
 
 ```bash
-pip install git+https://github.com/different-ai/embedbase-py
+pip install poetry git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
 ```
 
 <!--
