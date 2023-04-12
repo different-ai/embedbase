@@ -1,24 +1,23 @@
-# This workflow will do a clean install of dependencies, cache/restore them, build the source code and run tests across different versions of python
-
-name: Unit Tests
+name: Test
 
 on:
-  push:
-    branches: [main]
+  pull_request:
     paths:
       - 'embedbase/**'
-  pull_request:
-    branches: [main]
+  push:
+    branches:
+      - main
+      - next
+      - rc
     paths:
       - 'embedbase/**'
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Python
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -41,4 +40,3 @@ jobs:
         run: |
           . env/bin/activate
           make test
-  
