@@ -1,0 +1,42 @@
+name: JS SDK CI
+
+on:
+  pull_request:
+    paths:
+      - 'sdk/embedbase-js/**'
+  push:
+    branches:
+      - main
+      - next
+      - rc
+    paths:
+      - 'sdk/embedbase-js/**'
+jobs:
+  test:
+    name: Test / OS ${{ matrix.os }} / Node ${{ matrix.node }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: ['16']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run tests
+        run: |
+          npm clean-install
+          npm run test:coverage
+        working-directory: sdk/embedbase-js
+
+      # - name: Upload coverage results to Coveralls
+      #   uses: coverallsapp/github-action@master
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     path-to-lcov: ./test/coverage/lcov.info

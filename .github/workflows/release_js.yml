@@ -1,0 +1,40 @@
+name: Release JS SDK
+
+on:
+  push:
+    branches:
+      - main
+      - next
+      - rc
+    paths:
+      - 'sdk/embedbase-js/**'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release / Node ${{ matrix.node }}
+    strategy:
+      matrix:
+        node: ['16']
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: |
+          npm ci
+          npm run build
+        working-directory: sdk/embedbase-js
+
+      - name: Create a release
+        run: npx semantic-release@^18.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: sdk/embedbase-js
