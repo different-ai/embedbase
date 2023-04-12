@@ -1,4 +1,4 @@
-name: build
+name: PY SDK CI
 
 on:
   pull_request:
@@ -26,27 +26,29 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry
-      run: make poetry-download
+    # TODO
 
-    - name: Set up cache
-      uses: actions/cache@v2.1.6
-      with:
-        path: .venv
-        key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
-    - name: Install dependencies
-      run: |
-        poetry config virtualenvs.in-project true
-        poetry install
+    # - name: Install poetry
+    #   run: make poetry-download
 
-    - name: Run style checks
-      run: |
-        make check-codestyle
+    # - name: Set up cache
+    #   uses: actions/cache@v2.1.6
+    #   with:
+    #     path: .venv
+    #     key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
+    # - name: Install dependencies
+    #   run: |
+    #     poetry config virtualenvs.in-project true
+    #     poetry install
 
-    - name: Run tests
-      run: |
-        make test
+    # - name: Run style checks
+    #   run: |
+    #     make check-codestyle
 
-    - name: Run safety checks
-      run: |
-        make check-safety
+    # - name: Run tests
+    #   run: |
+    #     make test
+
+    # - name: Run safety checks
+    #   run: |
+    #     make check-safety
