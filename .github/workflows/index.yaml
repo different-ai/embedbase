@@ -1,0 +1,22 @@
+
+name: Index documentation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install
+        working-directory: ./docs
+      - run: npm run sync
+        env:
+          EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+        working-directory: ./docs

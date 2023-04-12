@@ -1,0 +1,79 @@
+# Embedbase-py - Python client for Embedbase
+
+Embedbase-py is a Python SDK for interacting with Embedbase.
+It provides a simple and convenient way to access Embedbase's features, such as searching datasets, adding data, and creating contexts.
+
+**⚠️ Status: Alpha release ⚠️**
+
+This is not an officially launched product and currently lacks documentation. Please use at your own risk. If you are using this library, please let us know by opening an issue or contacting us on [Discord](https://discord.gg/pMNeuGrDky).
+
+## Getting Started
+
+To install the Embedbase-py library, run the following command:
+
+```bash
+pip install git+https://github.com/different-ai/embedbase-py
+```
+
+## Usage
+
+### Initializing the Client
+
+To get started, import the `EmbedbaseClient` class and create a new instance:
+
+```python
+from embedbase_client.client import EmbedbaseClient
+
+embedbase_url = "https://api.embedbase.xyz"
+embedbase_key = "your_api_key"
+client = EmbedbaseClient(embedbase_url, embedbase_key)
+```
+
+### Searching Datasets
+
+To search a dataset, call the `search` method on a `Dataset` object:
+
+```python
+dataset = client.dataset("your_dataset_name")
+search_results = dataset.search("your_query", limit=5)
+```
+
+### Adding Data
+
+To add data to a dataset, call the `add` method on a `Dataset` object:
+
+```python
+document = "your_document_text"
+metadata = {"key": "value"}
+result = dataset.add(document, metadata)
+```
+
+### Creating a Context
+
+To create a context, call the `create_context` method on a `Dataset` object:
+
+```python
+query = "your_query"
+context = dataset.create_context(query, limit=5)
+```
+
+### Splitting and Chunking Large Texts
+
+To split and chunk large texts, use the `split_text` function from the `split` module:
+
+```python
+from embedbase_client.split import split_text
+
+text = "your_long_text"
+max_tokens = 500
+chunk_overlap = 200
+
+chunks = split_text(text, max_tokens, chunk_overlap)
+```
+
+
+## Contributing
+
+[We welcome contributions to Embedbase-py](https://github.com/different-ai/embedbase-py/blob/main/CONTRIBUTING.md).
+
+If you have any feedback or suggestions, please open an issue or join our [Discord](https://discord.gg/pMNeuGrDky) to discuss your ideas.

@@ -1,0 +1,168 @@
+# Use LLaMa to create embeddings
+
+⚠️ This is not recommended for production. For server deployment, you should never run a model in Embedbase directly ([contact](mailto:louis@embedbase.xyz) to learn more) ⚠️
+
+[LLaMa](https://arxiv.org/abs/2302.13971) is a large language model released by Facebook AI Research (FAIR) in 2023.
+
+>We introduce LLaMA, a collection of foundation language models ranging from 7B to 65B parameters. We train our models on trillions of tokens, and show that it is possible to train state-of-the-art models using publicly available datasets exclusively, without resorting to proprietary and inaccessible datasets. In particular, LLaMA-13B outperforms GPT-3 (175B) on most benchmarks, and LLaMA-65B is competitive with the best models, Chinchilla-70B and PaLM-540B. We release all our models to the research community.
+
+In this example we will implement a local embedder for Embedbase which
+will use the LLaMa model to create embeddings.
+Especially we're going to use the [Vicuna](https://vicuna.lmsys.org/).
+
+>We introduce Vicuna-13B, an open-source chatbot trained by fine-tuning LLaMA on user-shared conversations collected from ShareGPT. Preliminary evaluation using GPT-4 as a judge shows Vicuna-13B achieves more than 90%* quality of OpenAI ChatGPT and Google Bard while outperforming other models like LLaMA and Stanford Alpaca in more than 90%* of cases. The cost of training Vicuna-13B is around $300. The training and serving code, along with an online demo, are publicly available for non-commercial use.
+
+## Installation
+
+Install the required dependencies in a virtual environment:
+
+```bash
+virtualenv env
+source env/bin/activate
+pip install embedbase pgvector psycopg[binary] llama-cpp-python
+```
+
+## Start Postgres as an Embedbase database
+
+Run a Postgres instance for the Embedbase database.
+
+```bash
+docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
+    -v data:/var/lib/postgresql/data ankane/pgvector
+```
+
+## Download a Llama model
+
+We will use a 4 bit quantized version of the Vicuna model to be able to run it on a CPU
+on consumer hardware.
+
+⚠️ Use this model at your own risk. ⚠️
+
+```bash
+wget https://huggingface.co/eachadea/ggml-vicuna-7b-4bit/resolve/main/ggml-vicuna-7b-4bit-rev1.bin
+```
+
+## Implement the Embedder & start embedbase
+
+Create a new file `main.py` with the following code:
+
+```python filename="main.py"
+import typing
+from embedbase import get_app
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.base import Embedder
+import uvicorn
+import llama_cpp
+from llama_cpp import Llama
+
+
+class LlamaEmbedder(Embedder):
+    EMBEDDING_MODEL = "ggml-vicuna-7b-4bit-rev1.bin"
+
+    def __init__(
+        self, model: str = EMBEDDING_MODEL, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.model = Llama(model_path=model, embedding=True)
+        self.model.create_embedding("Hello world!")
+
+    @property
+    def dimensions(self) -> int:
+        """
+        Return the dimensions of the embeddings
+        :return: dimensions of the embeddings
+        """
+        return llama_cpp.llama_n_embd(self.model.ctx)
+
+    def is_too_big(self, text: str) -> bool:
+        """
+        Check if text is too big to be embedded,
+        delegating the splitting UX to the caller
+        :param text: text to check
+        :return: True if text is too big, False otherwise
+        """
+        return len(text) > self.model.params.n_ctx
+
+    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
+        """
+        Embed a list of texts
+        :param texts: list of texts
+        :return: list of embeddings
+        """
+        return [self.model.embed(e) for e in input]
+
+embedder = LlamaEmbedder("ggml-vicuna-7b-4bit-rev1.bin")
+app = (
+    get_app()
+    .use_embedder(embedder)
+    .use_db(Postgres(dimensions=embedder.dimensions))
+    .run()
+)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app")
+```
+
+Start the Embedbase application with the following command:
+
+```bash
+python3 main.py
+```
+
+## Test the endpoint
+
+```bash
+SENTENCES=(
+    "The lion is the king of the savannah."
+    "The chimpanzee is a great ape."
+    "The elephant is the largest land animal."
+)
+DATASET_ID="animals"
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"documents\": [{\"data\": \"${SENTENCES[0]}\"}, {\"data\": \"${SENTENCES[1]}\"}, {\"data\": \"${SENTENCES[2]}\"}]}" \
+    http://localhost:8000/v1/${DATASET_ID}
+```
+
+You should get a similar response:
+
+```json
+{
+  "results": [
+        {
+            "data": "The lion is the king of the savannah.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        },
+        {
+            "data": "The chimpanzee is a great ape.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        },
+        {
+            "data": "The elephant is the largest land animal.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        }
+    ]
+}
+```
+
+Let's try to search now
+
+```bash
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"Animal that lives in the savannah\", \"top_k\": 1}" \
+    http://localhost:8000/v1/${DATASET_ID}/search \
+    2>/dev/null | jq '.similarities[0].data'
+```
+
+You should get a similar response:
+
+>"The lion is the king of the savannah."
+
