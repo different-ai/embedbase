@@ -52,7 +52,7 @@ jobs:
 
       - name: Build and push Embedbase production with minimal dependencies
         if: ${{ steps.regex-match.outputs.match != '' }}
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/Dockerfile
@@ -63,7 +63,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-minimal
 
       - name: Build and push dev
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/Dockerfile.dev
@@ -75,7 +75,7 @@ jobs:
 
       - name: Build and push Embedbase production with full dependencies
         if: ${{ steps.regex-match.outputs.match != '' }}
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/Dockerfile
