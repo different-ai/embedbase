@@ -1,0 +1,21 @@
+
+tasks:
+  - init: npm install && npm run build
+
+vscode:
+  # list as bullet points installed extensions:
+  # code --list-extensions | xargs -L 1 echo - 
+  extensions:
+    - github.copilot
+    - toba.vsfire
+    - wix.vscode-import-cost
+    - aaron-bond.better-comments
+    - perkovec.emoji
+    - ms-python.vscode-pylance
+    - ms-python.python
+    - littlefoxteam.vscode-python-test-adapter
+    - k--kato.intellij-idea-keybindings
+    - trungngo.autoflake
+    - christian-kohler.npm-intellisense
+    - dbaeumer.vscode-eslint
+    - github.copilot-labs
