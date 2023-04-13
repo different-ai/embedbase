@@ -84,7 +84,7 @@ if __name__ == "__main__":
 Let's use Postgres as a database, you can start it with Docker:
 
 ```bash
-docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb
+docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb ankane/pgvector
 ```
 
 Now start embedbase using the boilerplate code we just wrote in `main.py`:
