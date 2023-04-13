@@ -41,9 +41,9 @@ Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 
 ## What are people building
 
-- [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
-- [Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
-- [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
+- [Creating a recommendation engine: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
+- [Creating chat with your data experiences: Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
+- [Creating a talk with your docs experience: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
 ## Getting started
 
