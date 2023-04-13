@@ -35,6 +35,12 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 
+## The 3 ways to use Embedbase
+
+- [Embedbase Cloud](#managed-instance): **Build embeddings-powered apps in minutes** | `npm i embedbase-js`
+- [Embedbase.py](#getting-started): **Choose your own db, embeddings models, and get started with a simple** | `pip install embedbase`
+- Embedbase self-hosted: **Get Embedbase Cloud on your infra** | `docker-compose up`
+
 ## Examples
 
 Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
