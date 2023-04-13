@@ -76,6 +76,9 @@ app = (
     .use_embedder(OpenAI("<your key>"))
     .use_db(Postgres())
 ).run()
+
+if __name__ == "__main__":
+    uvicorn.run("main:app")
 ```
 
 Let's use Postgres as a database, you can start it with Docker:
@@ -86,8 +89,8 @@ docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PAS
 
 Now start embedbase using the boilerplate code we just wrote in `main.py`:
 
-```
-uvicorn main:app
+```bash
+python3 main.py
 ```
 
 🔥 Embedbase now runs! [Time to ship your product](#sdk)
