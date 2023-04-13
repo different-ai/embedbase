@@ -53,7 +53,7 @@ Let's install Python dependencies:
 pip install embedbase uvicorn
 ```
 
-And write a basic boilerplate code:
+And write a basic boilerplate code in `main.py`:
 
 ```py
 from embedbase import get_app
@@ -84,7 +84,7 @@ Let's use Postgres as a database, you can start it with Docker:
 docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb
 ```
 
-Now start embedbase!
+Now start embedbase using the boilerplate code we just wrote in `main.py`:
 
 ```
 uvicorn main:app
