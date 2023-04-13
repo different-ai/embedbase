@@ -47,10 +47,13 @@ Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 
 ## Getting started
 
+Let's install Python dependencies:
+
 ```bash
-# start local postgres
-docker-compose up
+pip install embedbase uvicorn
 ```
+
+And write a basic boilerplate code:
 
 ```py
 from embedbase import get_app
@@ -74,6 +77,14 @@ app = (
     .use_db(Postgres())
 ).run()
 ```
+
+Let's use Postgres as a database, you can start it with Docker using [compose](./docker-compose.yaml)
+
+```bash
+docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb
+```
+
+Now start embedbase!
 
 ```
 uvicorn main:app
