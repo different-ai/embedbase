@@ -78,7 +78,7 @@ app = (
 ).run()
 ```
 
-Let's use Postgres as a database, you can start it with Docker using [compose](./docker-compose.yaml)
+Let's use Postgres as a database, you can start it with Docker:
 
 ```bash
 docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb
