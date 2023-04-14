@@ -6,13 +6,13 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">An API to easily connect your data to ChatGPT</h3>
+<h3 align="center">The end to end platform to help you ship embeddings-powered apps.</h3>
 
   <p align="center">
     <br />
     <a href="https://discord.gg/pMNeuGrDky"><img alt="Discord" src="https://img.shields.io/discord/1066022656845025310?color=black&style=for-the-badge"></a>
     <a href="https://badge.fury.io/py/embedbase"><img alt="PyPI" src="https://img.shields.io/pypi/v/embedbase?color=black&style=for-the-badge"></a>
-    <p align="center">Open-source sdk & api to easily connect data to ChatGPT</p>
+    <p align="center">Open-source API, SDK & dashboard to easily create, store, and retrieve machine learning embeddings</p>
     <p align="center">Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <div align="center">
       <a href="https://app.embedbase.xyz/signup">Try Embedbase Cloud now</a>
@@ -35,22 +35,31 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Docs and support](#docs-and-support)
 - [Contributing](#contributing)
 
+## The 3 ways to use Embedbase
+
+- [Embedbase Cloud](#managed-instance): **Build embeddings-powered apps in minutes** | `npm i embedbase-js`
+- [Embedbase.py](#getting-started): **Choose your own db, embeddings models, and get started with a simple** | `pip install embedbase`
+- Embedbase self-hosted: **Get Embedbase Cloud on your infra** | `docker-compose up`
+
 ## Examples
 
 Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 
 ## What are people building
 
-- [AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
-- [Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
-- [ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
+- [Creating a recommendation engine: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
+- [Creating chat with your data experiences: Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
+- [Creating a talk with your docs experience: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
 ## Getting started
 
+Let's install Python dependencies:
+
 ```bash
-# start local postgres
-docker-compose up
+pip install embedbase uvicorn
 ```
+
+And write a basic boilerplate code in `main.py`:
 
 ```py
 from embedbase import get_app
@@ -73,10 +82,21 @@ app = (
     .use_embedder(OpenAI("<your key>"))
     .use_db(Postgres())
 ).run()
+
+if __name__ == "__main__":
+    uvicorn.run("main:app")
 ```
 
+Let's use Postgres as a database, you can start it with Docker:
+
+```bash
+docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb ankane/pgvector
 ```
-uvicorn main:app
+
+Now start embedbase using the boilerplate code we just wrote in `main.py`:
+
+```bash
+python3 main.py
 ```
 
 🔥 Embedbase now runs! [Time to ship your product](#sdk)

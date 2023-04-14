@@ -1,0 +1,124 @@
+# Redis Rate Limiter
+
+This example demonstrates how to use Redis to implement a rate limiter for an Embedbase project.
+
+## Installation
+
+Install the required dependencies in a virtual environment:
+
+```bash
+virtualenv env
+source env/bin/activate
+pip install embedbase pgvector psycopg[binary] redis
+```
+
+## Start Postgres as an Embedbase database
+
+Run a Postgres instance for the Embedbase database.
+
+```bash
+docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
+    -v data:/var/lib/postgresql/data ankane/pgvector
+```
+
+## Start Redis as an Embedbase rate limiter
+
+Run a Redis instance for the Embedbase rate limiter.
+
+```bash
+docker run -d --name redis -p 6379:6379 redis
+```
+
+Alternatively you can use [Upstash](https://upstash.com/) which manage Redis for you, to go to production faster.
+
+## Start Embedbase
+
+Create a new file `main.py` with the following code:
+
+```python filename="main.py"
+import os
+from embedbase import get_app
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.openai import OpenAI
+import redis.asyncio as redis
+import uvicorn
+from fastapi.responses import JSONResponse
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+
+async def get_redis():
+    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+    await r.ping()
+    return r
+
+
+async def rate_limiter(request, call_next):
+    """Rate limit middleware using Redis."""
+    rate_limit = 1  # Set your rate limit here (e.g., 1 requests per minute)
+    expiration = 60  # Set the expiration time in seconds (e.g., 60 seconds)
+
+    redis_client = await get_redis()
+
+    key = f"rate_limit:{request.client.host}"
+    current_requests = await redis_client.get(key)
+
+    if current_requests is None:
+        await redis_client.set(key, 1, ex=expiration)
+    elif int(current_requests) < rate_limit:
+        await redis_client.incr(key)
+    else:
+        return JSONResponse(
+            content={"detail": "Too many requests"},
+            status_code=429,  # HTTP status code for "Too Many Requests"
+        )
+
+    response = await call_next(request)
+    return response
+
+
+app = (
+    get_app()
+    .use_embedder(OpenAI(OPENAI_API_KEY))
+    .use_db(Postgres())
+    .use_middleware(rate_limiter)
+    .run()
+)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)
+```
+
+Start the Embedbase application with the following command:
+
+```bash
+python3 main.py
+```
+
+## Test Embedbase rate limiter
+
+To test if the rate limiter is working, open another terminal and run the following commands:
+
+Create a shell script `test.sh` to send 10 parallel requests to the Embedbase API:
+
+```bash
+cat > test.sh <<EOF
+for i in {1..10}; do
+    curl -X POST "http://localhost:8000/v1/sampledataset/search" \
+        -H "accept: application/json" \
+        -H "Content-Type: application/json" \
+        -d "{ \"query\": \"Hello world!\"}" | jq . &
+done
+EOF
+```
+
+Run the test script:
+
+```bash
+bash test.sh
+```
+
+The API should now respond with a 429 "Too Many Requests" HTTP status code when the rate limit has been reached.

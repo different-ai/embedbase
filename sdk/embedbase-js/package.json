@@ -1,0 +1,56 @@
+{
+  "name": "embedbase-js",
+  "version": "0.0.0-automated",
+  "description": "Typescript client for Embedbase",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "embedbase"
+  ],
+  "homepage": "https://github.com/different-ai/embedbase-js",
+  "bugs": "https://github.com/different-ai/embedbase-js/issues",
+  "license": "MIT",
+  "author": "Different AI",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "dist/main/index.js",
+  "module": "dist/module/index.js",
+  "types": "dist/module/index.d.ts",
+  "sideEffects": false,
+  "repository": "different-ai/embedbase-js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "format": "prettier --write \"{src,test}/**/*.ts\" --ignore-path test/samples/sample.ts",
+    "build": "run-s clean format build:*",
+    "build:main": "tsc -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json",
+    "types-generate": "dts-gen -m 'embedbase-js' -s",
+    "test": "jest ",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch --verbose false --silent false",
+    "docs": "typedoc --entryPoints src/index.ts --out docs/v1 --includes src/**/*.ts",
+    "docs:json": "typedoc --entryPoints src/index.ts --includes src/**/*.ts --json docs/v1/spec.json --excludeExternals"
+  },
+  "dependencies": {
+    "cross-fetch": "^3.1.5"
+  },
+  "optionalDependencies": {
+    "@dqbd/tiktoken": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.2.5",
+    "dotenv": "^10.0.0",
+    "jest": "^29.3.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.5.1",
+    "rimraf": "^3.0.2",
+    "semantic-release-plugin-update-version-in-files": "^1.1.0",
+    "ts-jest": "^29.0.5",
+    "ts-loader": "^8.0.11",
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.22.16",
+    "typescript": "^4.5.5"
+  }
+}

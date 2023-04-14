@@ -1,0 +1,283 @@
+# Build a ChatGPT that searches the right data sources and answers questions accurately
+
+In this example we will ask GPT to pick the right dataset to search when a user ask a question and then answer the user question.
+
+![image](https://user-images.githubusercontent.com/25003283/229299297-34b267fd-7464-4f85-aa3b-ef114e6eec7a.png)
+
+⚠️ You can otherwise simplify this example by using [Embedbase Cloud](https://app.embedbase.xyz) instead of running it yourself.
+If so, you can jump to the [Seed datasets](#seed-datasets) section.
+
+## Installation
+
+Install the required dependencies in a virtual environment:
+
+```bash
+virtualenv env
+source env/bin/activate
+pip install embedbase pgvector psycopg[binary] openai
+```
+
+## Start Postgres as an Embedbase database
+
+Run a Postgres instance for the Embedbase database.
+
+```bash
+docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
+    -v data:/var/lib/postgresql/data ankane/pgvector
+```
+
+## Start Embedbase
+
+Create a new file `main.py` with the following code:
+
+```python filename="main.py"
+import os
+from embedbase import get_app
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.openai import OpenAI
+import uvicorn
+
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+app = (
+    get_app()
+    .use_embedder(OpenAI(OPENAI_API_KEY))
+    .use_db(Postgres())
+    .run()
+)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)
+```
+
+Start the Embedbase application with the following command:
+
+```bash
+python3 main.py
+```
+
+## Seed datasets
+
+```python filename="ask.py"
+import json
+import requests
+import fire
+
+# Set the Embedbase API URL
+EMBEDBASE_API_URL = "http://localhost:8000"
+# if using embedbase cloud, add your api key to the headers
+# EMBEDBASE_API_KEY = "<your embedbase api key>"
+
+def seed_dataset():
+    animals = {
+        "lion": {"weight": 190, "height": 1.2, "speed": 80},
+        "elephant": {"weight": 5000, "height": 3.2, "speed": 40},
+        "giraffe": {"weight": 800, "height": 5.5, "speed": 60},
+        "zebra": {"weight": 350, "height": 1.5, "speed": 60},
+        "rhinoceros": {"weight": 2300, "height": 1.8, "speed": 45},
+        "crocodile": {"weight": 1000, "height": 4.5, "speed": 20},
+        "hippopotamus": {"weight": 1500, "height": 1.5, "speed": 30},
+        "cheetah": {"weight": 60, "height": 0.8, "speed": 110},
+        "kangaroo": {"weight": 80, "height": 1.5, "speed": 56},
+        "penguin": {"weight": 30, "height": 1.1, "speed": 10},
+    }
+    cars = [
+        {"make": "Toyota", "model": "Camry", "year": 2022},
+        {"make": "Honda", "model": "Civic", "year": 2021},
+        {"make": "Ford", "model": "F-150", "year": 2023},
+        {"make": "Tesla", "model": "Model S", "year": 2022},
+        {"make": "Chevrolet", "model": "Corvette", "year": 2021},
+        {"make": "Jeep", "model": "Wrangler", "year": 2022},
+        {"make": "BMW", "model": "X5", "year": 2023},
+        {"make": "Mercedes-Benz", "model": "S-Class", "year": 2022},
+        {"make": "Audi", "model": "A4", "year": 2021},
+        {"make": "Lamborghini", "model": "Aventador", "year": 2022},
+    ]
+
+    # clear the dataset just in case it already exists
+    requests.get(f"{EMBEDBASE_API_URL}/v1/animals/clear",
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+    requests.get(f"{EMBEDBASE_API_URL}/v1/cars/clear",
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+
+    # seed the animals dataset
+    requests.post(
+        f"{EMBEDBASE_API_URL}/v1/animals",
+        json={"documents": [{"data": json.dumps(animal)} for animal in animals]},
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+
+    # seed the cars dataset
+    requests.post(
+        f"{EMBEDBASE_API_URL}/v1/cars",
+        json={"documents": [{"data": json.dumps(car)} for car in cars]},
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+
+if __name__ == "__main__":
+    fire.Fire({
+        "seed": seed_dataset,
+    })
+```
+
+```bash
+python3 ask.py seed
+```
+
+## Search
+
+We will now create the main logic of our application.
+We will ask GPT to pick the right dataset to search when a user ask a question.
+
+The process will be as is:
+1. The user ask a question
+2. GPT will query `/datasets` to get the list of datasets
+3. GPT will query `/search` with the chosen dataset and the question
+4. GPT will return the results
+
+```python filename="ask.py"
+import re
+import os
+import json
+import requests
+import openai
+import fire
+
+# Set the Embedbase API URL
+EMBEDBASE_API_URL = "http://localhost:8000"
+
+
+def get_datasets():
+    response = requests.get(
+        f"{EMBEDBASE_API_URL}/v1/datasets",
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+    return [e["dataset_id"] for e in response.json()["datasets"]]
+
+
+def search_dataset(dataset_id, query):
+    payload = {"query": query, "top_k": 3}
+    response = requests.post(
+        f"{EMBEDBASE_API_URL}/v1/{dataset_id}/search", json=payload,
+        # if using embedbase cloud, add your api key to the headers
+        # headers={
+        #     "Authorization": "Bearer " + EMBEDBASE_API_KEY,
+        # },
+    )
+    return [e["data"] for e in response.json()["similarities"]]
+```
+
+The above code will be used to query the Embedbase API.
+
+```python filename="ask.py"
+# ...
+def ask_question(question, openai_model: str = "gpt-3.5-turbo"):
+    datasets = get_datasets()
+
+    # Prompt for GPT
+    prompt = f"Given the following datasets:\n"
+    for dataset in datasets:
+        prompt += f"- {dataset}\n"
+    prompt += f"\nChoose the best dataset to search and answer the following question:\n{question}"
+
+    # Call GPT
+    response = openai.ChatCompletion.create(
+        model=openai_model,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that select a dataset to search for a given question."
+                "You always say ONLY the dataset name, nothing else. You are given a list of datasets and a question. "
+                "For example, if the list of datasets is - plants\n- animals\n- cars\n- fruits\n- vegetables\n"
+                "and the question is: What is the fastest animal?, you would say: [animals]",
+            },
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    chosen_dataset = response.choices[0].message.content.strip()
+    print(f"GPT chose the dataset: {chosen_dataset}")
+
+    # extract the dataset name from the output of GPT
+    # eg [animals] -> animals
+    chosen_dataset = re.sub(r"\[|\]", "", chosen_dataset)
+    search_results = search_dataset(chosen_dataset, question)
+
+    # Call GPT again to answer the question based on the search results
+    prompt = (
+        f"Based on the following search results, answer the question: '{question}'\n"
+    )
+    for result in search_results:
+        prompt += f"- {result}\n"
+
+    response = openai.ChatCompletion.create(
+        model=openai_model,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that answers questions based on the provided search results.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    answer = response.choices[0].message.content.strip()
+
+    return answer
+```
+
+The above code will be used to call GPT to ask a question.
+Now add some small logic to call the above function when the user ask a question.
+
+
+```python filename="ask.py"
+
+def main(openai_key: str = None, openai_model: str = "gpt-3.5-turbo"):
+    openai.api_key = openai_key or os.environ.get("OPENAI_API_KEY")
+
+    question = input("Ask a question: ")
+    answer = ask_question(question, openai_model)
+    print(f"Answer: {answer}")
+
+
+if __name__ == "__main__":
+    fire.Fire({
+        "ask": main,
+        "seed": seed_dataset,
+    })
+```
+
+Now you can run the application and ask a question.
+
+```bash
+python3 ask.py ask --openai_key <your-openai-key>
+# feel free to add "--openai_model gpt-4" if you have access to it
+```
+
+>Ask a question: Which animal is the fastest?
+GPT chose the dataset: animals
+Answer: Based on the provided search results, the cheetah is the fastest animal.
+
+>Ask a question: List the latest cars
+GPT chose the dataset: cars
+Answer: Based on the provided search results, the latest cars are:
+- Ford F-150 which was released in 2023
+- BMW X5 which was released in 2023
