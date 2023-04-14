@@ -1,0 +1,184 @@
+
+sdk is still in alpha, if you if you have some feedback [join our discord](https://discord.gg/pMNeuGrDky) 🔥
+
+[find it on github](https://github.com/different-ai/embedbase-js)
+
+## Embedbase
+**Open-source API & SDK to connect any data to ChatGPT**
+
+Before you start, you need get a an API key at [app.embedbase.xyz](https://app.embedbase.xyz/signup).
+
+*Note: we're working on a fully client-side SDK. In the meantime, you can use the hosted instance of Embedbase.*
+
+
+```
+npm i embedbase-js
+```
+
+## Table of contents
+
+- [What is it](#what-is-it)
+- [Installation](#installation)
+- [Searching](#fetching-embeddings)
+- [Adding data](#adding-data)
+- [Splitting and chunking large texts](#splitting-and-chunking-large-texts)
+- [Creating a "context"](#creating-a-context)
+- [Adding metadata](#adding-metadata)
+- [Listing datasets](#listing-datasets)
+- [Example: Ask question to any github doc](#ask-question-to-doc)
+- [Example: Create a recommendation engine with ChatGPT](#ask-question-to-doc)
+- [Example: Create a search engine with ChatGPT](#ask-question-to-doc)
+
+## Design philosophy
+
+- Simple
+- Open-source
+- Composable (integrates well with LLM & various databases)
+
+
+
+## What is it
+
+This is the official typescript client for Embedbase. Embedbase is an open-source API to connect your data to ChatGPT.
+
+## Who is it for
+
+People who want to
+* plug their own data into ChatGPT.
+
+
+
+## Installation
+
+You can install embedbase-js via the terminal.
+
+```
+npm i embedbase-js
+```
+
+### Initializing
+
+```ts
+import { createClient } from 'embedbase-js'
+
+// you can find the api key at https://embedbase.xyz
+const apiKey = 'your api key'
+// this is using the hosted instance
+const url = 'https://api.embedbase.xyz'
+
+const embedbase = createClient(url, apiKey)
+```
+
+### Searching datasets
+
+```ts
+// fetching data
+const data = await embedbase
+  .dataset('amazon-reviews')
+  .search('best hot dogs accessories', { limit: 3 })
+
+console.log(data)
+// [
+//   {
+//       "similarity": 0.810843349,
+//       "data": "The world is going to smell very different once electric      vehicles become commonplace"
+//   },
+//   {
+//       "similarity": 0.794602573,
+//       "data": "200 years ago, people would never have guessed that humans in the future would communicate by silently tapping on glass"
+//   },
+//   {
+//       "similarity": 0.792932034,
+//       "data": "The average car in space is nicer than the average car on Earth"
+//   },
+// ]
+```
+
+### Adding Data
+
+```js
+const data =
+  await // embeddings are extremely good for retrieving unstructured data
+  // in this example we store an unparsable html string
+  embedbase.dataset('amazon-reviews').add(`
+  <div>
+    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
+`)
+
+console.log(data)
+//
+// {
+//   "id": "eiew823",
+//   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+//          Didn't put in dishwasher. Still perfect after many uses."
+// }
+```
+
+### Splitting and chunking large texts
+
+```js
+import { splitText } from 'embedbase-js/dist/main/split';
+
+const text = 'some very long text...';
+splitText(text, { maxTokens: 500, chunkOverlap: 200 }, async ({ chunk, start, end }) =>
+    embedbase.dataset('some-data-set').add(chunk)
+)
+```
+
+Check [how we send our documentation to Embedbase](https://github.com/different-ai/embedbase-docs/blob/cb082d5b54b1038bee73511d9b9046fbb22d8a6f/scripts/sync.ts) to let you ask it questions through GPT-4.
+
+### Creating a "context"
+
+`createContext` is very similar to `.search` but it returns strings instead of an object. This is useful if you want to easily feed it to GPT.
+
+```js
+// you can create a context to store data
+const data = await embedbase
+  .dataset('my-documentation')
+  .createContext('my-context')
+
+console.log(data)
+[
+ "Embedbase API allows to store unstructured data...",
+ "Embedbase API has 3 main functions a) provides a plug and play solution to store embeddings b) makes it easy to connect to get the right data into llms c)..",
+ "Embedabase API is self-hostable...",
+]
+```
+
+### Adding metadata
+
+```js
+const data =
+  await
+  embedbase.dataset('amazon-reviews').add(`
+  <div>
+    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
+    // metadata can be anything you want that will appear in the search results later
+`, {category: 'smallItems', user: 'bob'})
+
+console.log(data)
+//
+// {
+//   "id": "eiew823",
+//   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+//          Didn't put in dishwasher. Still perfect after many uses.",
+//   "metadata": {"category": "smallItems", "user": "bob"}
+// }
+```
+
+
+### Listing datasets
+
+```js
+const data = await embedbase.datasets()
+console.log(data)
+// [{"datasetId": "amazon-reviews", "documentsCount": 2}]
+```
+
+## Ask question to doc
+
+
+```js
+coming soon
+```
+

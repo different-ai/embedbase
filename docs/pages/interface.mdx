@@ -1,0 +1,91 @@
+# Embedbase
+
+The Embedbase API [requires you to create an API key](https://embedbase.xyz/).
+
+_Note: You can also use our [JavaScript client](/sdk)._
+
+## Getting Started
+
+There's two main operations you can do with Embedbase: search and insert.
+
+### Retrieving Data
+
+You can search unstructured data with Embedbase.
+
+```ts
+const URL = 'https://api.embedbase.xyz'
+const DATASET_ID = 'people'
+const API_KEY = '<https://app.embedbase.xyz/signup>'
+fetch(`${URL}/v1/${DATASET_ID}/search`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + API_KEY
+  },
+  body: JSON.stringify({
+    query: 'Something about a red planet'
+  })
+})
+```
+
+### Inserting Data
+
+You can insert unstructured data into Embedbase to be indexed and searched.
+
+```ts
+const URL = 'https://api.embedbase.xyz'
+const DATASET_ID = 'people'
+const API_KEY = '<https://app.embedbase.xyz/signup>'
+fetch(`${URL}/v1/${DATASET_ID}`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + API_KEY
+  },
+  body: JSON.stringify({
+    documents: [
+      {
+        data: 'Elon is sipping a tea on Mars'
+      }
+    ]
+  })
+})
+```
+
+
+### Delete data
+
+You can delete documents from a dataset like this:
+
+```ts
+const URL = 'https://api.embedbase.xyz'
+const DATASET_ID = 'people'
+const API_KEY = '<https://app.embedbase.xyz/signup>'
+fetch(`${URL}/v1/${DATASET_ID}`, {
+  method: 'DELETE',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + API_KEY
+  },
+  body: JSON.stringify({
+    ids: ["<some id>",]
+  })
+})
+```
+
+### Delete dataset
+
+You can delete a dataset like this:
+
+```ts
+const URL = 'https://api.embedbase.xyz'
+const DATASET_ID = 'people'
+const API_KEY = '<https://app.embedbase.xyz/signup>'
+fetch(`${URL}/v1/${DATASET_ID}/clear`, {
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + API_KEY
+  },
+})
+```
+

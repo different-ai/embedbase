@@ -1,0 +1,94 @@
+# Adding a ChatGPT prompt endpoint to Embedbase
+
+This example demonstrates how to add a ChatGPT prompt endpoint to Embedbase that
+returns a random prompt from the [awesome-chatgpt-prompts](https://huggingface.co/datasets/fka/awesome-chatgpt-prompts) dataset
+that you can use.
+
+## Installation
+
+Install the required dependencies in a virtual environment:
+
+```bash
+virtualenv env
+source env/bin/activate
+pip install embedbase pgvector psycopg[binary]
+```
+
+## Start Postgres as an Embedbase database
+
+Run a Postgres instance for the Embedbase database.
+
+```bash
+docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
+    -v data:/var/lib/postgresql/data ankane/pgvector
+```
+
+## Start Embedbase
+
+Create a new file `main.py` with the following code:
+
+```python filename="main.py"
+import os
+import random
+import requests
+from embedbase import get_app
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.openai import OpenAI
+import uvicorn
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+app = (
+    get_app()
+    .use_embedder(OpenAI(os.environ["OPENAI_API_KEY"]))
+    .use_db(Postgres())
+    .run()
+)
+
+# An endpoint returning random chatgpt prompts
+@app.get("/prompts")
+async def get_prompts():
+    url = "https://datasets-server.huggingface.co/first-rows"
+    params = {
+        "dataset": "fka/awesome-chatgpt-prompts",
+        "config": "fka--awesome-chatgpt-prompts",
+        "split": "train",
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        rows = data["rows"]
+        random_prompt = random.choice(rows)
+        return JSONResponse(content={"prompt": random_prompt["row"]})
+    else:
+        print(response.status_code)
+        print(response.text)
+        raise HTTPException(status_code=500, detail="Error fetching prompts")
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)
+```
+
+Start the Embedbase application with the following command:
+
+```bash
+python3 main.py
+```
+
+## Test the endpoint
+
+```bash
+curl localhost:8000/prompts | jq '.'
+```
+    
+```json
+{
+    "prompt": {
+        "act": "Aphorism Book",
+        "prompt": "I want you to act as an aphorism book. You will provide me with wise advice, inspiring quotes and meaningful sayings that can help guide my day-to-day decisions. Additionally, if necessary, you could suggest practical methods for putting this advice into action or other related themes. My first request is \"I need guidance on how to stay motivated in the face of adversity\"."
+    }
+}
+```

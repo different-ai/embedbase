@@ -1,9 +1,13 @@
-name: Publish Docker image
+name: Test & Release if needed
 
 on:
   push:
-    tags:
-      - "*.*.*"
+    branches:
+      - main
+      - next
+      - rc
+    paths:
+      - 'embedbase/**'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,6 +19,12 @@ jobs:
         with:
           python-version: 3.8
 
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: regex-match
+        with:
+          text: ${{ github.event.head_commit.message }}
+          regex: '^Release ([^ ]+)'
+
       - name: Get the version
         id: get_version
         run: echo "VERSION=$(python3 setup.py --version)" >> $GITHUB_ENV
@@ -25,6 +35,7 @@ jobs:
           pip install setuptools wheel twine
 
       - name: Build and publish
+        if: ${{ steps.regex-match.outputs.match != '' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
@@ -40,6 +51,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Embedbase production with minimal dependencies
+        if: ${{ steps.regex-match.outputs.match != '' }}
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -62,6 +74,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
 
       - name: Build and push Embedbase production with full dependencies
+        if: ${{ steps.regex-match.outputs.match != '' }}
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -74,6 +87,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/embedbase:latest
       
       - name: Create Release
+        if: ${{ steps.regex-match.outputs.match != '' }}
         id: create_release
         uses: actions/create-release@v1
         env:

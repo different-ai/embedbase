@@ -1,0 +1,22 @@
+{
+  "index": "🏡 Start Here",
+  "sdk": "☕️ Javascript SDK",
+  "sdk-py": "🐍 Python SDK",
+  "interface": "📡 API",
+  "tutorials": "❓ Tutorials",
+  "examples": "📚 Examples",
+  "self-hosting": "🚚 Self-hosting",
+  "document-is-too-long": "API Errors",
+  "login": {
+    "title": "Login",
+    "type": "page",
+    "href": "https://app.embedbase.xyz/login",
+    "newWindow": true
+  },
+  "signup": {
+    "title": "Signup ↗",
+    "type": "page",
+    "href": "https://embedbase.xyz",
+    "newWindow": true
+  }
+}

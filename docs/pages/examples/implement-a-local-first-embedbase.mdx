@@ -1,0 +1,159 @@
+# Implement a local first Embedbase
+
+⚠️ This is not recommended for production. For server deployment, you should never run a model in Embedbase directly ([contact](mailto:louis@embedbase.xyz) to learn more) ⚠️
+
+A common concern of individuals and companies in the LLM era
+is that you need to send your data to a third-party.
+
+Furthermore, this third-party is usually an American company which
+is subject to the jurisdiction of the United States.
+In the United States, the government has the right to access your data
+at any time.
+
+In this example we will implement a local embedder for Embedbase which
+will respect your privacy concerns.
+
+We will compute sentence embeddings using the awesome library
+[Sentence Transformers](https://www.sbert.net/).
+
+## Installation
+
+Install the required dependencies in a virtual environment:
+
+```bash
+virtualenv env
+source env/bin/activate
+pip install embedbase pgvector psycopg[binary] sentence-transformers
+```
+
+## Start Postgres as an Embedbase database
+
+Run a Postgres instance for the Embedbase database.
+
+```bash
+docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
+    -v data:/var/lib/postgresql/data ankane/pgvector
+```
+
+## Start Embedbase
+
+Create a new file `main.py` with the following code:
+
+```python filename="main.py"
+import typing
+from embedbase import get_app
+from embedbase.database.postgres_db import Postgres
+from embedbase.embedding.base import Embedder
+import uvicorn
+from sentence_transformers import SentenceTransformer
+
+
+class LocalEmbedder(Embedder):
+    EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+
+    def __init__(
+        self, model: str = EMBEDDING_MODEL, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.model = SentenceTransformer(model)
+
+    @property
+    def dimensions(self) -> int:
+        """
+        Return the dimensions of the embeddings
+        :return: dimensions of the embeddings
+        """
+        return self._dimensions
+
+    def is_too_big(self, text: str) -> bool:
+        """
+        Check if text is too big to be embedded,
+        delegating the splitting UX to the caller
+        :param text: text to check
+        :return: True if text is too big, False otherwise
+        """
+        return len(text) > self.model.get_max_seq_length()
+
+    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
+        """
+        Embed a list of texts
+        :param texts: list of texts
+        :return: list of embeddings
+        """
+        embeddings = self.model.encode(input)
+        return embeddings.tolist() if isinstance(input, list) else [embeddings.tolist()]
+
+app = (
+    get_app()
+    .use_embedder(LocalEmbedder())
+    .use_db(Postgres(dimensions=384))
+    .run()
+)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)
+```
+
+Start the Embedbase application with the following command:
+
+```bash
+python3 main.py
+```
+
+## Test the endpoint
+
+```bash
+SENTENCES=(
+    "The lion is the king of the savannah."
+    "The chimpanzee is a great ape."
+    "The elephant is the largest land animal."
+)
+DATASET_ID="animals"
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"documents\": [{\"data\": \"${SENTENCES[0]}\"}, {\"data\": \"${SENTENCES[1]}\"}, {\"data\": \"${SENTENCES[2]}\"}]}" \
+    http://localhost:8000/v1/${DATASET_ID}
+```
+
+You should get a similar response:
+
+```json
+{
+  "results": [
+        {
+            "data": "The lion is the king of the savannah.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        },
+        {
+            "data": "The chimpanzee is a great ape.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        },
+        {
+            "data": "The elephant is the largest land animal.",
+            "embedding": [...],
+            "hash": ...,
+            "metadata": null
+        }
+    ]
+}
+```
+
+Let's try to search now
+
+```bash
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"Animal that lives in the savannah\", \"top_k\": 1}" \
+    http://localhost:8000/v1/${DATASET_ID}/search \
+    2>/dev/null | jq '.similarities[0].data'
+```
+
+You should get a similar response:
+
+>"The lion is the king of the savannah."
+
