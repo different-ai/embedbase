@@ -36,9 +36,13 @@ First, run the development server:
 npm i
 ```
 
+Then run:
+
 ```bash
 npm run dev
 ```
+
+To enable GitHub auth, you need to go to https://app.supabase.com/project/<your-project-name>/auth/providers and enable GitHub as your auth provider. Proceed to GitHub > Settings > Developer Settings > OAuth Apps to obtain Client ID and Client Secret.
 
 ## Required Environment Variables
 
