@@ -33,8 +33,32 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 First, run the development server:
 
 ```bash
+npm i
+```
+
+Then run:
+
+```bash
 npm run dev
 ```
+
+To enable GitHub auth, you need to go to https://app.supabase.com/project/<your-project-name>/auth/providers and enable GitHub as your auth provider. Proceed to GitHub > Settings > Developer Settings > OAuth Apps to obtain Client ID and Client Secret.
+
+## Required Environment Variables
+
+| Variable  | Description |
+| ------------- | ------------- |
+| NEXT_PUBLIC_SUPABASE_PROJECT_ID | Reference ID in General Settings of Supabase. |
+| NEXT_PUBLIC_SUPABASE_URL | Project URL in API Settings of Supabase. |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | anon public in Project API keys of Supabase. |
+| SUPABASE_SERVICE_ROLE_KEY | Service role (secret) in Project API keys of Supabase. |
+| NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL | Stripe customer portal. |
+| NEXT_PUBLIC_SITE_URL | URL of the site. Only used during production. |
+| NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY | Update these with your Stripe credentials from https://dashboard.stripe.com/apikeys |
+| STRIPE_SECRET_KEY | Update these with your Stripe credentials from https://dashboard.stripe.com/apikeys |
+| STRIPE_WEBHOOK_SECRET | Update these with your Stripe credentials from https://dashboard.stripe.com/apikeys |
+| OPENAI_KEY | Obtain OpenAI API Keys from https://platform.openai.com/account/api-keys |
+| EMBEDBASE_API_KEY | Update with your embedbase API keys from https://app.embedbase.xyz |
 
 ## FAQs
 
