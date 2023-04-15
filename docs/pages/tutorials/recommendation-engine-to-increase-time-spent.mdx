@@ -87,7 +87,7 @@ The first step requires us to store our blog posts in Embedbase.
 
 To read the blog posts we've just written, we will need to implement a small piece of code to parse the Markdown front-matter and store it in documents metadata, it will improve the recommendation experience with additional information. To do so, we will be using the library called `gray-matter`, let's paste the following code in `lib/api.ts`:
 
-```ts
+```ts filename="lib/api.ts"
 import fs from 'fs'
 import { join } from 'path'
 import matter from 'gray-matter'
@@ -136,7 +136,7 @@ When you add data, you need to specify a dataset, and later you can query this d
 
 Alright, let's finally implement the script to send your data to Embedbase, paste the following code in `scripts/sync.ts`:
 
-```ts
+```ts filename="scripts/sync.ts"
 import glob from "glob";
 import { createClient, BatchAddDocument } from 'embedbase-js'
 import { splitText } from 'embedbase-js/dist/main/split';
@@ -223,7 +223,7 @@ npx tsx ./scripts/sync.ts
   
 This is what you should be seeing:
 
-<Image src="/sync-response.png" width={800} height={400} />
+<Image src="/sync-blog-posts.png" width={800} height={400} />
 
 Protip: you can even visualise your data now in Embedbase dashboard (which is [open-source](https://github.com/different-ai/embedbase/tree/main/dashboard)), [here](https://app.embedbase.xyz/dashboard/explorer/recsys?page=0):
 
@@ -237,7 +237,7 @@ Or ask questions about it using ChatGPT [here](https://app.embedbase.xyz/dashboa
 
 Now, we want to be able to get recommendations for our blog posts, we will add an API endpoint (if you are unfamiliar with NextJS API pages, check out [this](https://vercel.com/docs/concepts/functions/serverless-functions)) in `pages/api/recommend.ts`:
 
-```ts
+```ts filename="pages/api/recommend.ts"
 import { createClient } from "embedbase-js";
 
 // Let's create an Embedbase client with our API key
@@ -270,9 +270,7 @@ All we have to do now is connect it all in a friendly user interface and we're d
 
 As a reminder, we are using tailwindcss for the styling which allows you to "Rapidly build modern websites without ever leaving your HTML":
 
-```tsx
-// components/BlogSection.tsx
-// components/BlogSection.tsx
+```tsx filename="components/BlogSection.tsx"
 interface BlogPost {
   id: string
   title: string
@@ -359,8 +357,7 @@ export default function Example({ posts }: BlogSectionProps) {
 }
 ```
 
-```tsx
-// components/ContentSection.tsx
+```tsx filename="components/ContentSection.tsx"
 import Markdown from './Markdown';
 
 interface ContentSectionProps {
@@ -382,8 +379,7 @@ export default function ContentSection({ title, content }: ContentSectionProps) 
 }
 ```
 
-```tsx
-// components/Markdown.tsx
+```tsx filename="components/Markdown.tsx"
 import ReactMarkdown from "react-markdown";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import tsx from "react-syntax-highlighter/dist/cjs/languages/prism/tsx";
@@ -460,8 +456,7 @@ export default Markdown;
 
 When it comes to pages, we'll tweak `pages/index.tsx` to redirect to the first blog post page:
 
-```tsx
-// pages/index.tsx
+```tsx filename="pages/index.tsx"
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
@@ -487,8 +482,7 @@ export default function Home() {
 
 And create this post page that will use the components we previously built in addition to the `recommend` api endpoint:
 
-```tsx
-// pages/posts/[post].tsx
+```tsx filename="pages/posts/[post].tsx"
 import useSWR, { Fetcher } from "swr";
 import BlogSection from "../../components/BlogSection";
 import ContentSection from "../../components/ContentSection";
