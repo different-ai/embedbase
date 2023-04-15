@@ -1,3 +1,4 @@
+import Image from 'next/image'
 
 ### Using the Javascript SDK to add blog posts to Embedbase  
   
@@ -105,6 +106,8 @@ Now we can write the script that will store our documents in Embedbase, create a
 
 You'll need the `glob` library and Embedbase SDK, `embedbase-js`, to list files and interact with the API.
 
+Run: `npm i glob@8.1.0 embedbase-js`
+
 In Embedbase, the concept of `dataset` represents one of your data sources, for example, the food you eat, your shopping list, customer feedback, or product reviews.
 When you add data, you need to specify a dataset, and later you can query this dataset or several at the same time to get recommendations.
 
@@ -189,9 +192,12 @@ const sync = async () => {
 sync();
 ```
 
-Great, you can run it now  
+Great, you can run it now:
   
 ```bash
 npx tsx ./scripts/sync.ts
 ```
+
+You should see the following output:
   
+<Image src="/sync-blog-posts.png" width={800} height={500} />
