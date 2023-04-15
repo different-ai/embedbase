@@ -201,3 +201,40 @@ npx tsx ./scripts/sync.ts
 You should see the following output:
   
 <Image src="/sync-blog-posts.png" width={800} height={500} />
+
+
+### Github Action to automatically sync your blog posts to Embedbase
+
+You can automatically add your blog posts to Embedbase by creating a Github Action,
+this will allow you to keep your data up to date without having to run the script manually.
+
+Create a file `.github/workflows/sync.yml` and paste the following code:
+
+```yml
+name: Index everything
+
+on:
+  # Trigger the workflow on every push,
+  push:
+    branches:
+      # but only for the main branch
+      - main
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install
+      # Sync your blog posts to Embedbase
+      - run: npx tsx ./scripts/sync.ts
+        env:
+          EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+```
+
+Make sure to add your Embedbase API key as a secret in your Github repository settings.
+
+Read more about Github Actions secrets [here](https://docs.github.com/en/rest/actions/secrets).
