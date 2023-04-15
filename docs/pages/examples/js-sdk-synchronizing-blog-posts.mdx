@@ -1,0 +1,245 @@
+---
+title: Using the Javascript SDK to add blog posts to Embedbase  
+description: Store blog posts in Embedbase using the Javascript SDK
+---
+
+import Image from 'next/image'
+
+### Using the Javascript SDK to add blog posts to Embedbase  
+  
+In this example we will store blog posts in Embedbase. 
+
+Write in `_posts/apple-inc-a-glimpse-into-the-tech-giants-journey-and-innovations.md` the following content:
+
+```md
+---
+title: 'Apple Inc.: A Glimpse into the Tech Giants Journey and Innovations'
+excerpt: 'Apple Inc., one of the most influential technology companies globally, has transformed the way we live, work, and communicate. In this post, we will explore the history, innovations, and impact of Apple on the world of technology and beyond.'
+coverImage: 'https://miro.medium.com/max/1200/1*V7YkRy8RPFxg6Xo_9H7iCw.jpeg'
+date: '2022-10-17T05:35:07.322Z'
+author:
+  name: AI Assistant
+  picture: '/assets/blog/authors/ai_assistant.png'
+ogImage:
+  url: 'https://miro.medium.com/max/1200/1*V7YkRy8RPFxg6Xo_9H7iCw.jpeg'
+---
+
+Apple Inc., one of the most influential technology companies globally, has transformed the way we live, work, and communicate. Founded in 1976 by Steve Jobs, Steve Wozniak, and Ronald Wayne, the company has a rich history of groundbreaking innovations and iconic products. In this post, we will explore the history, innovations, and impact of Apple on the world of technology and beyond.
+
+![Apple Inc.](https://miro.medium.com/max/1200/1*V7YkRy8RPFxg6Xo_9H7iCw.jpeg)
+
+## A Brief History of Apple Inc.
+
+Apple's journey began in 1976 with the introduction of the Apple I, a personal computer designed and hand-built by Steve Wozniak. The success of the Apple I led to the development of the Apple II in 1977, which became one of the first highly successful mass-produced personal computers.
+
+In 1984, Apple introduced the Macintosh, a revolutionary computer that featured a graphical user interface and a mouse, setting new standards for ease of use and user experience. However, internal struggles and competition from IBM and Microsoft led to a decline in Apple's fortunes, culminating in the departure of Steve Jobs in 1985.
+```
+
+Now, in `_posts/exploring-the-wonderful-world-of-apples-natures-nutritious-and-delicious-treat.md`:
+
+```md
+---
+title: 'Exploring the Wonderful World of Apples: Natures Nutritious and Delicious Treat'
+excerpt: 'Apples, one of the most popular fruits worldwide, offer a myriad of health benefits and culinary versatility. In this post, we will explore the history, varieties, health benefits, and culinary uses of this delightful fruit.'
+coverImage: 'https://miro.medium.com/max/1200/1*QlZQaJZlCgjYQxkDj3B4qw.jpeg'
+date: '2022-10-16T05:35:07.322Z'
+author:
+  name: AI Assistant
+  picture: '/assets/blog/authors/ai_assistant.png'
+ogImage:
+  url: 'https://miro.medium.com/max/1200/1*QlZQaJZlCgjYQxkDj3B4qw.jpeg'
+---
+
+Apples, one of the most popular fruits worldwide, offer a myriad of health benefits and culinary versatility. These delightful fruits have been cultivated and enjoyed for thousands of years, and today, there are thousands of apple varieties to choose from. In this post, we will explore the history, varieties, health benefits, and culinary uses of apples.
+
+![Apples](https://miro.medium.com/max/1200/1*QlZQaJZlCgjYQxkDj3B4qw.jpeg)
+
+## A Brief History of Apples
+
+The apple tree (Malus domestica) is a member of the rose family and is believed to have originated in Central Asia, where its wild ancestor, Malus sieversii, can still be found today. The cultivation of apples dates back thousands of years, with evidence of apple consumption found in archaeological sites in the Near East and Europe.
+
+Apples were brought to North America by European colonists in the 17th century and quickly became a staple crop. Today, apples are grown in over 100 countries, with China, the United States, and Poland being the largest producers.
+```
+
+
+To read the blog posts we've just written, we will need to implement a small piece of code to parse the
+Markdown front-matter and store it in documents metadata, it will improve the search
+experience with additional information. To do so, we will be using the library called `gray-matter`,
+let's paste the following code in `lib/api.ts`:
+
+```ts
+import fs from 'fs'
+import { join } from 'path'
+import matter from 'gray-matter'
+
+// Get the absolute path to the posts directory
+const postsDirectory = join(process.cwd(), '_posts')
+
+export function getPostBySlug(slug: string, fields: string[] = []) {
+	const realSlug = slug.replace(/\.md$/, '')
+	// Get the absolute path to the markdown file
+	const fullPath = join(postsDirectory, `${realSlug}.md`)
+	// Read the markdown file as a string
+	const fileContents = fs.readFileSync(fullPath, 'utf8')
+	// Use gray-matter to parse the post metadata section
+	const { data, content } = matter(fileContents)
+
+	type Items = {
+		[key: string]: string
+	}
+
+	const items: Items = {}
+
+	// Store each field in the items object
+	fields.forEach((field) => {
+		if (field === 'slug') {
+			items[field] = realSlug
+		}
+		if (field === 'content') {
+			items[field] = content
+		}
+		if (typeof data[field] !== 'undefined') {
+			items[field] = data[field]
+		}
+	})
+
+	return items
+}
+```
+
+Now we can write the script that will store our documents in Embedbase, create a file `sync.ts` in the folder `scripts`.
+
+You'll need the `glob` library and Embedbase SDK, `embedbase-js`, to list files and interact with the API.
+
+Run: `npm i glob@8.1.0 embedbase-js`
+
+In Embedbase, the concept of `dataset` represents one of your data sources, for example, the food you eat, your shopping list, customer feedback, or product reviews.
+When you add data, you need to specify a dataset, and later you can query this dataset or several at the same time to get recommendations.
+
+Alright, let's finally implement the script to send your data to Embedbase, paste the following code in `scripts/sync.ts`:
+
+```ts
+import glob from "glob";
+import { createClient, BatchAddDocument } from 'embedbase-js'
+import { splitText } from 'embedbase-js/dist/main/split';
+import { getPostBySlug } from "../lib/api";
+
+try {
+    // load the .env.local file to get the api key
+    require("dotenv").config({ path: ".env.local" });
+} catch (e) {
+    console.log("No .env file found" + e);
+}
+// you can find the api key at https://app.embedbase.xyz
+const apiKey = process.env.EMBEDBASE_API_KEY;
+// this is using the hosted instance
+const url = 'https://api.embedbase.xyz'
+const embedbase = createClient(url, apiKey)
+
+const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
+    const batchSize = 100;
+    // add to embedbase by batches of size 100
+    return Promise.all(
+        myList.reduce((acc: BatchAddDocument[][], chunk, i) => {
+            if (i % batchSize === 0) {
+                acc.push(myList.slice(i, i + batchSize));
+            }
+            return acc;
+            // here we are using the batchAdd method to send the documents to embedbase
+        }, []).map(fn)
+    )
+}
+
+const sync = async () => {
+    const pathToPost = (path: string) => {
+        // We will use the function we created in the previous step
+        // to parse the post content and metadata
+        const post = getPostBySlug(path.split("/").slice(-1)[0], [
+            'title',
+            'date',
+            'slug',
+            'excerpt',
+            'content'
+        ])
+        return {
+            data: post.content,
+            metadata: {
+                path: post.slug,
+                title: post.title,
+                date: post.date,
+                excerpt: post.excerpt,
+            }
+        }
+    };
+    // read all files under _posts/* with .md extension
+    const documents = glob.sync("_posts/**/*.md").map(pathToPost);
+
+    // using chunks is useful to send batches of documents to embedbase
+    // this is useful when you send a lot of data
+    const chunks = []
+    documents.map((document) =>
+        splitText(document.data, {}, async ({ chunk, start, end }) => chunks.push({
+            data: chunk,
+            metadata: document.metadata,
+        }))
+    )
+    const datasetId = `recsys`
+
+    console.log(`Syncing to ${datasetId} ${chunks.length} documents`);
+
+    // add to embedbase by batches of size 100
+    return batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
+        .then((e) => e.flat())
+        .then((e) => console.log(`Synced ${e.length} documents to ${datasetId}`, e))
+        .catch(console.error);
+}
+
+sync();
+```
+
+Great, you can run it now:
+  
+```bash
+npx tsx ./scripts/sync.ts
+```
+
+You should see the following output:
+  
+<Image src="/sync-blog-posts.png" width={800} height={500} />
+
+
+### Github Action to automatically sync your blog posts to Embedbase
+
+You can automatically add your blog posts to Embedbase by creating a Github Action,
+this will allow you to keep your data up to date without having to run the script manually.
+
+Create a file `.github/workflows/sync.yml` and paste the following code:
+
+```yml
+name: Index everything
+
+on:
+  # Trigger the workflow on every push,
+  push:
+    branches:
+      # but only for the main branch
+      - main
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install
+      # Sync your blog posts to Embedbase
+      - run: npx tsx ./scripts/sync.ts
+        env:
+          EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+```
+
+Make sure to add your Embedbase API key as a secret in your Github repository settings.
+
+Read more about Github Actions secrets [here](https://docs.github.com/en/rest/actions/secrets).
