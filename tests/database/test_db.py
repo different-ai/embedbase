@@ -5,14 +5,16 @@ Tests at the database abstraction level.
 import hashlib
 from typing import List
 
+import numpy as np
 import pandas as pd
 import pytest
-import numpy as np
+
 from embedbase.database import VectorDatabase
 from embedbase.database.db_utils import batch_select
+from embedbase.database.memory_db import MemoryDatabase
 from embedbase.database.postgres_db import Postgres
-from embedbase.settings import get_settings_from_file
 from embedbase.database.supabase_db import Supabase
+from embedbase.settings import get_settings_from_file
 from tests.test_utils import unit_testing_dataset
 
 vector_databases: List[VectorDatabase] = []
@@ -30,6 +32,7 @@ def init_databases():
             key=settings.supabase_key,
         )
     )
+    vector_databases.append(MemoryDatabase())
 
 
 @pytest.mark.asyncio
