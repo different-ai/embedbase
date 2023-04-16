@@ -9,22 +9,17 @@ import Image from 'next/image'
 
 ## Creating Render Account
 
-To host on Render, you'll need to sign up or create an account. It's free and supports direct login using google, GitHub and GitLab account. Or you can use email and password to signup. You need to verify your email to get full access to the platform. Just head to render/register.
+To host on Render, you'll need to [sign up or create an account](https://render.com). It's free and supports direct login using google, GitHub and GitLab account. Or you can use email and password to signup. You need to verify your email to get full access to the platform. Just head to render/register.
 
 ## Need for GitHub or GitLab account
 
 It's easier to deploy an application that has its source code hosted on GitHub or GitLab. Render connects with GitHub or GitLab to deploy your apps and websites automatically on every push to your project. This is very useful, as you don't have to manually deploy every time you make a change. You can either connect GitHub or GitLab or both.
-
-## Let's make a simple API using FastAPI
-
-We need an application to deploy to the Render. Let's build a simple Embedbase instance.
 
 ## Setting up environment
 
 You'll need to download and install Python3 to your local machine. It's better to set up a virtual environment for the application.
 
 Next, create a folder in your preferred directory and name simple-embedbase. Next to set up virtual environment enter the command opening terminal or CMD.
-
 
 Next to set up virtual environment, on Linux sometimes we need to install extra library. To do the same, just enter the command in your terminal.
 
@@ -47,7 +42,7 @@ Make sure your package manager that is `pip` is up-to-date.
 python -m pip install --upgrade pip
 ```
 
-We're going to use OpenAI to create embeddings and Supabase as a database.
+We're going to use **OpenAI** to create embeddings and **Supabase** as a database.
 So you'll need now to install Embedbase, OpenAI, and Supabase, using `pip`:
 
 ```bash
@@ -61,7 +56,7 @@ Open the folder in any text editors, you can use notepad or advanced IDE's like 
 
 Just copy and paste the below lines to the file. If you're good with python or professional, then you can add or modify, making the API better.
 
-```python
+```python filename="main.py"
 import os
 import uvicorn
 from embedbase import get_app
@@ -113,7 +108,7 @@ export SUPABASE_KEY="..."
 Let's try out the code using the command:
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 It should run without any errors.
@@ -124,6 +119,12 @@ All done. Now we just need to create some extra files which are need by Render t
 
 You can simply type `git+https://github.com/different-ai/embedbase`, `supabase` and `openai` in the requirements.txt file. When deploying, render will install the latest version of these modules.
 
+```text filename="requirements.txt"
+git+https://github.com/different-ai/embedbase
+supabase
+openai
+```
+
 (Note that we use the latest Embedbase version from GitHub, due to some issues with Render and PyPi)
 
 ## Creating a .gitignore file
@@ -132,7 +133,7 @@ You can simply type `git+https://github.com/different-ai/embedbase`, `supabase` 
 
 For this simple-embedbase we don't want to upload env and __pycache__ to the GitHub. So we mention them in the .gitignore file like this.
 
-```
+```.gitignore filename=".gitignore"
 env
 __pycache__
 ```
