@@ -167,9 +167,48 @@ Deploying may take some time, so patiently wait. After successful deployment, yo
 <Image src="/render-deployment-result.png" width={800} height={500} />
 
 Try to add some content to the Embedbase instance. 
-
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
+  <Tab>
+    **TypeScript**
+```js
+import { createClient } from 'embedbase-js'
+const url = "http://<your-render-url>"
+const embedbase = createClient(url)
+const SENTENCES = [
+    "The lion is the king of the savannah.",
+    "The chimpanzee is a great ape.",
+    "The elephant is the largest land animal.",
+];
+const DATASET_ID = "animals"
+const add = async () => {
+    const data = await embedbase
+        .dataset(DATASET_ID)
+        .batchAdd(SENTENCES.map((data) => ({ data })))
+    console.log(data)
+}
+add()
+```
+  </Tab>
+    <Tab>
+        **Python**
+```python
+from embedbase_client.client import EmbedbaseClient
+url = "http://<your-render-url>"
+client = EmbedbaseClient(url)
+SENTENCES = [
+    "The lion is the king of the savannah.",
+    "The chimpanzee is a great ape.",
+    "The elephant is the largest land animal.",
+]
+DATASET_ID = "animals"
+data = client.dataset(DATASET_ID).batch_add([{"data": sentence} for sentence in SENTENCES])
+print(data)
+```
+  </Tab>
+  <Tab>
+    **Bash**
 ```bash
-URL="https://<your-render-subdomain>.onrender.com"
+URL="http://<your-render-url>"
 SENTENCES=(
     "The lion is the king of the savannah."
     "The chimpanzee is a great ape."
@@ -181,6 +220,10 @@ curl -X POST \
     -d "{\"documents\": [{\"data\": \"${SENTENCES[0]}\"}, {\"data\": \"${SENTENCES[1]}\"}, {\"data\": \"${SENTENCES[2]}\"}]}" \
     $URL/v1/${DATASET_ID}
 ```
+  </Tab>
+</Tabs>
+
+
 
 You should get a similar response:
 
@@ -211,6 +254,29 @@ You should get a similar response:
 
 Let's try to search now
 
+
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
+  <Tab>
+    **TypeScript**
+```js
+const search = async () => {
+    const data = await embedbase
+        .dataset(DATASET_ID)
+        .search("Animal that lives in the savannah", { limit: 1})
+    console.log(data)
+}
+search()
+```
+  </Tab>
+  <Tab>
+    **Python**
+```python
+data = client.dataset(DATASET_ID).search("Animal that lives in the savannah", limit=1)
+print(data)
+```
+  </Tab>
+  <Tab>
+    **Bash**
 ```bash
 curl -X POST \
     -H "Content-Type: application/json" \
@@ -218,6 +284,9 @@ curl -X POST \
     $URL/v1/${DATASET_ID}/search \
     2>/dev/null | jq '.similarities[0].data'
 ```
+  </Tab>
+</Tabs>
+
 
 You should get a similar response:
 
