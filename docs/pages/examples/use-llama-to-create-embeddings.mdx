@@ -1,3 +1,5 @@
+import { Tab, Tabs } from 'nextra-theme-docs'
+
 # Use LLaMa to create embeddings
 
 ⚠️ This is not recommended for production. For server deployment, you should never run a model in Embedbase directly ([contact](mailto:louis@embedbase.xyz) to learn more) ⚠️
@@ -109,9 +111,48 @@ Start the Embedbase application with the following command:
 ```bash
 python3 main.py
 ```
-
 ## Test the endpoint
 
+ 
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
+  <Tab>
+    **TypeScript**
+```js
+import { createClient } from 'embedbase-js'
+const embedbase = createClient("http://localhost:8000")
+const SENTENCES = [
+    "The lion is the king of the savannah.",
+    "The chimpanzee is a great ape.",
+    "The elephant is the largest land animal.",
+];
+const DATASET_ID = "animals"
+const add = async () => {
+    const data = await embedbase
+        .dataset(DATASET_ID)
+        .batchAdd(SENTENCES.map((data) => ({ data })))
+    console.log(data)
+}
+add()
+```
+  </Tab>
+    <Tab>
+        **Python**
+```python
+from embedbase_client.client import EmbedbaseClient
+ 
+client = EmbedbaseClient("http://localhost:8000")
+SENTENCES = [
+    "The lion is the king of the savannah.",
+    "The chimpanzee is a great ape.",
+    "The elephant is the largest land animal.",
+]
+DATASET_ID = "animals"
+data = client.dataset(DATASET_ID).batch_add([{"data": sentence} for sentence in SENTENCES])
+print(data)
+```
+  </Tab>
+  <Tab>
+    **Bash**
 ```bash
 SENTENCES=(
     "The lion is the king of the savannah."
@@ -124,6 +165,10 @@ curl -X POST \
     -d "{\"documents\": [{\"data\": \"${SENTENCES[0]}\"}, {\"data\": \"${SENTENCES[1]}\"}, {\"data\": \"${SENTENCES[2]}\"}]}" \
     http://localhost:8000/v1/${DATASET_ID}
 ```
+  </Tab>
+</Tabs>
+
+
 
 You should get a similar response:
 
@@ -154,6 +199,29 @@ You should get a similar response:
 
 Let's try to search now
 
+
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
+  <Tab>
+    **TypeScript**
+```js
+const search = async () => {
+    const data = await embedbase
+        .dataset(DATASET_ID)
+        .search("Animal that lives in the savannah", { limit: 1})
+    console.log(data)
+}
+search()
+```
+  </Tab>
+  <Tab>
+    **Python**
+```python
+data = client.dataset(DATASET_ID).search("Animal that lives in the savannah", limit=1)
+print(data)
+```
+  </Tab>
+  <Tab>
+    **Bash**
 ```bash
 curl -X POST \
     -H "Content-Type: application/json" \
@@ -161,6 +229,9 @@ curl -X POST \
     http://localhost:8000/v1/${DATASET_ID}/search \
     2>/dev/null | jq '.similarities[0].data'
 ```
+  </Tab>
+</Tabs>
+
 
 You should get a similar response:
 

@@ -106,9 +106,9 @@ python3 main.py
 ## Test the endpoint
 
  
-<Tabs items={['TypeScript', 'Bash']}>
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
   <Tab>
-    **TypeScript**:
+    **TypeScript**
 ```js
 import { createClient } from 'embedbase-js'
 const embedbase = createClient("http://localhost:8000")
@@ -125,6 +125,22 @@ const add = async () => {
     console.log(data)
 }
 add()
+```
+  </Tab>
+    <Tab>
+        **Python**
+```python
+from embedbase_client.client import EmbedbaseClient
+ 
+client = EmbedbaseClient("http://localhost:8000")
+SENTENCES = [
+    "The lion is the king of the savannah.",
+    "The chimpanzee is a great ape.",
+    "The elephant is the largest land animal.",
+]
+DATASET_ID = "animals"
+data = client.dataset(DATASET_ID).batch_add([{"data": sentence} for sentence in SENTENCES])
+print(data)
 ```
   </Tab>
   <Tab>
@@ -176,9 +192,9 @@ You should get a similar response:
 Let's try to search now
 
 
-<Tabs items={['TypeScript', 'Bash']}>
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
   <Tab>
-    **TypeScript**:
+    **TypeScript**
 ```js
 const search = async () => {
     const data = await embedbase
@@ -187,6 +203,13 @@ const search = async () => {
     console.log(data)
 }
 search()
+```
+  </Tab>
+  <Tab>
+    **Python**
+```python
+data = client.dataset(DATASET_ID).search("Animal that lives in the savannah", limit=1)
+print(data)
 ```
   </Tab>
   <Tab>
