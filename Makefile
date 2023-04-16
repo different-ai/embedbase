@@ -44,7 +44,7 @@ release: ## [Local development] Release a new version of the API.
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${VERSION}: $$COMMIT'"; \
-	git commit -m "${VERSION}: $$COMMIT"; \
+	git commit -m "Release ${VERSION}: $$COMMIT"; \
 	git push origin main; \
 	git tag ${VERSION}; \
 	git push origin ${VERSION}
