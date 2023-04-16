@@ -6,6 +6,10 @@ on:
       - main
       - next
       - rc
+    paths:
+      - 'embedbase/**'
+  workflow_dispatch:
+    
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -92,7 +96,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.ref }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: core-${{ github.ref }}
+          release_name: core-${{ github.ref }}
           draft: false
           prerelease: false
