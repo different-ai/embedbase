@@ -65,7 +65,7 @@ And write a basic boilerplate code in `main.py`:
 import uvicorn
 from embedbase import get_app
 
-from embedbase.database.postgres_db import Postgres
+from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.openai import OpenAI
  
 async def custom_middleware(request, call_next):
@@ -81,17 +81,11 @@ app = (
     get_app()
     .use_middleware(custom_middleware)
     .use_embedder(OpenAI("<your key>"))
-    .use_db(Postgres())
+    .use_db(MemoryDatabase())
 ).run()
 
 if __name__ == "__main__":
     uvicorn.run("main:app")
-```
-
-Let's use Postgres as a database, you can start it with Docker:
-
-```bash
-docker run -d -p 8080:8080 -p 5432:5432 -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb ankane/pgvector
 ```
 
 Now start embedbase using the boilerplate code we just wrote in `main.py`:
