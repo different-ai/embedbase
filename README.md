@@ -62,6 +62,7 @@ pip install embedbase uvicorn
 And write a basic boilerplate code in `main.py`:
 
 ```py
+import uvicorn
 from embedbase import get_app
 
 from embedbase.database.postgres_db import Postgres
