@@ -6,8 +6,6 @@ on:
       - main
       - next
       - rc
-    paths:
-      - 'embedbase/**'
 jobs:
   build:
     runs-on: ubuntu-latest
