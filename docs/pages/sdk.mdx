@@ -114,6 +114,31 @@ console.log(data)
 // }
 ```
 
+If you have many documents to add, you should use `batchAdd`:
+
+```ts
+embedbase.dataset(datasetId).batchAdd([{
+  data: 'some text',
+}])
+```
+
+For better performance, you can use batches with `Promise.all`:
+
+```ts
+const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
+    const batchSize = 100;
+    return Promise.all(
+        myList.reduce((acc: BatchAddDocument[][], chunk, i) => {
+            if (i % batchSize === 0) {
+                acc.push(myList.slice(i, i + batchSize));
+            }
+            return acc;
+        }, []).map(fn)
+    )
+}
+batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
+```
+
 ### Splitting and chunking large texts
 
 ```js
