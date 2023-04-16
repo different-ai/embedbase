@@ -65,9 +65,15 @@ class InMemoryDatabase(VectorDatabase):
             ]
         elif hashes:
             return [
-                doc
-                for doc in self.storage.values()
-                if doc["metadata"]["hash"] in hashes
+                {
+                    "id": id,
+                    "data": doc["data"],
+                    "embedding": doc["embedding"].tolist(),
+                    "metadata": doc["metadata"],
+                    "hash": doc["hash"],
+                }
+                for id, doc in self.storage.items()
+                if doc["hash"] in hashes
                 and (dataset_id is None or doc["dataset_id"] == dataset_id)
                 and (user_id is None or doc["user_id"] == user_id)
             ]
