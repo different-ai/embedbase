@@ -139,12 +139,14 @@ export default function SmartChat() {
     inputRef.current.focus()
   }, [])
 
-  const onError = async (error: Error | Response) => {
+  const onError = (error: Error | Response) => {
     console.error(error)
     const userFacingMessage =
       // is type Response
       error instanceof Response && error.status === 401
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
+        : error instanceof Response && error.status === 402
+          ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
         : 'Oops! There seems to be an error. Please try again.'
     setMessages((prevMessages) => [
       ...prevMessages,

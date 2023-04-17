@@ -11,4 +11,6 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports": true,
     },
+    "deno.enable": true,
+    "deno.unstable": true,
 }
