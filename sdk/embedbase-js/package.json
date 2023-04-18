@@ -7,19 +7,24 @@
     "typescript",
     "embedbase"
   ],
-  "homepage": "https://github.com/different-ai/embedbase-js",
-  "bugs": "https://github.com/different-ai/embedbase-js/issues",
+  "homepage": "https://github.com/different-ai/embedbase/sdk/embedbase-js",
+  "bugs": "https://github.com/different-ai/embedbase/issues",
   "license": "MIT",
   "author": "Different AI",
   "files": [
     "dist",
     "src"
   ],
+  "./split": {
+    "types": "dist/module/split/index.d.ts",
+    "import": "dist/module/split/index.js",
+    "require": "dist/main/split/index.js"
+  },
   "main": "dist/main/index.js",
   "module": "dist/module/index.js",
   "types": "dist/module/index.d.ts",
   "sideEffects": false,
-  "repository": "different-ai/embedbase-js",
+  "repository": "different-ai/embedbase",
   "scripts": {
     "clean": "rimraf dist",
     "format": "prettier --write \"{src,test}/**/*.ts\" --ignore-path test/samples/sample.ts",
