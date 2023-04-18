@@ -12,12 +12,12 @@ const KEY = process.env.EMBEDBASE_API_KEY || 'some.fake.KEY'
 const embedbase = createClient(URL, KEY)
 const RANDOM_DATASET_NAME = new Date().getTime().toString()
 
-test('it should create the client connection', async () => {
+test('it should create the client connection', () => {
   expect(embedbase).toBeDefined()
   expect(embedbase).toBeInstanceOf({}.constructor)
 })
 
-test('it should throw an error if no valid params are provided', async () => {
+test('it should throw an error if no valid params are provided', () => {
   expect(() => createClient('', KEY)).toThrowError('embedbaseUrl is required.')
 })
 

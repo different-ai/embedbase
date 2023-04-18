@@ -13,4 +13,10 @@
     },
     "deno.enable": true,
     "deno.unstable": true,
+    "eslint.workingDirectories": [
+        "sdk/embedbase-js"
+    ],
+    "deno.enablePaths": [
+        "supabase/functions"
+    ],
 }

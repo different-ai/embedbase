@@ -2,7 +2,7 @@ export type Fetch = typeof fetch
 
 export interface BatchAddDocument {
   data: string
-  metadata?: Metadata | unknown
+  metadata?: Metadata
 }
 
 /**
@@ -17,8 +17,8 @@ export interface BatchAddDocument {
  * @interface Metadata
  */
 interface Metadata {
-  path: string
-  [key: string]: unknown
+  path?: string
+  [key: string]: any
 }
 
 export interface SearchSimilarity {
@@ -26,7 +26,7 @@ export interface SearchSimilarity {
   data: string
   embedding: number[]
   hash: string
-  metadata?: Metadata | unknown
+  metadata?: Metadata
 }
 
 export interface SearchData {
@@ -43,7 +43,7 @@ export interface AddDataResult {
   data: string
   embedding: number[]
   hash: string
-  metadata?: Metadata | unknown
+  metadata?: Metadata
 }
 export interface AddData {
   results?: AddDataResult[]
