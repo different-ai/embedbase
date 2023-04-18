@@ -33,7 +33,7 @@ jobs:
         working-directory: sdk/embedbase-js
 
       - name: Create a release
-        run: npx semantic-release@^18.0.0 -t js-${version}
+        run: npx semantic-release@^18.0.0 -t "js-${version}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
