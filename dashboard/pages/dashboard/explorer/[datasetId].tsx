@@ -298,7 +298,7 @@ const getDocuments = async (
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
   const supabase = createServerSupabaseClient(ctx)
-  const { page = 1, size } = ctx.query
+  const { page = 0, size } = ctx.query
   const { from, to } = getPagination(page, 25)
   const datasetId = ctx?.query?.datasetId
 
