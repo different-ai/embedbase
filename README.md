@@ -12,9 +12,9 @@
     <br />
     <a href="https://discord.gg/pMNeuGrDky"><img alt="Discord" src="https://img.shields.io/discord/1066022656845025310?color=black&style=for-the-badge"></a>
     <a href="https://badge.fury.io/py/embedbase"><img alt="PyPI" src="https://img.shields.io/pypi/v/embedbase?color=black&style=for-the-badge"></a>
-    <a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase">
+    <!--<a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase">
     <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
-  </a>
+  </a>-->
     <p align="center">Open-source API, SDK & dashboard to easily create, store, and retrieve machine learning embeddings</p>
     <p align="center">Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <div align="center">
@@ -67,6 +67,8 @@ Run a local-first instance of Embedbase:
 ```bash
 embedbase run
 ```
+
+![pika-1681921124330-1x](https://user-images.githubusercontent.com/25003283/233138132-cf42ec0f-3821-495f-8e29-2067e643d6db.png)
 
 🔥 Embedbase now runs! [Time to ship your product](#sdk)
 
