@@ -1,6 +1,6 @@
 LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
-# read version from setup.py
-VERSION="$(shell python3 setup.py --version)"
+# read version from pyproject.toml
+VERSION="$(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
 IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
 LOCAL_PORT="8000"
 
@@ -15,10 +15,11 @@ run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run tests with pytest.
-	docker-compose up -d
-	while ! docker-compose exec -T postgres pg_isready -U postgres; do sleep 1; done
-	pytest tests
-	docker-compose down
+	docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
+    	-e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb
+	while ! docker exec -it pgvector pg_isready -U postgres; do sleep 1; done
+	poetry run pytest
+	docker stop pgvector
 	@echo "Done testing"
 
 docker/build/prod: ## [Local development] Build the docker image.

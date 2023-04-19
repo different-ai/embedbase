@@ -12,6 +12,9 @@
     <br />
     <a href="https://discord.gg/pMNeuGrDky"><img alt="Discord" src="https://img.shields.io/discord/1066022656845025310?color=black&style=for-the-badge"></a>
     <a href="https://badge.fury.io/py/embedbase"><img alt="PyPI" src="https://img.shields.io/pypi/v/embedbase?color=black&style=for-the-badge"></a>
+    <a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase">
+    <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
+  </a>
     <p align="center">Open-source API, SDK & dashboard to easily create, store, and retrieve machine learning embeddings</p>
     <p align="center">Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <div align="center">
@@ -56,46 +59,18 @@ Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 Let's install Python dependencies:
 
 ```bash
-pip install embedbase uvicorn
+pip install embedbase sentence-transformers
 ```
 
-And write a basic boilerplate code in `main.py`:
-
-```py
-import uvicorn
-from embedbase import get_app
-
-from embedbase.database.memory_db import MemoryDatabase
-from embedbase.embedding.openai import OpenAI
- 
-async def custom_middleware(request, call_next):
-    # customise as you prefer :)
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    
-    return response
- 
-app = (
-    get_app()
-    .use_middleware(custom_middleware)
-    .use_embedder(OpenAI("<your key>"))
-    .use_db(MemoryDatabase())
-).run()
-
-if __name__ == "__main__":
-    uvicorn.run("main:app")
-```
-
-Now start embedbase using the boilerplate code we just wrote in `main.py`:
+Run a local-first instance of Embedbase:
 
 ```bash
-python3 main.py
+embedbase run
 ```
 
 🔥 Embedbase now runs! [Time to ship your product](#sdk)
 
+ℹ️ Look at the code you just ran [here](./embedbase/__main__.py), feel free to modify it to your needs.
 
 ### Managed Instance
 

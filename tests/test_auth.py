@@ -5,14 +5,14 @@ from embedbase.embedding.openai import OpenAI
 
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.settings import get_settings_from_file
-from embedbase.database.postgres_db import Postgres
+from embedbase.database.memory_db import MemoryDatabase
 from tests.test_utils import unit_testing_dataset
 
 
 @pytest.mark.asyncio
 async def test_enable_firebase_auth():
     settings = get_settings_from_file()
-    db = Postgres()
+    db = MemoryDatabase()
     app = (
         get_app(settings).use_db(db).use_embedder(OpenAI(settings.openai_api_key)).run()
     )

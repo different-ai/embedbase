@@ -17,16 +17,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PORT=8000
-      - POSTGRES_DB=embedbase
-      - POSTGRES_PASSWORD=localdb
       - OPENAI_API_KEY={OPENAI_API_KEY}
-    links:
-      - "postgres:db"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./:/embedbase/data
     expose:
       - "8000"
     ports:
@@ -36,24 +27,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  postgres:
-    container_name: postgres
-    image: ankane/pgvector
-    environment:
-      - POSTGRES_DB=embedbase
-      - POSTGRES_PASSWORD=localdb
-    volumes:
-      - data:/var/lib/postgresql/data
-    expose:
-      - "8080"
-      - "5432"
-    ports:
-      - "5432:5432"
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "embedbase"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
-volumes:
-  data:

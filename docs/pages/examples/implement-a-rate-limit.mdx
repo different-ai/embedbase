@@ -9,17 +9,7 @@ Install the required dependencies in a virtual environment:
 ```bash
 virtualenv env
 source env/bin/activate
-pip install embedbase pgvector psycopg[binary] redis
-```
-
-## Start Postgres as an Embedbase database
-
-Run a Postgres instance for the Embedbase database.
-
-```bash
-docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
-    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
-    -v data:/var/lib/postgresql/data ankane/pgvector
+pip install embedbase redis
 ```
 
 ## Start Redis as an Embedbase rate limiter
@@ -39,7 +29,7 @@ Create a new file `main.py` with the following code:
 ```python filename="main.py"
 import os
 from embedbase import get_app
-from embedbase.database.postgres_db import Postgres
+from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.openai import OpenAI
 import redis.asyncio as redis
 import uvicorn
@@ -83,7 +73,7 @@ async def rate_limiter(request, call_next):
 app = (
     get_app()
     .use_embedder(OpenAI(OPENAI_API_KEY))
-    .use_db(Postgres())
+    .use_db(MemoryDatabase())
     .use_middleware(rate_limiter)
     .run()
 )

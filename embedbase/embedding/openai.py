@@ -1,4 +1,4 @@
-import typing
+from typing import List, Union
 
 from tenacity import (
     retry,
@@ -23,17 +23,17 @@ except:
     retry=retry_if_not_exception_type(openai.InvalidRequestError),
 )
 def embed_retry(
-    input: typing.List[str],
-) -> typing.List[dict]:
+    data: List[str],
+) -> List[dict]:
     """
     Embed a list of sentences and retry on failure
-    :param input: list of sentences to embed
+    :param data: list of sentences to embed
     :param provider: which provider to use
     :return: list of embeddings
     """
     return [
         e["embedding"]
-        for e in openai.Embedding.create(input=input, model="text-embedding-ada-002")[
+        for e in openai.Embedding.create(input=data, model="text-embedding-ada-002")[
             "data"
         ]
     ]
@@ -49,7 +49,7 @@ class OpenAI(Embedder):
     EMBEDDING_ENCODING = "cl100k_base"
 
     def __init__(
-        self, openai_api_key: str, openai_organization: typing.Optional[str] = None
+        self, openai_api_key: str, openai_organization: Optional[str] = None
     ):
         super().__init__()
         try:
@@ -75,5 +75,5 @@ class OpenAI(Embedder):
 
         return False
 
-    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
-        return embed_retry(input)
+    async def embed(self, data: Union[List[str], str]) -> List[List[float]]:
+        return embed_retry(data)

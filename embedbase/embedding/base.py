@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import typing
+from typing import List, Union
 
 
 class Embedder(ABC):
@@ -25,9 +25,9 @@ class Embedder(ABC):
         """
 
     @abstractmethod
-    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
+    async def embed(self, data: Union[List[str], str]) -> List[List[float]]:
         """
-        Embed a list of texts or a text
-        :param texts: list of texts
+        Embed a list of strings or a string
+        :param data: list of strings or a string
         :return: list of embeddings
         """

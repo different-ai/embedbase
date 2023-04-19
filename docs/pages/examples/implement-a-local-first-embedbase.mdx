@@ -25,17 +25,7 @@ Install the required dependencies in a virtual environment:
 ```bash
 virtualenv env
 source env/bin/activate
-pip install embedbase pgvector psycopg[binary] sentence-transformers
-```
-
-## Start Postgres as an Embedbase database
-
-Run a Postgres instance for the Embedbase database.
-
-```bash
-docker run -d --name pgvector -p 8080:8080 -p 5432:5432 \
-    -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb \
-    -v data:/var/lib/postgresql/data ankane/pgvector
+pip install embedbase sentence-transformers
 ```
 
 ## Start Embedbase
@@ -45,7 +35,7 @@ Create a new file `main.py` with the following code:
 ```python filename="main.py"
 import typing
 from embedbase import get_app
-from embedbase.database.postgres_db import Postgres
+from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.base import Embedder
 import uvicorn
 from sentence_transformers import SentenceTransformer
@@ -77,19 +67,19 @@ class LocalEmbedder(Embedder):
         """
         return len(text) > self.model.get_max_seq_length()
 
-    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
+    async def embed(self, data: Union[List[str], str]) -> List[List[float]]:
         """
-        Embed a list of texts
-        :param texts: list of texts
+        Embed a list of strings or a single string
+        :param data: list of strings or a single string
         :return: list of embeddings
         """
-        embeddings = self.model.encode(input)
-        return embeddings.tolist() if isinstance(input, list) else [embeddings.tolist()]
+        embeddings = self.model.encode(data)
+        return embeddings.tolist() if isinstance(data, list) else [embeddings.tolist()]
 
 app = (
     get_app()
     .use_embedder(LocalEmbedder())
-    .use_db(Postgres(dimensions=384))
+    .use_db(MemoryDatabase(dimensions=384))
     .run()
 )
 

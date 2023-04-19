@@ -1,4 +1,4 @@
-import typing
+from typing import Any, List, Union
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -13,16 +13,16 @@ from embedbase.embedding.base import Embedder
     stop=stop_after_attempt(3),
 )
 def embed_retry(
-    co: typing.Any,
-    input: typing.List[str],
-) -> typing.List[dict]:
+    co: Any,
+    data: List[str],
+) -> List[dict]:
     """
     Embed a list of sentences and retry on failure
-    :param input: list of sentences to embed
+    :param data: list of sentences to embed
     :param provider: which provider to use
     :return: list of embeddings
     """
-    return co.embed(input).embeddings
+    return co.embed(data).embeddings
 
 
 class Cohere(Embedder):
@@ -49,5 +49,5 @@ class Cohere(Embedder):
     def is_too_big(self, text: str) -> bool:
         raise NotImplementedError()
 
-    async def embed(self, input: typing.Union[typing.List[str], str]) -> typing.List[typing.List[float]]:
-        return embed_retry(self.co, input)
+    async def embed(self, data: Union[List[str], str]) -> List[List[float]]:
+        return embed_retry(self.co, data)

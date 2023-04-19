@@ -13,7 +13,7 @@ from httpx import AsyncClient
 
 from embedbase import get_app
 from embedbase.database.base import VectorDatabase
-from embedbase.database.postgres_db import Postgres
+from embedbase.database.memory_db import MemoryDatabase
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
 from embedbase.settings import get_settings_from_file
@@ -27,7 +27,7 @@ vector_databases: List[VectorDatabase] = []
 def init_databases():
     settings = get_settings_from_file()
 
-    vector_databases.append(Postgres())
+    vector_databases.append(MemoryDatabase())
     vector_databases.append(
         Supabase(
             url=settings.supabase_url,
@@ -376,7 +376,7 @@ async def test_get_datasets_with_auth():
         app = (
             get_app(settings)
             .use_middleware(add_uid)
-            .use_db(Postgres())
+            .use_db(MemoryDatabase())
             .use_embedder(OpenAI(settings.openai_api_key))
         ).run()
 

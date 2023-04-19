@@ -18,3 +18,4 @@ config.yaml
 
 postgres
 main.py
+dist

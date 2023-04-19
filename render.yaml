@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: embedbase-render
+    env: python
+    rootDir: .
+    healthCheckPath: /health
+    startCommand: "embedbase run"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.8.5

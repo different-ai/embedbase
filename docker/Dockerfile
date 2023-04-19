@@ -1,5 +1,4 @@
 FROM python:3.10-slim
-# TODO: alpine / scratch
 
 ENV PYTHONUNBUFFERED True
 
@@ -8,7 +7,7 @@ WORKDIR $APP_HOME
 COPY . ./
 
 ENV PORT 8080
-ARG FLAVOR=all
+ARG FLAVOR=minimal
 RUN pip install --no-cache-dir .[$FLAVOR]
 
 ENTRYPOINT ["docker/docker-entrypoint.sh"]

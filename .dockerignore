@@ -5,8 +5,8 @@
 # Allow files and directories
 !docker/docker-entrypoint.sh
 !embedbase/**/*.py
-!setup.py
-!requirements.txt
-!optional-requirements.txt
+!pyproject.toml
+# do we need this?
+!setup.cfg
 !README.md
 !MANIFEST.in

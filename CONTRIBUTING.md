@@ -8,16 +8,17 @@
   - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings)
   - [ ] [cohere embeddings](https://cohere.ai/embed)
   - [ ] [Google PaLM embeddings](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
-  - [ ] local (BERT, etc.)
+  - [x] local (BERT, LLaMa, Vicuna, etc.)
+  - [ ] enterprise-scale (FAISS, qdrant, etc.)
 * Vector database
   - [x] [supabase](https://supabase.com/)
-  - [x] postgres (alpha release, tested for development)
+  - [x] postgres
   - [ ] [pinecone](https://www.pinecone.io/)
-  - [ ] local (sqlite, etc.)
+  - [x] local (sqlite, etc.)
 * [fastapi](https://github.com/tiangolo/fastapi)
 * Authentication (optional)
   - [x] [firebase](https://firebase.google.com/)
-  - [ ] [supabase](https://supabase.com/)
+  - [x] [supabase](https://supabase.com/)
 
 ### Taking on Tasks
 

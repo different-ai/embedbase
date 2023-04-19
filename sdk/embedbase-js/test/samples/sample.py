@@ -513,7 +513,7 @@ def is_too_big(text: str):
     retry=retry_if_not_exception_type(openai.InvalidRequestError),
 )
 def embed(
-    input: typing.List[str], model: str = "text-embedding-ada-002"
+    input: List[str], model: str = "text-embedding-ada-002"
 ) -> typing.List[dict]:
     """
     Embed a list of sentences using OpenAI's API and retry on failure
