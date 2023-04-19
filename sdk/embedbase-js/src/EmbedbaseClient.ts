@@ -9,6 +9,7 @@ import type {
   SearchOptions,
   BatchAddDocument,
   ClientDatasets,
+  Metadata,
 } from './types'
 import { camelize } from './utils'
 
@@ -86,7 +87,7 @@ export default class EmbedbaseClient {
     return data.similarities
   }
 
-  async add(dataset: string, document: string, metadata?: unknown): Promise<ClientAddData> {
+  async add(dataset: string, document: string, metadata?: Metadata): Promise<ClientAddData> {
     const addUrl = `${this.embedbaseApiUrl}/${dataset}`
     const res: Response = await fetch(addUrl, {
       method: 'POST',
@@ -113,14 +114,14 @@ export default class EmbedbaseClient {
 
   dataset(dataset: string): {
     search: (query: string, options?: SearchOptions) => Promise<ClientSearchData>
-    add: (document: string, metadata?: unknown) => Promise<ClientAddData>
+    add: (document: string, metadata?: Metadata) => Promise<ClientAddData>
     batchAdd: (documents: BatchAddDocument[]) => Promise<ClientAddData[]>
     createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
   } {
     return {
       search: async (query: string, options?: SearchOptions) =>
         this.search(dataset, query, options),
-      add: async (document: string, metadata?: unknown) => this.add(dataset, document, metadata),
+      add: async (document: string, metadata?: Metadata) => this.add(dataset, document, metadata),
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
       createContext: async (query: string, options?: SearchOptions) =>
         this.createContext(dataset, query, options),

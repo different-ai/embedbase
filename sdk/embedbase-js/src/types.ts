@@ -16,7 +16,7 @@ export interface BatchAddDocument {
  *
  * @interface Metadata
  */
-interface Metadata {
+export interface Metadata {
   path?: string
   [key: string]: any
 }
