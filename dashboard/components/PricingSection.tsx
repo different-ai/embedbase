@@ -10,7 +10,7 @@ export const tiers = [
       "For those who are just experiencing what it's like to connect your data to ChatGPT.",
     features: [
       'Unlimited requests per month',
-      // "5 messages daily in Embedbase Playground",
+      "5 daily messages in Embedbase Playground",
       'Limited to 5 datasets',
       'Community support',
     ],
@@ -24,7 +24,7 @@ export const tiers = [
       'The perfect plan to get your ChatGPT-powered app off localhost.',
     features: [
       'Unlimited requests per month',
-      '50 messages daily in Embedbase Playground',
+      '50 daily messages in Embedbase Playground',
       'Limited to 100 datasets',
       'Email support',
       'Daily backups',
@@ -35,7 +35,7 @@ export const tiers = [
     name: 'Enterprise',
     priceMonthly: 1000,
     description: 'For extensive applications handling substantial workloads.',
-    features: ['On-premise support', 'Private Slack channel', 'SOC2 (pending)'],
+    features: ['On-premise support', 'Private Slack channel', 'SOC2 (pending)', 'Custom models (your data never leaves your product)'],
   },
 ]
 interface Planprops {
