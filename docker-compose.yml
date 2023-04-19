@@ -7,7 +7,7 @@ services:
       - dev
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.dev
     entrypoint:
       - "/bin/sh"
       - "-ecx"

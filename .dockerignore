@@ -6,6 +6,7 @@
 !docker/docker-entrypoint.sh
 !embedbase/**/*.py
 !pyproject.toml
+!poetry.lock
 # do we need this?
 !setup.cfg
 !README.md
