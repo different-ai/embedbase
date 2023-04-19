@@ -1,4 +1,3 @@
-⚠️🔥 (sdk is still in alpha, if you if you have some feedback reach out to [ben@embedbase.xyz](mailto:ben@embedbase.xyz)
 
 ## Embedbase
 
