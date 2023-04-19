@@ -8,6 +8,8 @@ on:
       - rc
     paths:
       - "embedbase/**"
+      # when pyproject.toml changes
+      - "pyproject.toml"
   workflow_dispatch:
 
 jobs:
@@ -58,45 +60,46 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # TODO: until docker usage is clarified
+      # - name: Login to GitHub Container Registry
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.repository_owner }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Embedbase production with minimal dependencies
-        if: ${{ steps.regex-match.outputs.match != '' }}
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          platforms: linux/amd64
-          push: true
-          build-args: FLAVOR=minimal
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-minimal
+      # - name: Build and push Embedbase production with minimal dependencies
+      #   if: ${{ steps.regex-match.outputs.match != '' }}
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     file: ./docker/Dockerfile
+      #     platforms: linux/amd64
+      #     push: true
+      #     build-args: FLAVOR=minimal
+      #     tags: |
+      #       ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-minimal
 
-      - name: Build and push dev
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/Dockerfile.dev
-          platforms: linux/amd64
-          push: true
-          build-args: FLAVOR=all
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
+      # - name: Build and push dev
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     file: ./docker/Dockerfile.dev
+      #     platforms: linux/amd64
+      #     push: true
+      #     build-args: FLAVOR=all
+      #     tags: |
+      #       ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
 
-      - name: Build and push Embedbase production with full dependencies
-        if: ${{ steps.regex-match.outputs.match != '' }}
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          platforms: linux/amd64
-          push: true
-          build-args: FLAVOR=all
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
-            ghcr.io/${{ github.repository_owner }}/embedbase:latest
+      # - name: Build and push Embedbase production with full dependencies
+      #   if: ${{ steps.regex-match.outputs.match != '' }}
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     file: ./docker/Dockerfile
+      #     platforms: linux/amd64
+      #     push: true
+      #     build-args: FLAVOR=all
+      #     tags: |
+      #       ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
+      #       ghcr.io/${{ github.repository_owner }}/embedbase:latest
