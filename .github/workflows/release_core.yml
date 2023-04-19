@@ -7,9 +7,9 @@ on:
       - next
       - rc
     paths:
-      - 'embedbase/**'
+      - "embedbase/**"
   workflow_dispatch:
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,7 +25,7 @@ jobs:
         id: regex-match
         with:
           text: ${{ github.event.head_commit.message }}
-          regex: '^Release ([^ ]+)'
+          regex: "^Release ([^ ]+)"
 
       - name: Install Poetry
         run: |
@@ -45,8 +45,21 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish
 
+      - name: Create Release
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref }}
+        with:
+          tag_name: core-${{ github.ref }}
+          release_name: core-${{ github.ref }}
+          draft: false
+          prerelease: false
+
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -87,16 +100,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
             ghcr.io/${{ github.repository_owner }}/embedbase:latest
-      
-      - name: Create Release
-        if: ${{ steps.regex-match.outputs.match != '' }}
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.ref }}
-        with:
-          tag_name: core-${{ github.ref }}
-          release_name: core-${{ github.ref }}
-          draft: false
-          prerelease: false
