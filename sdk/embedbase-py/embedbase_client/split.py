@@ -2,7 +2,7 @@ from tiktoken import get_encoding
 from typing import Callable, List, Optional, Tuple, Union
 
 MAX_CHUNK_LENGTH = 8191
-EMBEDDING_ENCODING = 'cl100k_base'
+EMBEDDING_ENCODING = "cl100k_base"
 CHUNK_OVERLAP = 0
 
 
@@ -13,7 +13,9 @@ class SplitTextChunk:
         self.end = end
 
     def __repr__(self):
-        return f"SplitTextChunk(chunk='{self.chunk}', start={self.start}, end={self.end})"
+        return (
+            f"SplitTextChunk(chunk='{self.chunk}', start={self.start}, end={self.end})"
+        )
 
 
 def split_text(
@@ -21,10 +23,10 @@ def split_text(
     max_tokens: int = MAX_CHUNK_LENGTH,
     chunk_overlap: int = CHUNK_OVERLAP,
     encoding_name: str = EMBEDDING_ENCODING,
-    callback: Optional[Callable[[SplitTextChunk], None]] = None
+    callback: Optional[Callable[[SplitTextChunk], None]] = None,
 ) -> List[SplitTextChunk]:
     if chunk_overlap >= max_tokens:
-        raise ValueError('Cannot have chunkOverlap >= chunkSize')
+        raise ValueError("Cannot have chunkOverlap >= chunkSize")
 
     tokenizer = get_encoding(encoding_name)
 
@@ -48,3 +50,42 @@ def split_text(
         chunk_ids = input_ids[start_idx:cur_idx]
 
     return chunks
+
+
+def merge(
+    chunks: List[str],
+    max_len: Optional[int] = None,
+    encoding_name: str = EMBEDDING_ENCODING,
+    separator: Optional[str] = None,
+) -> str:
+    """
+    This function takes a list of `chunks` and optional parameters `max_len`, `encoding_name`, and `separator`.
+    It encodes each chunk using the specified tokenizer, checks if the current length exceeds the `max_len`,
+    breaks if it does, and appends the chunk to the `context` list.
+    Finally, it joins the context list with the specified separator
+    (default is '\\n\\n###\\n\\n') and returns the merged string.
+
+    For example,
+    ```python
+    chunks = ['Hello', 'world', '!']
+    merge(chunks, max_len=10)
+    ```
+    will return
+    ```
+    'Hello world!'
+    """
+    tokenizer = get_encoding(encoding_name)
+
+    cur_len = 0
+    context = []
+    for chunk in chunks:
+        n_tokens = len(tokenizer.encode(chunk))
+        cur_len += n_tokens + 4
+        if max_len is not None and cur_len > max_len:
+            break
+        context.append(chunk)
+
+    if separator is None:
+        separator = "\n\n###\n\n"
+
+    return separator.join(context)

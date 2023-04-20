@@ -1,15 +1,12 @@
-LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
-# read version from pyproject.toml
-VERSION="$(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
-IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
+#* development variables
 LOCAL_PORT="8000"
 
-install: ## [DEVELOPMENT] Install the API dependencies
-	virtualenv env; \
-	. env/bin/activate; \
-	pip install .[all]; \
-	pip install -r requirements-test.txt
-	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
+#* read version from pyproject.toml
+VERSION="$(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+
+#* Docker variables
+LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
+IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
 
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
@@ -52,6 +49,46 @@ release: ## [Local development] Release a new version of the API.
 
 openapi:
 	curl localhost:8000/openapi.json | yq -y > .well-known/openapi.yaml
+
+#* Poetry
+.PHONY: poetry-download
+poetry-download:
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 -
+
+.PHONY: poetry-remove
+poetry-remove:
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 - --uninstall
+
+#* Installation
+.PHONY: install
+install:
+	poetry lock -n && poetry export --without-hashes > requirements.txt
+	poetry install -n
+	-poetry run mypy --install-types --non-interactive ./
+	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
+
+#* Formatters
+.PHONY: codestyle
+codestyle:
+	poetry run pyupgrade --exit-zero-even-if-changed --py38-plus **/*.py
+	poetry run isort --settings-path pyproject.toml ./
+	poetry run black --config pyproject.toml ./
+
+.PHONY: formatting
+formatting: codestyle
+
+.PHONY: check-codestyle
+check-codestyle:
+	poetry run isort --diff --check-only --settings-path pyproject.toml ./
+	poetry run black --diff --check --config pyproject.toml ./
+	poetry run darglint --verbosity 2 embedbase tests
+
+.PHONY: mypy
+mypy:
+	poetry run mypy --config-file pyproject.toml ./
+
+.PHONY: lint
+lint: test check-codestyle mypy check-safety
 
 .PHONY: help
 

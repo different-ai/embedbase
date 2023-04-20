@@ -3,7 +3,7 @@
 requires = ["poetry_core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "embedbase-client"
 version = "0.1.0"
 description = "Python client for Embedbase"

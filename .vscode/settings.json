@@ -2,7 +2,8 @@
     "python.envFile": "${workspaceFolder}/.env",
     "python.formatting.provider": "black",
     "python.testing.pytestArgs": [
-        "."
+        ".",
+        "--ignore=sdk/embedbase-js"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
@@ -19,4 +20,7 @@
     "deno.enablePaths": [
         "supabase/functions"
     ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
 }

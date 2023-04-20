@@ -3,18 +3,14 @@ SHELL := /usr/bin/env bash
 PYTHON := python
 PYTHONPATH := `pwd`
 
-#* Docker variables
-IMAGE := embedbase_client
-VERSION := latest
-
 #* Poetry
 .PHONY: poetry-download
 poetry-download:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) -
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 -
 
 .PHONY: poetry-remove
 poetry-remove:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) - --uninstall
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 - --uninstall
 
 #* Installation
 .PHONY: install
@@ -66,23 +62,6 @@ lint: test check-codestyle mypy check-safety
 update-dev-deps:
 	poetry add -D bandit@latest darglint@latest "isort[colors]@latest" mypy@latest pre-commit@latest pydocstyle@latest pylint@latest pytest@latest pyupgrade@latest safety@latest coverage@latest coverage-badge@latest pytest-html@latest pytest-cov@latest
 	poetry add -D --allow-prereleases black@latest
-
-#* Docker
-# Example: make docker-build VERSION=latest
-# Example: make docker-build IMAGE=some_name VERSION=0.1.0
-.PHONY: docker-build
-docker-build:
-	@echo Building docker $(IMAGE):$(VERSION) ...
-	docker build \
-		-t $(IMAGE):$(VERSION) . \
-		-f ./docker/Dockerfile --no-cache
-
-# Example: make docker-remove VERSION=latest
-# Example: make docker-remove IMAGE=some_name VERSION=0.1.0
-.PHONY: docker-remove
-docker-remove:
-	@echo Removing docker $(IMAGE):$(VERSION) ...
-	docker rmi -f $(IMAGE):$(VERSION)
 
 #* Cleaning
 .PHONY: pycache-remove
