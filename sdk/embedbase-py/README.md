@@ -33,5 +33,5 @@ Please refer to the [documentation](https://docs.embedbase.xyz/sdk-py).
 ## Getting started
 
 ```bash
-pip install poetry git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
+pip install git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
 ```
