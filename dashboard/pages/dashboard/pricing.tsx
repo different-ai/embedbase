@@ -1,20 +1,21 @@
+import { useUser } from '@/utils/useUser'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import Dashboard from '../../components/Dashboard'
 import { Plan, tiers } from '../../components/PricingSection'
 import Spinner from '../../components/Spinner'
-import { useUser } from '@/utils/useUser'
 
-import { postData } from '@/utils/helpers'
+import { camelize, postData } from '@/utils/helpers'
 import { getStripe } from '@/utils/stripe-client'
 
-import { Price } from '@/utils/types'
 import { PrimaryButton } from '@/components/Button'
+import Usage, {UsageItem} from '@/components/Usage'
+import { Price } from '@/utils/types'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 const FreePlan = () => {
   const { subscription } = useUser()
-  console.log(subscription)
-  return <Plan tier={tiers[0]}>{}</Plan>
+  return <Plan tier={tiers[0]}>{ }</Plan>
 }
 
 const ProPlan = () => {
@@ -77,11 +78,12 @@ const EnterprisePlan = () => {
   )
 }
 
-export default function Index() {
+export default function Index({ usage }: { usage: UsageItem[] }) {
   const user = useUser()
   return (
     <Dashboard>
       <div className="mt-6 flex flex-col gap-8">
+        <Usage usage={usage} />
         <div className="rounded-2xl bg-gray-100 py-5 px-5">
           {/* add info text about pricing page somehting like hi wleocme to pcicing page you can downgrad e ugprade or you can manage your account here */}
           <h3 className="mb-6 text-2xl font-semibold">Account</h3>
@@ -112,3 +114,42 @@ export default function Index() {
     </Dashboard>
   )
 }
+
+export const getServerSideProps = async (ctx) => {
+  const supabase = createServerSupabaseClient(ctx)
+
+  // Check if we have a session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session)
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+
+  let { data, status, error } = await supabase
+    .from('plan_usages')
+    .select('*')
+    .eq('user_id', session.user.id)
+
+  if (error) {
+    console.log(error)
+  }
+
+  data = camelize(data)
+
+  console.log(data, session.user.id)
+
+  return {
+    props: {
+      initialSession: session,
+      user: session.user,
+      usage: data,
+    },
+  }
+}
+
