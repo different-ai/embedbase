@@ -100,7 +100,7 @@ for i in {1..10}; do
     curl -X POST "http://localhost:8000/v1/sampledataset/search" \
         -H "accept: application/json" \
         -H "Content-Type: application/json" \
-        -d "{ \"query\": \"Hello world!\"}" | jq . &
+        -d "{ \"query\": \"Hello world!\"}"
 done
 EOF
 ```

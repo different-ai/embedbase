@@ -284,8 +284,7 @@ print(data)
 curl -X POST \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"Animal that lives in the savannah\", \"top_k\": 1}" \
-    $URL/v1/${DATASET_ID}/search \
-    2>/dev/null | jq '.similarities[0].data'
+    $URL/v1/${DATASET_ID}/search
 ```
   </Tab>
 </Tabs>
