@@ -70,7 +70,7 @@ embedbase run
 
 ![pika-1681921124330-1x](https://user-images.githubusercontent.com/25003283/233138132-cf42ec0f-3821-495f-8e29-2067e643d6db.png)
 
-🔥 Embedbase now runs! [Time to ship your product](#sdk)
+🔥 Embedbase now runs! [Look here to see how to use the sdk](#sdk)
 
 ℹ️ Look at the code you just ran [here](./embedbase/__main__.py), feel free to modify it to your needs.
 
