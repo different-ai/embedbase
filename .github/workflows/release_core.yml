@@ -47,16 +47,23 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish
 
+      - name: Get version
+        run: echo "::set-output name=version::$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+
+      - name: Get latest tag
+        id: latest_tag
+        run: echo "::set-output name=tag::$(git describe --tags --abbrev=0)"
+
       - name: Create Release
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.ref }}
+          VERSION: ${{ steps.get_version.outputs.version }}
         with:
-          tag_name: core-${{ github.ref }}
-          release_name: core-${{ github.ref }}
+          tag_name: core-${{ steps.latest_tag.outputs.tag }}
+          release_name: core-${{ steps.latest_tag.outputs.tag }}
           draft: false
           prerelease: false
 
