@@ -6,7 +6,7 @@ import {
 
 export interface OpenAIStreamPayload {
   model: string;
-  messages: { role: "user"; content: string }[];
+  messages: { role: "user" | "system"; content: string }[];
   // temperature: number;
   // top_p: number;
   // frequency_penalty: number;

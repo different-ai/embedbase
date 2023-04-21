@@ -9,6 +9,8 @@ interface RequestPayload {
   prompt: string;
 }
 
+const defaultChatSystem =
+  "You are a powerful AI assistant that can help people answer their questions. You can use context to help you answer the question. You can also use the conversation history to help you answer the question exactly. When you are given in the metadata a path, links or urls in the context, you add them as markdown footnotes (for example fooBar[^1], qux[^2]...) with references at the end (eg [^1]: https://..., [^2]: https://...)."
 const handler = async (req: Request, res: Response): Promise<Response> => {
   const rl = await ipRateLimit(req)
   console.log("rl", rl)
@@ -24,7 +26,9 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
   const payload: OpenAIStreamPayload = {
     model: "gpt-4",
     // model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    messages: [
+      { role: "system", content: defaultChatSystem },
+      { role: "user", content: prompt }],
     stream: true,
   };
 
