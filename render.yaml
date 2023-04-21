@@ -3,6 +3,7 @@ services:
     name: embedbase-render
     env: python
     rootDir: .
+    plan: free
     startCommand: "embedbase run"
     envVars:
       - key: PYTHON_VERSION
