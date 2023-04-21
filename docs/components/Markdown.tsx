@@ -77,10 +77,10 @@ const Markdown = ({ children }) => {
       return hasLang ? (
         <SyntaxHighlighter
           style={syntaxTheme}
-          language={hasLang[1]}
+          // language={hasLang[1]}
           PreTag="div"
           className="codeStyle"
-          showLineNumbers={true}
+          // showLineNumbers={true}
           wrapLines={hasMeta}
           useInlineStyles={true}
           lineProps={applyHighlights}
