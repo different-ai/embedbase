@@ -2,9 +2,9 @@ services:
   - type: web
     name: embedbase-render
     env: python
-    rootDir: .
+    rootDir: embedbase
     plan: free
-    buildCommand: poetry install
+    buildCommand: pip install embedbase
     startCommand: "embedbase run"
     envVars:
       - key: PYTHON_VERSION
