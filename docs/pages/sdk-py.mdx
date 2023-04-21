@@ -15,6 +15,15 @@ To install the Embedbase-py library, run the following command:
 pip install git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
 ```
 
+* [Usage](#usage)
++ [Initializing the Client](#initializing-the-client)
++ [Searching Datasets](#searching-datasets)
++ [Adding Data](#adding-data)
++ [Creating a Context](#creating-a-context)
++ [Splitting and Chunking Large Texts](#splitting-and-chunking-large-texts)
++ [Dealing with large datasets](#dealing-with-large-datasets)
+* [Contributing](#contributing)
+
 ## Usage
 
 ### Initializing the Client
@@ -69,6 +78,42 @@ max_tokens = 500
 chunk_overlap = 200
 
 chunks = split_text(text, max_tokens, chunk_overlap)
+
+# then ...
+documents = []
+for text in long_texts:
+  for c in chunks:
+    documents.append({
+        "data": c.chunk,
+    })
+result = client.dataset("my-dataset").batch_add(documents)
+```
+
+### Dealing with large datasets
+
+If your dataset is large, we recommend running parallel requests like so:
+
+```py
+import asyncio
+
+async def batch(my_list, fn, batch_size=100):
+    async def process_chunk(chunk):
+        return await fn(chunk)
+
+    tasks = []
+    for i in range(0, len(my_list), batch_size):
+        chunk = my_list[i:i + batch_size]
+        tasks.append(asyncio.create_task(process_chunk(chunk)))
+
+    results = await asyncio.gather(*tasks)
+    return results
+
+async def batch_add_fn(chunk):
+  await asyncio.sleep(1)
+  return client.dataset(dataset_id).batch_add(documents)
+
+results = await batch(documents, batch_add_fn)
+print(f"Results: {results}")
 ```
 
 
