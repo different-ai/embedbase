@@ -35,6 +35,7 @@
     "react-syntax-highlighter": "^15.5.0"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
     "@types/node": "18.11.10",
     "@types/react": "^18.0.28",
     "@types/react-syntax-highlighter": "^15.5.6",

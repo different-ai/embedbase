@@ -15,7 +15,8 @@
     "deno.enable": true,
     "deno.unstable": true,
     "eslint.workingDirectories": [
-        "sdk/embedbase-js"
+        "sdk/embedbase-js",
+        "docs"
     ],
     "deno.enablePaths": [
         "supabase/functions"
