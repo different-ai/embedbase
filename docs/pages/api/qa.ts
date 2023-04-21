@@ -24,8 +24,8 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   console.log("prompt", prompt);
   const payload: OpenAIStreamPayload = {
-    // model: "gpt-4",
-    model: "gpt-3.5-turbo",
+    model: "gpt-4",
+    // model: "gpt-3.5-turbo",
     messages: [
       { role: "system", content: defaultChatSystem },
       { role: "user", content: prompt }],
