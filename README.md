@@ -16,6 +16,10 @@
     <br />
     <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
   </a>
+  <br />
+  <a href="https://github.com/different-ai/embedbase/tree/main/notebooks/Embedbase_Getting_started.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+  </a>
     <p align="center">Open-source API, SDK & dashboard to easily create, store, and retrieve machine learning embeddings</p>
     <p align="center">Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <div align="center">
