@@ -25,9 +25,7 @@ npm i embedbase-js
 - [Creating a "context"](#creating-a-context)
 - [Adding metadata](#adding-metadata)
 - [Listing datasets](#listing-datasets)
-- [Example: Ask question to any github doc](#ask-question-to-doc)
-- [Example: Create a recommendation engine with ChatGPT](#ask-question-to-doc)
-- [Example: Create a search engine with ChatGPT](#ask-question-to-doc)
+- [Example: Create a recommendation engine with ChatGPT](#example-create-a-recommendation-engine-with-chatgpt)
 
 ## Design philosophy
 
@@ -141,6 +139,10 @@ batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
 
 ### Splitting and chunking large texts
 
+AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
+We highly recommend using this function.
+To split and chunk large texts, use the `splitText` function:
+
 ```js
 import { splitText } from 'embedbase-js/dist/main/split';
 
@@ -200,10 +202,6 @@ console.log(data)
 // [{"datasetId": "amazon-reviews", "documentsCount": 2}]
 ```
 
-## Ask question to doc
+## Create a recommendation engine with ChatGPT
 
-
-```js
-coming soon
-```
-
+Check out [this tutorial](https://betterprogramming.pub/using-openai-to-increase-time-spent-on-your-blog-3f138d5ae6aa).

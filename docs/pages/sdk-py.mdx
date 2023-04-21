@@ -68,6 +68,8 @@ context = dataset.create_context(query, limit=5)
 
 ### Splitting and Chunking Large Texts
 
+AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
+We highly recommend using this function.
 To split and chunk large texts, use the `split_text` function from the `split` module:
 
 ```python
