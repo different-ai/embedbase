@@ -6,7 +6,7 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">The end to end platform to help you ship embeddings-powered apps.</h3>
+<h3 align="center">Add memory to AI with embeddings</h3>
 
   <p align="center">
     <br />
