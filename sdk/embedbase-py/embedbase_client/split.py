@@ -25,6 +25,25 @@ def split_text(
     encoding_name: str = EMBEDDING_ENCODING,
     callback: Optional[Callable[[SplitTextChunk], None]] = None,
 ) -> List[SplitTextChunk]:
+    """
+    Split a text into chunks of max_tokens length.
+    Depending on the model used, you may want to adjust the max_tokens and chunk_overlap parameters.
+    For example, if you use the OpenAI embeddings model, you can use max_tokens of 500 and chunk_overlap of 200.
+    While if you use "all-MiniLM-L6-v2" of sentence-transformers, you might use max_tokens of 30 and chunk_overlap of 20
+    because the model has a relatively limited input size.
+    (embedbase cloud use openai model at the moment)
+
+    ### Example
+
+    ```python
+    text = "This is a sample text to demonstrate the usage of the split_text function. \
+    It can be used to split long texts into smaller chunks based on the max_tokens value given. \
+    This is useful when using models that have a limited input size."
+
+    # Split the text into chunks of maximum 10 tokens
+    chunks = split_text(text, max_tokens=10)
+    ```
+    """
     if chunk_overlap >= max_tokens:
         raise ValueError("Cannot have chunkOverlap >= chunkSize")
 
