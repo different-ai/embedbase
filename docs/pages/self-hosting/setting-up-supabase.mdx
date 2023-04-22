@@ -1,0 +1,113 @@
+## Setting up Supabase
+
+We need to create tables, functions and indexes to make Embedbase work with Supabase.
+
+1. Go to SQL Editor 
+
+<Image src="/supabase-click-on-sqleditor.png" width={500} height={300} />
+
+2. Run the following SQL commands
+
+```sql
+-- This is a postgres extension that allows us to store vectors and
+-- perform similarity search on them
+create extension vector
+with
+  schema extensions;
+
+-- This is the main table that stores documents and embeddings
+create table documents (
+    id text primary key,
+    data text,
+    embedding vector (1536),
+    hash text,
+    dataset_id text,
+    user_id text,
+    metadata json,
+    created_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Make sure to prevent clients from accessing this table directly
+alter table documents
+  enable row level security;
+
+-- We are creating a function to run a similarity search on the documents table
+create or replace function match_documents (
+  query_embedding vector(1536),
+  similarity_threshold float,
+  match_count int,
+  query_dataset_ids text[],
+  query_user_id text default null
+)
+returns table (
+  id text,
+  data text,
+  score float,
+  hash text,
+  embedding vector(1536),
+  metadata json
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    documents.id,
+    documents.data,
+    (1 - (documents.embedding <=> query_embedding)) as similarity,
+    documents.hash,
+    documents.embedding,
+    documents.metadata
+  from documents
+  where 1 - (documents.embedding <=> query_embedding) > similarity_threshold
+    and documents.dataset_id = any(query_dataset_ids)
+    and (query_user_id is null or query_user_id = documents.user_id)
+  order by documents.embedding <=> query_embedding
+  limit match_count;
+end;
+$$;
+
+-- This index will allow us to perform similarity search on the documents table
+create index on documents
+using ivfflat (embedding vector_cosine_ops)
+with (lists = 100);
+
+-- This is a view that will allow us to get an overview of the datasets
+CREATE OR REPLACE VIEW distinct_datasets AS
+SELECT dataset_id, user_id, COUNT(*) AS documents_count
+FROM documents
+GROUP BY dataset_id, user_id;
+
+-- This is optional, used by Embedbase dashboard
+CREATE TABLE plan_usages (
+  id SERIAL PRIMARY KEY,
+  plan_id TEXT NOT NULL,
+  user_id UUID NOT NULL,
+  usage INTEGER NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE OR REPLACE VIEW current_plan_period_usage AS
+SELECT
+  u.id AS user_id,
+  COALESCE(s.price_id, 'free') AS plan_id,
+  DATE(COALESCE(s.current_period_start, CURRENT_DATE)) AS date,
+  COALESCE(SUM(pu.usage), 0) AS total_usage,
+  CASE
+    WHEN COALESCE(s.price_id, 'free') = 'price_1MtZEaFX2CGyoHQv54EefwEk' THEN 50
+    ELSE 5
+  END AS "limit"
+FROM
+  auth.users u
+LEFT JOIN subscriptions s ON u.id = s.user_id
+LEFT JOIN plan_usages pu ON u.id = pu.user_id
+  AND DATE(pu.created_at) = DATE(COALESCE(s.current_period_start, CURRENT_DATE))
+GROUP BY
+  u.id,
+  s.price_id,
+  DATE(COALESCE(s.current_period_start, CURRENT_DATE))
+ORDER BY
+  u.id, date;
+```

@@ -9,7 +9,6 @@ env
 
 # jupyter notebook
 .ipynb_checkpoints
-*.ipynb
 
 .env
 
