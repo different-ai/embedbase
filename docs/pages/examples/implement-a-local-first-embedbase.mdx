@@ -49,6 +49,7 @@ class LocalEmbedder(Embedder):
     ):
         super().__init__(**kwargs)
         self.model = SentenceTransformer(model)
+        self._dimensions = self.model.get_sentence_embedding_dimension()
 
     @property
     def dimensions(self) -> int:
