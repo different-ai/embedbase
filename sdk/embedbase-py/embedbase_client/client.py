@@ -92,7 +92,7 @@ class EmbedbaseClient(BaseClient):
             loop = asyncio.get_running_loop()
         except RuntimeError:  # no event loop running:
             loop = asyncio.new_event_loop()
-            return loop.run_until_complete(coroutine)
+        return loop.run_until_complete(coroutine)
 
     def create_context(
         self, dataset: str, query: str, limit: Optional[int] = None
