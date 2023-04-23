@@ -50,9 +50,13 @@ jobs:
       - name: Get version
         run: echo "::set-output name=version::$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
 
-      - name: Get latest tag
-        id: latest_tag
-        run: echo "::set-output name=tag::$(git describe --tags --abbrev=0)"
+      - uses: rickstaa/action-create-tag@v1
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: "tag_create"
+        with:
+          tag: core-${{ steps.get_version.outputs.version }}
+          tag_exists_error: true
+          message: "Release ${{ steps.get_version.outputs.version }}"
 
       - name: Create Release
         if: ${{ steps.regex-match.outputs.match != '' }}
@@ -62,8 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.get_version.outputs.version }}
         with:
-          tag_name: core-${{ steps.latest_tag.outputs.tag }}
-          release_name: core-${{ steps.latest_tag.outputs.tag }}
+          tag_name: core-${{ steps.get_version.outputs.version }}
+          release_name: core-${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
 
