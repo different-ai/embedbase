@@ -111,7 +111,7 @@ async def batch(my_list, fn, batch_size=100):
 
 async def batch_add_fn(chunk):
   await asyncio.sleep(1)
-  return client.dataset(dataset_id).batch_add(documents)
+  return client.dataset(dataset_id).batch_add(chunk)
 
 results = await batch(documents, batch_add_fn)
 print(f"Results: {results}")
