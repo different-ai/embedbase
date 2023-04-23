@@ -1,5 +1,6 @@
-from tiktoken import get_encoding
 from typing import Callable, List, Optional, Tuple, Union
+
+from tiktoken import get_encoding
 
 MAX_CHUNK_LENGTH = 8191
 EMBEDDING_ENCODING = "cl100k_base"

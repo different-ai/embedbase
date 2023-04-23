@@ -26,29 +26,33 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    # TODO
+    - name: Install poetry
+      run: make poetry-download
+      working-directory: sdk/embedbase-py
 
-    # - name: Install poetry
-    #   run: make poetry-download
+    - name: Set up cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: sdk/embedbase-py/.venv
+        key: venv-${{ matrix.python-version }}-${{ hashFiles('sdk/embedbase-py/pyproject.toml') }}-${{ hashFiles('sdk/embedbase-py/poetry.lock') }}
+    
+    - name: Install dependencies
+      run: |
+        poetry config virtualenvs.in-project true
+        poetry install
+      working-directory: sdk/embedbase-py
 
-    # - name: Set up cache
-    #   uses: actions/cache@v2.1.6
-    #   with:
-    #     path: .venv
-    #     key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
-    # - name: Install dependencies
-    #   run: |
-    #     poetry config virtualenvs.in-project true
-    #     poetry install
+    - name: Run style checks
+      run: |
+        make check-codestyle
+      working-directory: sdk/embedbase-py
 
-    # - name: Run style checks
-    #   run: |
-    #     make check-codestyle
+    - name: Run tests
+      run: |
+        make test
+      working-directory: sdk/embedbase-py
 
-    # - name: Run tests
-    #   run: |
-    #     make test
-
-    # - name: Run safety checks
-    #   run: |
-    #     make check-safety
+    - name: Run safety checks
+      run: |
+        make check-safety
+      working-directory: sdk/embedbase-py

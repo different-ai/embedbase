@@ -1,5 +1,6 @@
 import pytest
-from embedbase_client.split import split_text, merge
+
+from embedbase_client.split import merge, split_text
 
 
 @pytest.mark.parametrize(
