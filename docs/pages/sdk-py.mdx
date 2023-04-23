@@ -76,7 +76,16 @@ To split and chunk large texts, use the `split_text` function from the `split` m
 from embedbase_client.split import split_text
 
 text = "your_long_text"
+# ⚠️ note here that the value of max_tokens depends
+# on the used embedder in embedbase.
+# With models such as OpenAI's embeddings model, you can
+# use a max_tokens of 500. With other models, you may need to
+# use a lower max_tokens value.
+# (embedbase cloud use openai model at the moment) ⚠️
 max_tokens = 500
+# chunk_overlap is the number of tokens that will overlap between chunks
+# it is useful to have some overlap to ensure that the context is not
+# cut off in the middle of a sentence.
 chunk_overlap = 200
 
 chunks = split_text(text, max_tokens, chunk_overlap)

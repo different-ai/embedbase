@@ -147,7 +147,18 @@ To split and chunk large texts, use the `splitText` function:
 import { splitText } from 'embedbase-js/dist/main/split';
 
 const text = 'some very long text...';
-splitText(text, { maxTokens: 500, chunkOverlap: 200 }, async ({ chunk, start, end }) =>
+// ⚠️ note here that the value of max_tokens depends
+// on the used embedder in embedbase.
+// With models such as OpenAI's embeddings model, you can
+// use a max_tokens of 500. With other models, you may need to
+// use a lower max_tokens value.
+// (embedbase cloud use openai model at the moment) ⚠️
+const maxTokens = 500
+// chunk_overlap is the number of tokens that will overlap between chunks
+// it is useful to have some overlap to ensure that the context is not
+// cut off in the middle of a sentence.
+const chunkOverlap = 200
+splitText(text, { maxTokens: maxTokens, chunkOverlap: chunkOverlap }, async ({ chunk, start, end }) =>
     embedbase.dataset('some-data-set').add(chunk)
 )
 ```
