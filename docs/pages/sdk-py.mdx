@@ -83,8 +83,7 @@ chunks = split_text(text, max_tokens, chunk_overlap)
 
 # then ...
 documents = []
-for text in long_texts:
-  for c in chunks:
+for c in chunks:
     documents.append({
         "data": c.chunk,
     })
