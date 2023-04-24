@@ -58,33 +58,36 @@ const convertUsageToStats = (usage: UsageItem[]) => {
     return [{
         name: 'Daily Playground Usage',
         stat: today,
-        previousStat: yesterday,
-        change: `${changeInPercentage}%`,
-        changeType: changeInPercentage > 0 ? 'increase' : 'decrease'
+        // previousStat: yesterday,
+        // change: `${changeInPercentage}%`,
+        // changeType: changeInPercentage > 0 ? 'increase' : 'decrease'
     }]
 }
 
 
 interface UsageProps {
     usage: UsageItem[]
+    // current plan limit
+    limit: number
 }
 
-export default function Example({ usage }: UsageProps) {
+export default function Example({ usage, limit }: UsageProps) {
     const stats = convertUsageToStats(usage)
     return (
-        <div>
+        // just wrap text not more width
+        <div className="w-1/3">
             <h3 className="text-base font-semibold leading-6 text-gray-900">Your usage</h3>
-            <dl className="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow md:grid-cols-3 md:divide-x md:divide-y-0">
+            <dl className="mt-5 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white md:divide-x md:divide-y-0">
                 {stats.map((item) => (
                     <div key={item.name} className="px-4 py-5 sm:p-6">
                         <dt className="text-base font-normal text-gray-900">{item.name}</dt>
                         <dd className="mt-1 flex items-baseline gap-4 md:block lg:flex">
-                            <div className="flex items-baseline text-2xl font-semibold text-indigo-600">
+                            <div className="flex items-baseline text-2xl font-semibold text-gray-900">
                                 {item.stat}
-                                <span className="ml-2 text-sm font-medium text-gray-500">from {item.previousStat}</span>
+                                <span className="ml-2 text-sm font-medium text-gray-500">/ {limit}</span>
                             </div>
 
-                            <div
+                            {/* <div
                                 className={classNames(
                                     item.changeType === 'increase' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
                                     'inline-flex items-baseline rounded-full px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0'
@@ -104,7 +107,7 @@ export default function Example({ usage }: UsageProps) {
 
                                 <span> {item.changeType === 'increase' ? 'Increased' : 'Decreased'} by </span>
                                 {item.change}
-                            </div>
+                            </div> */}
                         </dd>
                     </div>
                 ))}

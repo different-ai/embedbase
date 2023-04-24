@@ -9,7 +9,7 @@ import { camelize, postData } from '@/utils/helpers'
 import { getStripe } from '@/utils/stripe-client'
 
 import { PrimaryButton } from '@/components/Button'
-import Usage, {UsageItem} from '@/components/Usage'
+import Usage, { UsageItem } from '@/components/Usage'
 import { Price } from '@/utils/types'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
@@ -80,10 +80,17 @@ const EnterprisePlan = () => {
 
 export default function Index({ usage }: { usage: UsageItem[] }) {
   const user = useUser()
+  const limit = (user?.subscription?.price_id && tiers.find((t) =>
+    t.id == user?.subscription?.price_id
+  )?.playgroundLimit) || 5
+  console.log(limit)
+  console.log(tiers)
+  console.log("user?.subscription?.price_id", user?.subscription?.price_id)
+
   return (
     <Dashboard>
       <div className="mt-6 flex flex-col gap-8">
-        <Usage usage={usage} />
+        <Usage usage={usage} limit={limit} />
         <div className="rounded-2xl bg-gray-100 py-5 px-5">
           {/* add info text about pricing page somehting like hi wleocme to pcicing page you can downgrad e ugprade or you can manage your account here */}
           <h3 className="mb-6 text-2xl font-semibold">Account</h3>

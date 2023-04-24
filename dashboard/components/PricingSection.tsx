@@ -14,10 +14,11 @@ export const tiers = [
       'Limited to 5 datasets',
       'Community support',
     ],
+    playgroundLimit: 5,
   },
   {
     id:
-      process.env.NEXT_PUBLIC_PRO_PRICE_ID || 'price_1MsoekFX2CGyoHQvj7JqFM9a',
+      process.env.NEXT_PUBLIC_PRO_PRICE_ID || 'price_1MtYAmFX2CGyoHQvSxdD0j8h',
     name: 'Pro',
     priceMonthly: 50,
     description:
@@ -29,6 +30,7 @@ export const tiers = [
       'Email support',
       'Daily backups',
     ],
+    playgroundLimit: 50,
   },
   {
     id: 'tier-enterprise',
@@ -36,6 +38,7 @@ export const tiers = [
     priceMonthly: 1000,
     description: 'For extensive applications handling substantial workloads.',
     features: ['On-premise support', 'Private Slack channel', 'SOC2 (pending)', 'Custom models (your data never leaves your product)'],
+    playgroundLimit: 500,
   },
 ]
 interface Planprops {
