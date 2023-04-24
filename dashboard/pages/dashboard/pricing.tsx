@@ -83,9 +83,6 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
   const limit = (user?.subscription?.price_id && tiers.find((t) =>
     t.id == user?.subscription?.price_id
   )?.playgroundLimit) || 5
-  console.log(limit)
-  console.log(tiers)
-  console.log("user?.subscription?.price_id", user?.subscription?.price_id)
 
   return (
     <Dashboard>
