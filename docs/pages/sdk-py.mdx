@@ -40,13 +40,13 @@ embedbase_key = "<get your key here: https://app.embedbase.xyz>"
 client = EmbedbaseClient(embedbase_url, embedbase_key)
 ```
 
-In an **async** context, you can use the `EmbedbaseClientAsync` class instead.
+In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
 This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
 ```python
-from embedbase_client.client import EmbedbaseClientAsync
+from embedbase_client.client import EmbedbaseAsyncClient
 ```
 
-Remember to use `await` when calling methods on `EmbedbaseClientAsync` objects.
+Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
 
 Learn more about asynchronous Python [here](https://docs.python.org/3/library/asyncio.html).
 
