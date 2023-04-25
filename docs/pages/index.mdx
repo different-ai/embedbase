@@ -14,9 +14,9 @@ The search bar below is build with Embedbase. Try it out!
 To immediately use embedbase we provide an hosted API that you can use for free.
 Here is how to quickly use embedbase to hook your data to ChatGPT:
 
-<Tabs items={['TypeScript', 'Python']}>
+<Tabs items={['Javascript', 'Python']}>
   <Tab>
-```js
+```js copy
 import { createClient } from 'embedbase-js'
 const embedbase = createClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
 const ads = [
@@ -48,7 +48,7 @@ console.log(data)
 ```
   </Tab>
     <Tab>
-```python
+```python copy
 from embedbase_client.client import EmbedbaseClient
 
 embedbase = EmbedbaseClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
@@ -85,9 +85,9 @@ print(data)
 Now that you have your data in Embedbase, you can ask ask questions to ChatGPT
 about your data:
 
-<Tabs items={['TypeScript', 'Python']}>
+<Tabs items={['Javascript', 'Python']}>
   <Tab>
-```ts
+```ts copy
 import { Configuration, OpenAIApi } from 'openai'
 const question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
 const data = await embedbase
@@ -113,7 +113,7 @@ However, please note that they may not be the most suitable for climbing.
 ```
   </Tab>
   <Tab>
-```python
+```python copy
 import os
 import openai
 question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
@@ -138,9 +138,9 @@ However, please note that they may not be the most suitable for climbing.
 
 ## Installation
 
-<Tabs items={['TypeScript', 'Python']}>
+<Tabs items={['Javascript', 'Python']}>
   <Tab>
-```bash
+```bash copy
 npm i embedbase-js
 ```
 
@@ -157,7 +157,7 @@ You should install embedbase in a [virtual environment](https://docs.python.org/
 
 First, create a virtual environment with the version of Python you're going to use and activate it.
 
-```bash
+```bash copy
 pip install git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
 ```
 
