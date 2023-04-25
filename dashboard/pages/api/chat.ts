@@ -1,7 +1,6 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { OpenAIStream, OpenAIPayload } from '../../lib/utils'
 import { defaultChatSystem } from '../../utils/constants'
-import { NextApiRequest, NextApiResponse } from 'next'
+import * as Sentry from "@sentry/nextjs";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set')
@@ -53,9 +52,14 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     stream: true,
   }
 
-  const stream = await OpenAIStream(payload)
-
-  return new Response(stream)
+  try {
+    const stream = await OpenAIStream(payload)
+    return new Response(stream)
+  } catch (error) {
+    Sentry.captureException(error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+    })
+  }
 }
-
 export default handler

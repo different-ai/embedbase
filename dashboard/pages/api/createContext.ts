@@ -1,9 +1,8 @@
 import { createClient } from "embedbase-js";
-import { splitText } from "embedbase-js/dist/main/split";
 import { EMBEDBASE_CLOUD_URL } from "../../utils/constants";
-import { nearestNeighbors } from "../../utils/vectors";
 import { CreateContextResponse } from "../../utils/types";
-import { get_encoding, TiktokenEncoding } from '@dqbd/tiktoken'
+import { get_encoding } from '@dqbd/tiktoken'
+import * as Sentry from "@sentry/nextjs";
 
 export const merge = async (chunks: string[], maxLen = 1800) => {
   let curLen = 0;
@@ -136,6 +135,11 @@ export default async function buildPrompt(req: any, res: any) {
   }
 
 
-  const context = await createContext(prompt, datasetIds, apiKey);
-  res.status(200).json(context);
+  try {
+    const context = await createContext(prompt, datasetIds, apiKey);
+    res.status(200).json(context);
+  } catch (error) {
+    Sentry.captureException(error);
+    res.status(500).json({ error: error.message });
+  }
 }
