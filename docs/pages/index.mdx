@@ -16,7 +16,7 @@ Here is how to quickly use embedbase to hook your data to ChatGPT:
 
 <Tabs items={['Javascript', 'Python']}>
   <Tab>
-```js copy
+```js copy {9}
 import { createClient } from 'embedbase-js'
 const embedbase = createClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
 const ads = [
@@ -25,9 +25,7 @@ const ads = [
     'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
 ]
 const datasetId = 'product-ads'
-const data = await embedbase
-    .dataset(datasetId)
-    .batchAdd(ads.map((data) => ({ data })))
+const data = await embedbase.dataset(datasetId).batchAdd(ads.map((data) => ({ data })))
 console.log(data)
 ```
 ```json
@@ -48,7 +46,7 @@ console.log(data)
 ```
   </Tab>
     <Tab>
-```python copy
+```python copy {12}
 from embedbase_client.client import EmbedbaseClient
 
 embedbase = EmbedbaseClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
@@ -87,12 +85,10 @@ about your data:
 
 <Tabs items={['Javascript', 'Python']}>
   <Tab>
-```ts copy
+```ts copy {3}
 import { Configuration, OpenAIApi } from 'openai'
 const question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
-const data = await embedbase
-    .dataset(datasetId)
-    .search(question)
+const data = await embedbase.dataset(datasetId).search(question)
 const context = data.join('\n\n')
 const prompt = 
     `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
@@ -113,7 +109,7 @@ However, please note that they may not be the most suitable for climbing.
 ```
   </Tab>
   <Tab>
-```python copy
+```python copy {4}
 import os
 import openai
 question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
