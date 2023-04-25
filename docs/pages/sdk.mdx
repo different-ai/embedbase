@@ -147,11 +147,11 @@ To split and chunk large texts, use the `splitText` function:
 import { splitText } from 'embedbase-js/dist/main/split';
 
 const text = 'some very long text...';
-// ⚠️ note here that the value of max_tokens depends
+// ⚠️ note here that the value of maxTokens depends
 // on the used embedder in embedbase.
 // With models such as OpenAI's embeddings model, you can
-// use a max_tokens of 500. With other models, you may need to
-// use a lower max_tokens value.
+// use a maxTokens of 500. With other models, you may need to
+// use a lower maxTokens value.
 // (embedbase cloud use openai model at the moment) ⚠️
 const maxTokens = 500
 // chunk_overlap is the number of tokens that will overlap between chunks
