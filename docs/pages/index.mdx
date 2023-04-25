@@ -1,4 +1,5 @@
 import { EmbedbaseSearch } from '../components/Search'
+import { Tab, Tabs } from 'nextra-theme-docs'
 
 ## Embedbase
 **Open-source API & SDK to connect any data to ChatGPT**
@@ -7,16 +8,170 @@ The search bar below is build with Embedbase. Try it out!
 
 <EmbedbaseSearch />
 
+## Quick tour
 
-## What's Included
---
+To immediately use embedbase we provide an hosted API that you can use for free.
+Here is how to quickly use embedbase to hook your data to ChatGPT:
 
-- [x] [Embedbase Cloud](https://embedbase.xyz) to to not worry about infra 
-- [x] Dasbhoard + Playground
-- [x] Typescript SDK. [Docs](https://docs.embedbase.xyz/sdk) to easily connect your data to Embedbase and query it using natural language.
-- [x] Deployment scripts to self-host [/self-hosting/deployment]
-- [ ] React Embedbase Search Bar to copy/paste on any website
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```js
+import { createClient } from 'embedbase-js'
+const embedbase = createClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
+const ads = [
+    'Discover Harem Pants! Unique, stylish bohemian vibes with a dropped crotch & loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
+    'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
+]
+const datasetId = 'product-ads'
+const data = await embedbase
+    .dataset(datasetId)
+    .batchAdd(ads.map((data) => ({ data })))
+console.log(data)
+```
+```json
+[
+  {
+    id: '9ced909f95e08e71a08bf6729be33dedc6793258c011989d5da9dd67b257509e',
+    status: 'success'
+  },
+  {
+    id: '2fd991008424b2eb0354b040cd65ca1b8dc4deae941ec3c0abe6987ab6b2c7d1',
+    status: 'success'
+  },
+  {
+    id: '4dcba3c9311b76cf90b9cc4bf68e1524802e7345e6ec20de73941b86f53a5e33',
+    status: 'success'
+  }
+]
+```
+  </Tab>
+    <Tab>
+```python
+from embedbase_client.client import EmbedbaseClient
+
+embedbase = EmbedbaseClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
+
+ads = [
+    'Discover Harem Pants! Unique, stylish bohemian vibes with a dropped crotch & loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
+    'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
+]
+
+dataset_id = 'product-ads'
+data = embedbase.dataset(dataset_id).batch_add([{'data': ad} for ad in ads])
+print(data)
+```
+```json
+[
+  {
+    id: '9ced909f95e08e71a08bf6729be33dedc6793258c011989d5da9dd67b257509e',
+    status: 'success'
+  },
+  {
+    id: '2fd991008424b2eb0354b040cd65ca1b8dc4deae941ec3c0abe6987ab6b2c7d1',
+    status: 'success'
+  },
+  {
+    id: '4dcba3c9311b76cf90b9cc4bf68e1524802e7345e6ec20de73941b86f53a5e33',
+    status: 'success'
+  }
+]
+```
+  </Tab>
+</Tabs>
+
+Now that you have your data in Embedbase, you can ask ask questions to ChatGPT
+about your data:
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```ts
+import { Configuration, OpenAIApi } from 'openai'
+const question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
+const data = await embedbase
+    .dataset(datasetId)
+    .search(question)
+const context = data.join('\n\n')
+const prompt = 
+    `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+const openai = new OpenAIApi(configuration);
+const completion = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: { role: 'user', content: prompt },
+})
+console.log(completion.data.choices[0].message?.content)
+```
+```
+You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
+and their unique bohemian style can elevate your wardrobe for work.
+However, please note that they may not be the most suitable for climbing.
+```
+  </Tab>
+  <Tab>
+```python
+import os
+import openai
+question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
+search_results = embedbase.dataset(dataset_id).search(question)
+context = '\n\n'.join([result.data for result in search_results])
+prompt = f'Based on the following context:\n{context}\nAnswer the user\'s question: {question}'
+
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+completion = openai.ChatCompletion.create(
+    model='gpt-3.5-turbo',
+    messages=[{'role': 'user', 'content': prompt}]
+)
+print(completion.choices[0].message.content)
+```
+```
+You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
+and their unique bohemian style can elevate your wardrobe for work.
+However, please note that they may not be the most suitable for climbing.
+```
+  </Tab>
+</Tabs>
+
+## Installation
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```bash
+npm i embedbase-js
+```
+
+ℹ️ For OpenAI installation, please refer to [their documentation](https://github.com/openai/openai-node).
+
+  </Tab>
+  <Tab>
+
+This repository is tested on Python 3.8+.
+
+You should install embedbase in a [virtual environment](https://docs.python.org/3/library/venv.html). If you're unfamiliar with Python virtual environments, check out the [user guide](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+
+First, create a virtual environment with the version of Python you're going to use and activate it.
+
+```bash
+pip install git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
+```
+
+ℹ️ For OpenAI installation, please refer to [their documentation](https://github.com/openai/openai-python).
+
+  </Tab>
+</Tabs>
+
+
 
 *Note: **embedbase cloud will stay free for open-source projects**. If you want to use Embedbase for a commercial project, please contact us at ben@embedbase.xyz*
 
+
+## Learn more
+
+| Section | Description |
+|-|-|
+| [Javascript SDK](https://docs.embedbase.xyz/sdk) | The Embedbase Javascript SDK |
+| [Python SDK](https://docs.embedbase.xyz/sdk-py) | The Embedbase Python SDK |
 
