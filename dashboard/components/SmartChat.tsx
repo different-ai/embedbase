@@ -1,25 +1,32 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Input, Label, TextArea } from './Input'
 
+import { Dataset } from '@/hooks/useDatasets'
+import { posthog } from 'posthog-js'
 import React from 'react'
 import { toast } from 'react-hot-toast'
-import Markdown from './Markdown'
 import { useAppStore } from '../lib/store'
-import Sandbox from './Sandbox'
-import { CreateContextResponse } from '../utils/types'
 import { defaultChatSystem } from '../utils/constants'
-import { useUser } from '@/utils/useUser'
-import { posthog } from 'posthog-js'
+import { CreateContextResponse } from '../utils/types'
+import Markdown from './Markdown'
+import Sandbox from './Sandbox'
+
+interface DatasetCheckboxesProps {
+  datasets: Dataset[]
+  isLoading: boolean
+  selectedDatasetIds: string[]
+  setSelectedDatasetIds: React.Dispatch<React.SetStateAction<string[]>>
+}
 
 const DatasetCheckboxes = ({
   datasets,
   isLoading,
   selectedDatasetIds,
   setSelectedDatasetIds,
-}) => {
+}: DatasetCheckboxesProps) => {
   const [filter, setFilter] = useState('')
   return (
-    <fieldset className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
       {/* a input text to filter dataset list */}
       <div className="flex-col items-center gap-2">
         <Label htmlFor="filter">Filter</Label>
@@ -44,13 +51,18 @@ const DatasetCheckboxes = ({
         )}
 
         {datasets
-          .filter((dataset) => dataset.id.includes(filter))
+          // sort by selected datasets first
+          .sort((a, b) =>
+            selectedDatasetIds.includes(a.id) ? -1 : selectedDatasetIds.includes(b.id) ? 1 : 0
+          )
+          .filter((dataset) => (filter === '' ? true : dataset.id.includes(filter))
+            || selectedDatasetIds.includes(dataset.id))
           // TODO:; less on mobile?
           .slice(0, 6)
           .map((dataset) => (
             <div
               key={dataset.id}
-              className="relative flex items-center gap-1 py-1"
+              className="relative flex items-center gap-1 py-1 truncate"
             >
               <div className="flex items-center">
                 <input
@@ -72,8 +84,10 @@ const DatasetCheckboxes = ({
               </div>
               <div className="min-w-0 flex-1 leading-6">
                 <label
+                  title={dataset.id}
                   htmlFor={`dataset-${dataset.id}`}
-                  className="cursor-pointer select-none text-sm font-medium text-gray-800"
+                  // overflow-ellipsis truncate
+                  className="cursor-pointer select-none text-sm font-medium text-gray-800 "
                 >
                   {dataset.id}
                 </label>
@@ -89,7 +103,7 @@ const DatasetCheckboxes = ({
           </div>
         )}
       </div>
-    </fieldset>
+    </div>
   )
 }
 
@@ -107,8 +121,10 @@ interface Message {
     [key: string]: unknown
   }
 }
-
-export default function SmartChat() {
+interface SmartChatProps {
+  datasetIds: string[]
+}
+export default function SmartChat({ datasetIds, datasetIsLoading }: SmartChatProps) {
   const inputRef = useRef(null)
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(false)
@@ -121,13 +137,12 @@ export default function SmartChat() {
     metadata: { references: [] },
   })
   const datasets = useAppStore((state) => state.datasets)
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState([])
+  const [selectedDatasetIds, setSelectedDatasetIds] = useState(datasetIds)
   const apiKey = useAppStore((state) => state.apiKey)
   const chats = useAppStore((state) => state.chats)
   const firstApiKey = apiKey
   const [system, setSystem] = useState(defaultChatSystem)
   const messageListRef = useRef(null)
-  const { subscription } = useUser()
   // Auto scroll chat to bottom
   useEffect(() => {
     const messageList = messageListRef.current
@@ -138,7 +153,6 @@ export default function SmartChat() {
   useEffect(() => {
     inputRef.current.focus()
   }, [])
-
   const onError = (error: Error | Response) => {
     console.error(error)
     const userFacingMessage =
@@ -147,7 +161,7 @@ export default function SmartChat() {
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
         : error instanceof Response && error.status === 402
           ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
-        : 'Oops! There seems to be an error. Please try again.'
+          : 'Oops! There seems to be an error. Please try again.'
     setMessages((prevMessages) => [
       ...prevMessages,
       {
@@ -189,16 +203,16 @@ export default function SmartChat() {
       const res: CreateContextResponse =
         selectedDatasetIds.length > 0
           ? await fetch('/api/createContext', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                prompt: userInput,
-                datasetIds: selectedDatasetIds,
-                apiKey: firstApiKey,
-              }),
-            }).then((res) => res.json())
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: userInput,
+              datasetIds: selectedDatasetIds,
+              apiKey: firstApiKey,
+            }),
+          }).then((res) => res.json())
           : { chunkedContext: '', contexts: [] }
 
       console.log('context', res)
@@ -329,9 +343,8 @@ export default function SmartChat() {
               )
             })}
             <div
-              className={` flex-col rounded-md border border-gray-300 bg-gray-50 p-4 text-gray-800 ${
-                loading && 'animate-pulse bg-blue-100 text-blue-800'
-              } gap-3 rounded-md p-2`}
+              className={` flex-col rounded-md border border-gray-300 bg-gray-50 p-4 text-gray-800 ${loading && 'animate-pulse bg-blue-100 text-blue-800'
+                } gap-3 rounded-md p-2`}
             >
               <div
                 className="markdown-answer overflow-x-auto"

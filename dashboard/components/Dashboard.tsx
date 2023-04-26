@@ -9,6 +9,7 @@ import {
   XMarkIcon,
   PlayIcon,
   UserCircleIcon,
+  PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 
 import Link from "next/link";
@@ -43,12 +44,6 @@ export const navigation = [
     icon: CreditCardIcon,
     current: false,
   },
-  // {
-  //   path: "/dashboard/account",
-  //   name: "Account",
-  //   icon: UserCircleIcon,
-  //   current: false,
-  // },
   {
     path: "https://discord.gg/pMNeuGrDky",
     name: "Discord",

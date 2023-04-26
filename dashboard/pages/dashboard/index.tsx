@@ -6,6 +6,7 @@ import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 import { useAppStore } from '../../lib/store'
 import { useEffect } from 'react'
 import { Dataset } from '../../hooks/useDatasets'
+import { DataLoader } from '@/components/DataLoader'
 
 export function APIKeySection() {
   return (
@@ -42,6 +43,7 @@ export default function Index({
           <APIKeySection />
         </div>
         <h3 className="text-2xl font-semibold">Datasets</h3>
+        <DataLoader />
         <DatasetList />
       </div>
     </Dashboard>
