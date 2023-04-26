@@ -15,10 +15,10 @@ ENVIRONMENT === 'production' && Sentry.init({
   // `release` value here - use the environment variable `SENTRY_RELEASE`, so
   // that it will also get attached to your source maps
   defaultIntegrations: false,
-  integrations: [
-    new Sentry.Integrations.GlobalHandlers({
-      onunhandledrejection: false,
-      onerror: false
-    })
-  ],
+  // integrations: [
+  //   new Sentry.Integrations.GlobalHandlers({
+  //     onunhandledrejection: false,
+  //     onerror: false
+  //   })
+  // ],
 });
