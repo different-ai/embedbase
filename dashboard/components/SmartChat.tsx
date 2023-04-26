@@ -124,7 +124,7 @@ interface Message {
 interface SmartChatProps {
   datasetIds: string[]
 }
-export default function SmartChat({ datasetIds, datasetIsLoading }: SmartChatProps) {
+export default function SmartChat({ datasetIds }: SmartChatProps) {
   const inputRef = useRef(null)
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(false)
