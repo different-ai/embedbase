@@ -4,8 +4,8 @@ import { splitText } from "embedbase-js/dist/main/split";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { batch } from "@/utils/array";
 import fs from "fs";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import * as Sentry from "@sentry/nextjs";
+import pdfParse from "pdf-parse";
 
 import formidable from "formidable";
 
@@ -15,7 +15,7 @@ export const config = {
   api: {
     bodyParser: false,
   },
-  runtime: 'edge'
+  // runtime: 'edge'
 };
 
 const getApiKey = async (req, res) => {
@@ -82,18 +82,6 @@ export default async function sync(req: any, res: any) {
       const pdfData = fs.readFileSync(pdfPath);
 
       try {
-        const pdfDocument = await getDocument({ data: pdfData }).promise;
-        const pageCount = pdfDocument.numPages;
-        let pdfText = "";
-        for (let i = 1; i <= pageCount; i++) {
-          const page = await pdfDocument.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            // @ts-ignore
-            .map((item) => item.str)
-            .join(" ");
-          pdfText += `${pageText}\n`;
-        }
 
         console.log("PDF data:", file);
         const metadata = {
@@ -102,11 +90,13 @@ export default async function sync(req: any, res: any) {
           lastModifiedDate: file.lastModifiedDate,
           size: file.size,
         }
-        console.log("PDF Content:", pdfText);
+        const pdfText = await pdfParse(pdfData);
+
+        console.log("PDF Content:", pdfText.text);
 
         const chunks: BatchAddDocument[] = [];
         splitText(
-          pdfText,
+          pdfText.text,
           { maxTokens: 500, chunkOverlap: 200 },
           ({ chunk }) =>
             chunks.push({
