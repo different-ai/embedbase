@@ -1,21 +1,15 @@
-import { getGithubContent, getRepoName } from "@/lib/github";
 import { createClient } from "embedbase-js";
 import { BatchAddDocument } from "embedbase-js/dist/module/types";
 import { splitText } from "embedbase-js/dist/main/split";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { batch } from "@/utils/array";
 import fs from "fs";
-import path from "path";
-// import { getDocument } from "pdfjs-dist";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import * as Sentry from "@sentry/nextjs";
 
-import formidable, { File } from "formidable";
+import formidable from "formidable";
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
-
-
 
 export const config = {
   api: {
