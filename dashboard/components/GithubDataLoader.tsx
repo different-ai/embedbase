@@ -1,13 +1,12 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { FieldValues, useForm } from 'react-hook-form'
-import { Input } from '@/components/Input'
 import { PrimaryButton } from '@/components/Button'
-import { toast } from 'react-hot-toast'
+import { Input } from '@/components/Input'
 import { getRepoName } from '@/lib/github'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import { FieldValues, useForm } from 'react-hook-form'
+import { toast } from 'react-hot-toast'
 
-export function DataLoader() {
+export function GithubDataLoader() {
     const { push } = useRouter()
     const { register, handleSubmit, watch, formState, setValue } = useForm({
         defaultValues: { type: 'github', githubRepo: '', sourceCode: '' },
@@ -37,7 +36,7 @@ export function DataLoader() {
     }, [githubRepo])
 
 
-    const handleSearch = async ({ githubRepo }: FieldValues) => {
+    const handleUpload = async ({ githubRepo }: FieldValues) => {
         console.log('indexing', githubRepo)
         // empty the input
         setValue('githubRepo', '')
@@ -65,7 +64,7 @@ export function DataLoader() {
 
                 We will automatically import this repository into a dataset in Embedbase.
             </p>
-            <form className="w-full" onSubmit={handleSubmit(handleSearch)}>
+            <form className="w-full" onSubmit={handleSubmit(handleUpload)}>
                 <label htmlFor="phone-number" className="block text-sm font-medium text-gray-700"></label>
                 <div className="relative mt-1 rounded-md gap-3">
                     <div className="flex gap-3">

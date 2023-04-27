@@ -1,12 +1,13 @@
-import Dashboard from '../../components/Dashboard'
-import { ApiKeyList, CreateAPIKey } from '../../components/APIKeys'
+import FileDataLoader from '@/components/FileDataLoader'
+import { GithubDataLoader } from '@/components/GithubDataLoader'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { DatasetList } from './explorer'
-import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
-import { useAppStore } from '../../lib/store'
 import { useEffect } from 'react'
+import { ApiKeyList } from '../../components/APIKeys'
+import Dashboard from '../../components/Dashboard'
 import { Dataset } from '../../hooks/useDatasets'
-import { DataLoader } from '@/components/DataLoader'
+import { useAppStore } from '../../lib/store'
+import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
+import { DatasetList } from './explorer'
 
 export function APIKeySection() {
   return (
@@ -43,7 +44,9 @@ export default function Index({
           <APIKeySection />
         </div>
         <h3 className="text-2xl font-semibold">Datasets</h3>
-        <DataLoader />
+        <FileDataLoader />
+        <span className='text-gray-600'>or</span>
+        <GithubDataLoader />
         <DatasetList />
       </div>
     </Dashboard>

@@ -59,6 +59,8 @@ To enable GitHub auth, you need to go to https://app.supabase.com/project/<your-
 | STRIPE_WEBHOOK_SECRET | Update these with your Stripe credentials from https://dashboard.stripe.com/apikeys |
 | OPENAI_KEY | Obtain OpenAI API Keys from https://platform.openai.com/account/api-keys |
 | EMBEDBASE_API_KEY | Update with your embedbase API keys from https://app.embedbase.xyz |
+| GITHUB_TOKEN | Update with your github token |
+| NEXT_PUBLIC_ENVIRONMENT | Update with your environment (development or production) |
 
 ## FAQs
 
