@@ -1,6 +1,6 @@
 import { PrimaryButton } from '@/components/Button'
-import { Input } from '@/components/Input'
-import { CheckCircleIcon, DocumentIcon } from '@heroicons/react/24/outline'
+import { Input, Label } from '@/components/Input'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { FieldValues, useForm } from 'react-hook-form'
@@ -36,59 +36,20 @@ function uploadFile(url: string, file: FormData, setUploadProgress: (progress: n
     });
 }
 
-async function fetchWithProgress(url: string, options: RequestInit, setUploadProgress: (progress: number) => void) {
-    const response = await fetch(url, {
-        ...options,
-        signal: new AbortController().signal, // Required to use the fetch API with progress tracking
-    });
-
-    const reader = response.body.getReader();
-    const contentLength = +response.headers.get("Content-Length");
-    let receivedLength = 0;
-
-    const chunks = [];
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        receivedLength += value.length;
-
-        const progress = (receivedLength / contentLength) * 100;
-        console.log(`Received ${receivedLength} of ${contentLength} bytes`);
-        setUploadProgress(progress);
-    }
-
-    const chunksAll = new Uint8Array(receivedLength);
-    let position = 0;
-    for (let chunk of chunks) {
-        chunksAll.set(chunk, position);
-        position += chunk.length;
-    }
-
-    return new Response(chunksAll, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-    });
-}
 
 export default function FileDataLoader() {
     const { push } = useRouter()
     const { register, handleSubmit, watch, formState, setValue } = useForm()
     const isLoading = formState.isSubmitting
     const datasetId = watch('datasetId')
-    // const file = watch("file");
-
+    const file = watch("file");
     const isSubmitDisabled = !watch('datasetId') || isLoading
 
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploading, setUploading] = useState(false);
-    console.log(uploadProgress);
 
-    // console.log(file);
+
     const onSubmit = async ({ file }: FieldValues) => {
-        console.log(file);
         if (!file) return;
         const formData = new FormData();
         formData.append('file', file[0]);
@@ -103,11 +64,13 @@ export default function FileDataLoader() {
 
         try {
             setUploadProgress(0);
-            // await fetchWithProgress("/api/uploadFile", {
-            //     method: "POST",
-            //     body: formData,
-            // }, (e) => setUploadProgress(e));
-            await uploadFile("/api/uploadFile", formData, (e) => setUploadProgress(e));
+            await uploadFile("/api/uploadFile", formData, (e) => {
+                setUploadProgress(e)
+                if (e === 100) {
+                    push(`/dashboard/playground?datasetId=${datasetId}&new=true`)
+                }
+            });
+
         } catch (error) {
             console.error("Error uploading file:", error);
             toast.error(`Error uploading file: ${error}`, {
@@ -118,7 +81,6 @@ export default function FileDataLoader() {
             setUploadProgress(0);
             setUploading(false);
         }
-        // push(`/dashboard/playground?datasetId=${datasetId}&new=true`)
 
     };
 
@@ -126,24 +88,30 @@ export default function FileDataLoader() {
 
     return (
         <div className="flex flex-col gap-3">
-            {/* <p className="text-gray-500 font-semibold text-sm sm:col-span-2 sm:mt-0">
-                Add files to an embedbase dataset.
-            </p> */}
             <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex gap-3 ">
                     <div className="col-span-full">
-                        <label htmlFor="cover-photo" className="block text-sm font-medium leading-6 text-gray-900">
-                            Add files to an embedbase dataset
-                        </label>
-                        <div className="mt-2 flex  rounded-lg ">
-                            <div className="text-center">
-                                <DocumentIcon className="mx-auto h-12 w-12 text-gray-300" aria-hidden="true" />
-                                <div className="mt-4 flex text-sm leading-6 text-gray-600">
+                        <div className=" flex  rounded-lg border border-1 py-4 px-8 bg-white w-[250px]">
+                            <div className="text-center w-full">
+                                <div className=" flex text-sm leading-6 text-gray-600">
                                     <label
                                         htmlFor="file-upload"
-                                        className="relative cursor-pointer rounded-md  font-semibold text-gray-900 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+                                        className="relative truncate w-full cursor-pointer rounded-md font-semibold text-gray-900 focus-within:outline-none focus-within:ring-2 "
                                     >
-                                        <span>Upload a file</span>
+                                        <span className=' w-full'
+
+                                            title={
+                                                file?.length ?
+                                                    file?.[0]?.name :
+                                                    'Click here to select a PDF'
+                                            }
+                                        >
+                                            {
+                                                file?.length ?
+                                                    file?.[0]?.name :
+                                                    'Click here to select a PDF'
+                                            }
+                                        </span>
                                         <input
                                             id="file-upload"
                                             name="file-upload"
@@ -155,36 +123,44 @@ export default function FileDataLoader() {
                                             })}
                                         />
                                     </label>
-                                    {/* <p className="pl-1">or drag and drop</p> */}
+                                    {/* button to remove file top right */}
+                                    {
+                                        file?.length ?
+                                            <button
+                                                className="ml-3 bg-white rounded-md text-gray-400 hover:text-gray-500"
+                                                type="button"
+                                                onClick={() => setValue('file', '')}
+                                                disabled={uploading}
+                                            >
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button> : null
+                                    }
                                 </div>
                                 <p className="text-xs leading-5 text-gray-600">PDF up to 10MB</p>
                             </div>
                         </div>
                     </div>
                     {/* vertical center */}
-                    <div className="flex flex-col gap-3 justify-end">
-                        <Input
-                            type="search"
-                            placeholder="my-dataset-id"
-                            {...register('datasetId', { required: true })}
-                        />
+                    <div className="flex   justify-end gap-3 items-end">
+                        <div>
+                            <Label htmlFor="datasetId">Name your import</Label>
+                            <Input
+                                type="search"
+                                placeholder="my-dataset-id"
+                                {...register('datasetId', { required: true })}
+                            />
+                        </div>
                         <PrimaryButton
                             // center children horizontal
-                            className="w-full flex items-center justify-center"
+                            className="w-full flex items-center justify-center mt-3m h-min "
                             type="submit" disabled={isSubmitDisabled} >
                             {
-                                uploading && uploadProgress >= 100 ?
-                                    <CheckCircleIcon
-                                        className="h-5 w-5" viewBox="0 0 24 24" />
-                                    :
-                                    uploading ?
-                                        <div className="flex items-center gap-2">
-                                            <svg className="animate-spin h-5 w-5 mr-3 ..." viewBox="0 0 24 24">
 
-                                            </svg>
-                                            <span>Uploading {uploadProgress.toFixed(0)}%</span>
-                                        </div>
-                                        : "Upload"}
+                                uploading ?
+                                    <div className="flex items-center gap-2">
+                                        <span>Importing {uploadProgress.toFixed(0)}%</span>
+                                    </div>
+                                    : "Import to Embedbase"}
                         </PrimaryButton>
                     </div>
                 </div>
