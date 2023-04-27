@@ -54,7 +54,7 @@ export default async function sync(req: any, res: any) {
   const repo = getRepoName(url);
 
   // HACK to create dataset
-  embedbase.dataset(repo).add('');
+  await embedbase.dataset(repo).add('');
 
   const chunks: BatchAddDocument[] = [];
   githubFiles.forEach((file) =>
