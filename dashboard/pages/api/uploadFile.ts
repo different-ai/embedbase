@@ -15,6 +15,7 @@ export const config = {
   api: {
     bodyParser: false,
   },
+  runtime: 'edge'
 };
 
 const getApiKey = async (req, res) => {
