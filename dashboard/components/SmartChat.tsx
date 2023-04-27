@@ -58,7 +58,6 @@ const DatasetCheckboxes = ({
           .filter((dataset) => (filter === '' ? true : dataset.id.includes(filter))
             || selectedDatasetIds.includes(dataset.id))
           // TODO:; less on mobile?
-          .slice(0, 6)
           .map((dataset) => (
             <div
               key={dataset.id}
