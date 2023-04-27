@@ -116,6 +116,7 @@ export default function FileDataLoader() {
                                             id="file-upload"
                                             name="file-upload"
                                             type="file"
+                                            accept="application/pdf"
                                             className="sr-only"
                                             disabled={uploading}
                                             {...register('file', {
