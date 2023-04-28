@@ -3,9 +3,9 @@ import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from 'embedbase-js'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
-import { PrimaryButton } from '../../components/Button'
-import { CenteredLayout } from '../../components/Layout'
-import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
+import { PrimaryButton } from '@/components/Button'
+import { CenteredLayout } from '@/components/Layout'
+import { EMBEDBASE_CLOUD_URL, defaultDataset } from '@/utils/constants'
 
 const Index = ({ apiKey }) => {
   const router = useRouter()
@@ -19,12 +19,8 @@ const Index = ({ apiKey }) => {
     setLoading(false)
   }
   const insertTestData = async () => {
-    const datasetUrl =
-      'https://gist.githubusercontent.com/louis030195/acd9479b7a127368d2d30d0a90734bc4/raw/77f5f96de72591541207ddecc45607ff9d3feddf/small.json'
     const dsId = 'test-amazon-product-reviews'
-    const documents = await fetch(datasetUrl)
-      .then((res) => res.json())
-      .then((data) => data.map((d: any) => ({ data: d.Text })))
+    const documents = defaultDataset.map((d: any) => ({ data: d.Text }))
     await embedbase.dataset(dsId).batchAdd(documents)
   }
   const isDisabled = loading
