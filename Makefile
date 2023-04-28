@@ -12,7 +12,7 @@ run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
 test: ## [Local development] Run all Python tests with pytest.
-	docker run --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
+	docker run --rm --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
 	while ! docker exec -it pgvector pg_isready -U postgres; do sleep 1; done
 	poetry run pytest --ignore=sdk/embedbase-js
 	docker stop pgvector

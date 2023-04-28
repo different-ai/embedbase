@@ -49,13 +49,15 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "::set-output name=version::$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+        run: |
+          VERSION0=$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
+          echo "version=${VERSION}" >> $GITHUB_ENV
 
       - uses: rickstaa/action-create-tag@v1
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: "tag_create"
         with:
-          tag: core-${{ steps.get_version.outputs.version }}
+          tag: core-${{ env.version }}
           tag_exists_error: true
           message: "Release ${{ steps.get_version.outputs.version }}"
 

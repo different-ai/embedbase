@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Awaitable, Callable, Optional, Tuple, Union
+from typing import Awaitable, Callable, Optional, Tuple, Union, Any
 import warnings
 from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
@@ -8,7 +8,12 @@ from starlette.types import Scope
 from embedbase.database.base import VectorDatabase
 from embedbase.embedding.base import Embedder
 from embedbase.logging_utils import get_logger
-from embedbase.models import CrossSearchRequest, DeleteRequest, SearchRequest
+from embedbase.models import (
+    CrossSearchRequest,
+    DeleteRequest,
+    SearchRequest,
+    AddRequest,
+)
 from embedbase.settings import Settings
 import hashlib
 import time
@@ -16,21 +21,20 @@ import urllib.parse
 import uuid
 
 from fastapi import Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, ORJSONResponse
 from pandas import DataFrame
 
 from embedbase.database.db_utils import batch_select
-from embedbase.models import AddRequest, DeleteRequest, SearchRequest
-from embedbase.settings import Settings
 from embedbase.utils import get_user_id
 
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
 
+
 class Embedbase:
     def __init__(self, settings: Optional[Settings] = None, **kwargs):
         self._kwargs = kwargs
-        self.fastapi_app = FastAPI()
+        self.fastapi_app = FastAPI(default_response_class=ORJSONResponse)
         self.logger = get_logger(settings)
 
     def use_db(
@@ -182,12 +186,11 @@ class Embedbase:
                     if row["hash"] == doc["hash"]:
                         return doc["embedding"]
                 return row["embedding"]
-            
+
             # add existing embeddings to the dataframe
             df["embedding"] = df.apply(
                 update_embedding, args=(existing_documents,), axis=1
             )
-
 
             # generate ids using hash of uuid + time to avoid collisions
             df.id = df.apply(
