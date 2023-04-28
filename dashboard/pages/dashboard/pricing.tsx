@@ -135,6 +135,7 @@ export const getServerSideProps = async (ctx) => {
       },
     }
 
+  // todo limit to 30 days
   let { data, status, error } = await supabase
     .from('plan_usages')
     .select('*')

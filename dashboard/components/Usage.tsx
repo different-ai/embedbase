@@ -52,7 +52,8 @@ const convertUsageToStats = (usage: UsageItem[]) => {
     // get the total usage
     // const totalPlaygroundUsage = Object.values(dailyPlaygroundUsage).reduce((acc, item) => acc + item, 0)
     const keys = Object.keys(dailyPlaygroundUsage);
-    const today = keys.length > 0 ? dailyPlaygroundUsage[keys[keys.length - 1]] : 0
+    // get today's usage or 0 if no usage
+    const today = dailyPlaygroundUsage[new Date().toLocaleDateString()] || 0
     const yesterday = keys.length > 1 ? dailyPlaygroundUsage[keys[keys.length - 2]] : 0
     const changeInPercentage = ((today - yesterday) / (yesterday || 1)) * 100
     return [{
