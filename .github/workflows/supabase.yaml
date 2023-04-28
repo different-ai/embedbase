@@ -24,3 +24,4 @@ jobs:
           version: 1.0.0
 
       - run: supabase functions deploy consumeApi --no-verify-jwt --project-ref $SUPABASE_PROJECT_ID
+      - run: supabase functions deploy sendgrid --no-verify-jwt --project-ref $SUPABASE_PROJECT_ID
