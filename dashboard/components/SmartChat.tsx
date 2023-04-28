@@ -25,6 +25,21 @@ const DatasetCheckboxes = ({
   setSelectedDatasetIds,
 }: DatasetCheckboxesProps) => {
   const [filter, setFilter] = useState('')
+  const displayedDatasets = datasets
+    // sort by selected datasets first
+    .sort((a, b) =>
+      selectedDatasetIds.includes(a.id) ? -1 : selectedDatasetIds.includes(b.id) ? 1 : 0
+    )
+    .filter((dataset) => (filter === '' ? true : dataset.id.includes(filter))
+      || selectedDatasetIds.includes(dataset.id));
+  
+  // tick the first dataset on first arrival
+  useEffect(() => {
+    if (datasets.length > 0 && selectedDatasetIds.length === 0) {
+      setSelectedDatasetIds([datasets[0].id])
+    }
+  }, [datasets])
+
   return (
     <div className="flex flex-col gap-2">
       {/* a input text to filter dataset list */}
@@ -50,14 +65,7 @@ const DatasetCheckboxes = ({
           </div>
         )}
 
-        {datasets
-          // sort by selected datasets first
-          .sort((a, b) =>
-            selectedDatasetIds.includes(a.id) ? -1 : selectedDatasetIds.includes(b.id) ? 1 : 0
-          )
-          .filter((dataset) => (filter === '' ? true : dataset.id.includes(filter))
-            || selectedDatasetIds.includes(dataset.id))
-          // TODO:; less on mobile?
+        {displayedDatasets
           .map((dataset) => (
             <div
               key={dataset.id}
@@ -93,14 +101,6 @@ const DatasetCheckboxes = ({
               </div>
             </div>
           ))}
-        {/* if there are more than 6 datasets, display user indication */}
-        {datasets.length > 6 && (
-          <div className="flex h-12 w-full items-center justify-center">
-            <p className="text-sm text-gray-500">
-              {datasets.length - 6} more datasets...
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
