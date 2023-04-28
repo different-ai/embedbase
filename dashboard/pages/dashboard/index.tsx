@@ -21,6 +21,35 @@ export function APIKeySection() {
   )
 }
 
+function DataImporter() {
+  return (
+    <div className="rounded-2xl bg-gray-100 py-4 px-5">
+      <h3 className="mb-6 text-2xl font-semibold">Dataset Importer</h3>
+      <p className="mb-3 text-gray-500">
+        Here you can easily import your data into Embedbase. You can either
+        upload a file or import a Github repository.
+      </p>
+      <p className="mb-3 text-gray-500">
+        For more complex use cases, check out our{' '}
+        <a
+          className="text-blue-700 underline"
+          href="https://docs.embedbase.xyz?search=how-to-import-data"
+        >
+          docs
+        </a>{' '}
+        to learn how to import data programmatically.
+      </p>
+      <h3 className="mb-3 text-xl font-semibold">PDF Importer</h3>
+
+      <FileDataLoader />
+      <div className="my-6 text-gray-600">or</div>
+      <h3 className="mb-3 text-xl font-semibold">Github Importer</h3>
+
+      <GithubDataLoader />
+    </div>
+  )
+}
+
 export default function Index({
   apiKey,
   datasets,
@@ -43,23 +72,7 @@ export default function Index({
           <h3 className="mb-6 text-2xl font-semibold">API Key</h3>
           <APIKeySection />
         </div>
-        <div className="rounded-2xl bg-gray-100 py-4 px-5">
-          <h3 className="mb-6 text-2xl font-semibold">Dataset Importer</h3>
-          <p className="text-gray-500 mb-3">
-            Here you can easily import your data into Embedbase. You can either upload a file or import a Github repository.
 
-          </p>
-          <p className="text-gray-500 mb-3">
-            For more complex use cases, check out our <a className="underline text-blue-700" href="https://docs.embedbase.xyz?search=how-to-import-data">docs</a> to learn how to import data programmatically.
-          </p>
-          <h3 className="mb-3 text-xl font-semibold">PDF Importer</h3>
-
-          <FileDataLoader />
-          <div className='text-gray-600 my-6'>or</div>
-          <h3 className="mb-3 text-xl font-semibold">Github Importer</h3>
-
-          <GithubDataLoader />
-        </div>
         <h3 className="text-2xl font-semibold">Datasets</h3>
         <DatasetList />
       </div>
