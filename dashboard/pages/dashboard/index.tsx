@@ -72,7 +72,7 @@ export default function Index({
           <h3 className="mb-6 text-2xl font-semibold">API Key</h3>
           <APIKeySection />
         </div>
-
+        <DataImporter />
         <h3 className="text-2xl font-semibold">Datasets</h3>
         <DatasetList />
       </div>

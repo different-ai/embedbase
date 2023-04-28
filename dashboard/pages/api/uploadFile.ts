@@ -77,7 +77,7 @@ export default async function sync(req: any, res: any) {
       console.log('after create client')
 
       // HACK to create dataset
-      await embedbase.dataset(datasetId).add('');
+      await embedbase.dataset(datasetId).add('.');
       console.log('after empty add')
 
 
