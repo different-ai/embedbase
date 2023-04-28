@@ -1,7 +1,8 @@
 import { classNames } from '@/lib/utils'
 import React from 'react'
 
-const Spinner = ({ className }) => {
+
+const Spinner = ({ className= ''}) => {
   return (
     <svg
       className={classNames(

@@ -9,7 +9,6 @@ import { useAppStore } from '../lib/store'
 import { defaultChatSystem } from '../utils/constants'
 import { CreateContextResponse } from '../utils/types'
 import Markdown from './Markdown'
-import Sandbox from './Sandbox'
 import { PrimaryButton } from './Button'
 
 
@@ -434,7 +433,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
           <Footer />
 
         </div>
-        <Sandbox />
       </div>
     </div>
   )
