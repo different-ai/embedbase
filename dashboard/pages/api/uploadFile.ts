@@ -50,6 +50,7 @@ const getApiKey = async (req, res) => {
 }
 
 export default async function sync(req: any, res: any) {
+  console.log(req)
   if (req.method === "POST") {
     const form = new formidable.IncomingForm();
     const apiKey = await getApiKey(req, res)
@@ -59,6 +60,7 @@ export default async function sync(req: any, res: any) {
       })
     }
 
+    console.log('step 2')
     const startTime = Date.now()
     form.parse(req, async (err, fields, files) => {
       if (err) {
