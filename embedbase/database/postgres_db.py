@@ -105,6 +105,8 @@ GROUP BY dataset_id, user_id;
         hashes: List[str] = [],
         dataset_id: Optional[str] = None,
         user_id: Optional[str] = None,
+        # todo: distinct is not implemented
+        distinct: bool = True,
     ) -> List[dict]:
         # either ids or hashes must be provided
         assert ids or hashes, "ids or hashes must be provided"
@@ -216,7 +218,7 @@ where
     ) -> List[dict]:
         d = {
             "query_embedding": str(vector),
-            "similarity_threshold": 0.1,  # TODO: make this configurable
+            "similarity_threshold": 0,  # TODO: make this configurable
             "match_count": top_k,
             "query_dataset_ids": dataset_ids,
             "query_user_id": user_id,

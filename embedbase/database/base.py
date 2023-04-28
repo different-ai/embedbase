@@ -17,12 +17,14 @@ class VectorDatabase(ABC):
         hashes: List[str] = [],
         dataset_id: Optional[str] = None,
         user_id: Optional[str] = None,
+        distinct: bool = True,
     ) -> List[dict]:
         """
         :param ids: list of ids
         :param hashes: list of hashes
         :param dataset_id: dataset id
         :param user_id: user id
+        :param distinct: distinct
         :return: list of documents
         """
         raise NotImplementedError

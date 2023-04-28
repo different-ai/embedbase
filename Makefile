@@ -11,10 +11,10 @@ IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
-test: ## [Local development] Run tests with pytest.
+test: ## [Local development] Run all Python tests with pytest.
 	docker run --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
 	while ! docker exec -it pgvector pg_isready -U postgres; do sleep 1; done
-	poetry run pytest
+	poetry run pytest --ignore=sdk/embedbase-js
 	docker stop pgvector
 	@echo "Done testing"
 
@@ -65,7 +65,6 @@ install:
 	poetry lock -n && poetry export --without-hashes > requirements.txt
 	poetry install -n
 	-poetry run mypy --install-types --non-interactive ./
-	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
 #* Formatters
 .PHONY: codestyle

@@ -27,6 +27,7 @@ class Supabase(VectorDatabase):
         hashes: List[str] = [],
         dataset_id: Optional[str] = None,
         user_id: Optional[str] = None,
+        distinct: bool = True,
     ) -> List[dict]:
         # either ids or hashes must be provided
         assert ids or hashes, "ids or hashes must be provided"
@@ -34,12 +35,21 @@ class Supabase(VectorDatabase):
         req = self.supabase.table("documents").select("*")
         if ids:
             req = req.in_("id", ids)
+            if distinct:
+                # hack: supabase does not support distinct
+                req = req.order("id", desc=True)
+                req = req.limit(len(ids))
         if hashes:
             req = req.in_("hash", hashes)
+            if distinct:
+                # hack: supabase does not support distinct
+                req = req.order("hash", desc=True)
+                req = req.limit(len(hashes))
         if dataset_id:
             req = req.eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
+        
         return req.execute().data
 
     async def update(

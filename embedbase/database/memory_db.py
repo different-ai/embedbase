@@ -31,7 +31,15 @@ class MemoryDatabase(VectorDatabase):
             }
         return True
 
-    async def select(self, ids=[], hashes=[], dataset_id=None, user_id=None):
+    async def select(
+        self,
+        ids=[],
+        hashes=[],
+        dataset_id=None,
+        user_id=None,
+        # todo: distinct is not implemented
+        distinct: bool = True,
+    ):
         if ids:
             return [
                 {

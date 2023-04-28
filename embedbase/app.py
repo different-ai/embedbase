@@ -172,7 +172,7 @@ class Embedbase:
             hashes_to_fetch = df.hash.tolist()
             existing_documents = await batch_select(
                 self.db,
-                hashes_to_fetch,
+                list(set(hashes_to_fetch)),
                 None,
                 None,
             )
@@ -216,7 +216,7 @@ class Embedbase:
             # pair does not have this hash
             existing_documents_in_this_pair = await batch_select(
                 self.db,
-                hashes_to_fetch,
+                list(set(hashes_to_fetch)),
                 dataset_id,
                 user_id,
             )
