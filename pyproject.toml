@@ -11,7 +11,6 @@ authors = ["Different AI <louis@embedbase.xyz>"]
 license = "MIT"
 repository = "https://github.com/different-ai/embedbase"
 homepage = "https://github.com/different-ai/embedbase"
-
 keywords = ["embeddings", "machine learning", "artificial intelligence"]
 
 classifiers = [
