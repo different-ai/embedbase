@@ -36,23 +36,31 @@ const Markdown = ({ children }) => {
   const MarkdownComponents: object = {
     a: ({ node, ...props }) => {
       // if content regex that match ^[number]
-      if (props.children?.[0]?.match(/\^[0-9]/)) {
+      if (props?.children?.[0]?.match(/\^[0-9]/)) {
         props.children[0] = props.children[0].replace(/\^/, '')
         // add [ ] around the number
         props.children[0] = props.children[0].replace(/([0-9]+)/, '[$1]')
         return (
           <sup>
-            <a {...props} target="_blank" rel="noopener noreferrer"
+            <a
+              {...props}
+              target="_blank"
+              rel="noopener noreferrer"
               // uplifted from
-              className="ml-1 inline light text-xs font-bold tracking-widest font-mono leading-none uppercase text-zinc-500 selection:bg-super selection:text-white dark:selection:bg-opacity-50 selection:bg-opacity-70"
+              className="light selection:bg-super ml-1 inline font-mono text-xs font-bold uppercase leading-none tracking-widest text-zinc-500 selection:bg-opacity-70 selection:text-white dark:selection:bg-opacity-50"
             />
           </sup>
         )
       } else {
-        return <a {...props} target="_blank" rel="noopener noreferrer"
-          // underline links
-          className="underline"
-        />
+        return (
+          <a
+            {...props}
+            target="_blank"
+            rel="noopener noreferrer"
+            // underline links
+            className="underline"
+          />
+        )
       }
     },
     // pre: Pre,
@@ -99,9 +107,13 @@ const Markdown = ({ children }) => {
   }
 
   return (
-    <ReactMarkdown plugins={[footnotes]}
+    <ReactMarkdown
+      plugins={[footnotes]}
       className="prose"
-      components={MarkdownComponents}>{children}</ReactMarkdown>
+      components={MarkdownComponents}
+    >
+      {children}
+    </ReactMarkdown>
   )
 }
 

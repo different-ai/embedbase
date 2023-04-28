@@ -33,7 +33,7 @@ export function Playground() {
                 Playground{' '}
               </h3>
 
-              <p className="text-gray-700">
+              <p className="text-gray-500 text-sm">
                 {`The playground simplifies prototyping. On the left you can
                 select an embedbase "dataset". The playground will automatically
                 get information from this dataset and add it inside the ChatGPT

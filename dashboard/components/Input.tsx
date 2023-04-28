@@ -26,7 +26,7 @@ export const TextArea = forwardRef(function Input(
     <textarea
       type={type}
       className={
-        'block w-full border border-gray-800 p-4 text-gray-800 sm:text-sm'
+        classNames( 'block w-full border border-gray-300 p-4 text-gray-800 sm:text-sm rounded-md', className)
       }
       ref={ref}
       rows={rows}
