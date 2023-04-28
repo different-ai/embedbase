@@ -49,15 +49,12 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 - [Embedbase.py](#getting-started): **Choose your own db, embeddings models, and get started with a simple** | `pip install embedbase` | ⏱️ 5 min
 - [Embedbase self-hosted](https://docs.embedbase.xyz/tutorials/self-host-on-render): **Get Embedbase Cloud on your infra** | `docker-compose up` | ⏱️ 15 min
 
-## Examples
-
-Please refer to [examples in the documentation](https://docs.embedbase.xyz/).
 
 ## What are people building
 
-- [Creating a recommendation engine: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
-- [Creating chat with your data experiences: Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
-- [Creating a talk with your docs experience: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
+- [Recommendation Engines: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
+- [Chat with your data: Solpilot uses Embedbase to put smart contract integration on autopilot](https://solpilot.xyz/chat)
+- [Talk to your docs: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
 ## Getting started
 
