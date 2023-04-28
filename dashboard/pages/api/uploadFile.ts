@@ -74,14 +74,17 @@ export default async function sync(req: any, res: any) {
       console.log("datasetId:", datasetId);
 
       const embedbase = createClient(EMBEDBASE_URL, apiKey);
+      console.log('after create client')
 
       // HACK to create dataset
       await embedbase.dataset(datasetId).add('');
+      console.log('after empty add')
 
 
       const file = (files.file as any);
       const pdfPath = file.filepath;
       const pdfData = fs.readFileSync(pdfPath);
+      console.log('after read sync')
 
       try {
 
