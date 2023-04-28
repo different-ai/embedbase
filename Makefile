@@ -43,8 +43,6 @@ release: ## [Local development] Release a new version of the API.
 	echo "Committing '${VERSION}: $$COMMIT'"; \
 	git commit -m "Release ${VERSION}: $$COMMIT"; \
 	git push origin main; \
-	git tag core-${VERSION}; \
-	git push origin core-${VERSION}
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
 openapi:

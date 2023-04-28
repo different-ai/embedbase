@@ -48,6 +48,7 @@ jobs:
           poetry publish
 
       - name: Get version
+        id: get_version
         run: echo "::set-output name=version::$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
 
       - uses: rickstaa/action-create-tag@v1
