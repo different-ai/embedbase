@@ -24,8 +24,3 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 6
-
-class CrossSearchRequest(BaseModel):
-    query: str
-    dataset_ids: List[str]
-    top_k: int = 6
