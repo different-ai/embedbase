@@ -108,7 +108,7 @@ const Markdown = ({ children }) => {
 
   return (
     <ReactMarkdown
-      plugins={[footnotes]}
+      remarkPlugins={[footnotes]}
       className="prose"
       components={MarkdownComponents}
     >
