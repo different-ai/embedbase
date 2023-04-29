@@ -1,48 +1,58 @@
-import { HomeIcon } from '@heroicons/react/20/solid'
+import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { HomeIcon } from '@heroicons/react/24/outline'
 
-export default function Breadcrumbs() {
+function cleanPath(path) {
+  return path.replace(/\/\//g, '/')
+}
+function Breadcrumbs() {
   const router = useRouter()
-
-  const pages = []
 
   // Get current path
   const currentPath = router.asPath.split('/')
 
   // Build pages array using forEach loop
-  currentPath.forEach((path, index) => {
-
-    // Ignore empty strings
-    if (path !== '') {
+  const pages = currentPath
+    .filter((path) => path !== '')
+    .map((path, index) => {
       // Build page object
-      const page = {
-        name: path.charAt(0).toUpperCase() + path.slice(1),
-        href: '/' + currentPath.slice(0, index + 1).join('/'),
-        current: index === currentPath.length - 1,
-      }
-      // Push page object into pages array
-      // remove everything after ? in the url
+      const name = path.charAt(0).toUpperCase() + path.slice(1)
+      const href = cleanPath('/' + currentPath.slice(0, index + 1).join('/'))
+
+      const current = index === currentPath.length - 1
+
+      // Remove everything after ? in the url
       // Dashboard#access_token=eyJhbGciOiJIUzI1NiIsInR5cCI…sh_token=z8Izv7fmMoGTWZUe120KIQ&token_type=bearer
       // Or Playground?ofkofr3k
       // regex to remove everywtihng after dashboarrd
       const regex = /Dashboard.*/g
-      const newPage = page.name.replace(regex, 'Dashboard').replace(/\?.*/g, '')
-      page.name = newPage
-      pages.push(page)
-    }
-  })
+      const formattedName = name
+        .replace(regex, 'Dashboard')
+        .replace(/\?.*/g, '')
+
+      return {
+        name: formattedName,
+        href,
+        current,
+      }
+    })
+
   return (
     <nav className="flex" aria-label="Breadcrumb">
       <ol role="list" className="flex items-center space-x-4">
         <li>
           <div>
-            <a href="/" className="text-gray-400 hover:text-gray-500">
+            <Link
+              href="/dashboard"
+              className="text-gray-400 hover:text-gray-500"
+            >
               <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
               <span className="sr-only">Home</span>
-            </a>
+            </Link>
           </div>
         </li>
+
         {pages.map((page) => (
           <li key={page.name}>
             <div className="flex items-center">
@@ -54,14 +64,12 @@ export default function Breadcrumbs() {
               >
                 <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
               </svg>
+
               <Link
                 href={page.href}
-                className={
-                  page.current
-                    ? 'ml-4 text-sm font-medium text-gray-500'
-                    : 'ml-4 text-sm font-medium text-gray-500 hover:text-gray-700'
-                }
-                aria-current={page.current ? 'page' : undefined}
+                className={`ml-4 text-sm font-medium text-gray-500 ${
+                  page.current ? 'underline' : 'hover:text-gray-700'
+                }`}
               >
                 {page.name}
               </Link>
@@ -72,3 +80,5 @@ export default function Breadcrumbs() {
     </nav>
   )
 }
+
+export default Breadcrumbs
