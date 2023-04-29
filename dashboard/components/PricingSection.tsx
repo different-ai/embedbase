@@ -49,7 +49,7 @@ export const Plan = ({ tier, children }: Planprops) => {
   return (
     <div
       key={tier.name}
-      className="flex flex-col rounded-3xl bg-white shadow-xl ring-1 ring-black/10"
+      className="flex flex-col rounded-3xl bg-white ring-1 ring-black/10"
     >
       <div className="p-8 sm:p-10">
         <h3

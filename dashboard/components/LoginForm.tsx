@@ -1,9 +1,4 @@
-import {
-  useSession,
-  useSessionContext,
-  useSupabaseClient,
-  useUser,
-} from '@supabase/auth-helpers-react'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { redirect } from 'next/dist/server/api-utils'
 import { useRouter } from 'next/router'
 import posthog from 'posthog-js'

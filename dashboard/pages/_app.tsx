@@ -1,9 +1,7 @@
 import { usePostHog } from 'next-use-posthog'
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
-import { MyUserContextProvider } from '../utils/useUser'
 import '../styles/globals.css'
-
 
 import { Toaster } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
@@ -28,15 +26,13 @@ export default function App({ Component, pageProps }) {
         <title>Embedbase | The glue between your data and ChatGPT</title>
       </Head>
 
-
-      <SessionContextProvider supabaseClient={supabase} initialSession={pageProps.initialSession}>
-        <MyUserContextProvider>
-          <Component {...pageProps} />
-          <Toaster />
-        </MyUserContextProvider>
+      <SessionContextProvider
+        supabaseClient={supabase}
+        initialSession={pageProps.initialSession}
+      >
+        <Component {...pageProps} />
+        <Toaster />
       </SessionContextProvider>
-
     </>
-
   )
 }

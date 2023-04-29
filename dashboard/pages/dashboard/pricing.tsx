@@ -1,6 +1,5 @@
-import { useUser } from '@/utils/useUser'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Dashboard from '../../components/Dashboard'
 import { Plan, tiers } from '../../components/PricingSection'
 import Spinner from '../../components/Spinner'
@@ -12,16 +11,34 @@ import { PrimaryButton } from '@/components/Button'
 import Usage, { UsageItem } from '@/components/Usage'
 import { Price } from '@/utils/types'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
 const FreePlan = () => {
-  const { subscription } = useUser()
-  return <Plan tier={tiers[0]}>{ }</Plan>
+  return <Plan tier={tiers[0]}>{}</Plan>
+}
+
+const useSubscription = () => {
+  const user = useUser()
+  const supabase = useSupabaseClient()
+  const [subscription, setSubscription] = useState(null)
+  useEffect(() => {
+    supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user?.id)
+      .single()
+      .then(({ data }) => {
+        setSubscription(data)
+      })
+  }, [user])
+
+  return { user, subscription }
 }
 
 const ProPlan = () => {
   const router = useRouter()
   const [priceIdLoading, setPriceIdLoading] = useState<string>()
-  const { user, subscription } = useUser()
+  const { subscription } = useSubscription()
 
   const handleCheckout = async (price: Price) => {
     setPriceIdLoading(price.id)
@@ -79,10 +96,11 @@ const EnterprisePlan = () => {
 }
 
 export default function Index({ usage }: { usage: UsageItem[] }) {
-  const user = useUser()
-  const limit = (user?.subscription?.price_id && tiers.find((t) =>
-    t.id == user?.subscription?.price_id
-  )?.playgroundLimit) || 5
+  const subscription = useSubscription()
+  const limit =
+    (subscription?.price_id &&
+      tiers.find((t) => t.id == subscription?.price_id)?.playgroundLimit) ||
+    5
 
   return (
     <Dashboard>
@@ -96,7 +114,7 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
             cancel your subscription.
           </p>
 
-          {user?.subscription?.status === 'active' && (
+          {subscription?.status === 'active' && (
             <a
               href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL}
               target="_blank"
@@ -157,4 +175,3 @@ export const getServerSideProps = async (ctx) => {
     },
   }
 }
-
