@@ -10,14 +10,33 @@ import { getStripe } from '@/utils/stripe-client'
 import { PrimaryButton } from '@/components/Button'
 import Usage, { UsageItem } from '@/components/Usage'
 import { Price } from '@/utils/types'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
 const FreePlan = () => {
   return <Plan tier={tiers[0]}>{}</Plan>
 }
 
-const useSubscription = () => {
+interface Subscription {
+  cancel_at: null | Date;
+  cancel_at_period_end: boolean;
+  canceled_at: null | Date;
+  created: string;
+  current_period_end: string;
+  current_period_start: string;
+  ended_at: null | Date;
+  id: string;
+  metadata: Record<string, unknown>;
+  price_id: string;
+  quantity: number;
+  status: "active" | "trialing" | "past_due" | "unpaid" | "canceled" | "incomplete" | "incomplete_expired";
+  trial_end: null | Date;
+  trial_start: null | Date;
+  user_id: string;
+}
+
+
+const useSubscription = (): { user: User | null, subscription: Subscription | null } => {
   const user = useUser()
   const supabase = useSupabaseClient()
   const [subscription, setSubscription] = useState(null)
@@ -31,6 +50,7 @@ const useSubscription = () => {
         setSubscription(data)
       })
   }, [user])
+  console.log(subscription)
 
   return { user, subscription }
 }
@@ -96,7 +116,7 @@ const EnterprisePlan = () => {
 }
 
 export default function Index({ usage }: { usage: UsageItem[] }) {
-  const subscription = useSubscription()
+  const {subscription} = useSubscription()
   const limit =
     (subscription?.price_id &&
       tiers.find((t) => t.id == subscription?.price_id)?.playgroundLimit) ||
