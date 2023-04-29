@@ -9,6 +9,9 @@ import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 import { DatasetList } from './explorer'
 
+const env = process.env.NODE_ENV
+console.log(env)
+
 export function APIKeySection() {
   return (
     // a left and right panel, left panel is the search bar, right panel is tips to add data
