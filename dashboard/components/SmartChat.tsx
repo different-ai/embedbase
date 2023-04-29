@@ -11,21 +11,21 @@ import { CreateContextResponse } from '../utils/types'
 import Markdown from './Markdown'
 import { PrimaryButton } from './Button'
 
-
 const Footer = () => (
   <div className={`mt-2 text-xs text-gray-500 `}>
-  <p>
-    Powered by{' '}
-    <a
-      href="https://github.com/different-ai/embedbase"
-      target="_blank"
-      rel="noreferrer"
-    >
-      Embedbase
-    </a>
-    .
-  </p>
-</div>)
+    <p>
+      Powered by{' '}
+      <a
+        href="https://github.com/different-ai/embedbase"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Embedbase
+      </a>
+      .
+    </p>
+  </div>
+)
 interface DatasetCheckboxesProps {
   datasets: Dataset[]
   isLoading: boolean
@@ -53,7 +53,7 @@ function ChatSkeleton() {
   )
 }
 
-function ChatBox({ children}) {
+function ChatBox({ children }) {
   return (
     <div className="min-h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
       <div className="flex space-x-4">{children}</div>
@@ -69,11 +69,7 @@ const DatasetCheckboxes = ({
 }) => {
   const [filter, setFilter] = useState('')
   const displayedDatasets = datasets
-    .filter(
-      (dataset) =>
-        filter === '' ||
-        dataset.id.includes(filter)
-    )
+    .filter((dataset) => filter === '' || dataset.id.includes(filter))
     .slice(0, 6)
 
   useEffect(() => {
@@ -110,12 +106,12 @@ const DatasetCheckboxes = ({
       {/* display selected chips */}
       <div className="flex flex-wrap gap-2">
         {selectedDatasetIds.map((id) => (
-          <div key={id} className="flex items-center gap-2 py-1 max-w-[100px] bg-gray-100 rounded-md px-2 text-xs border border-1 "
-          title={id}
+          <div
+            key={id}
+            className="border-1 flex max-w-[100px] items-center gap-2 rounded-md border bg-gray-100 py-1 px-2 text-xs "
+            title={id}
           >
-            <span className=" text-gray-600 truncate">
-              {id}
-            </span>
+            <span className=" truncate text-gray-600">{id}</span>
             <button
               className="text-gray-500 hover:text-gray-800"
               onClick={() => removeChip(id)}
@@ -137,20 +133,22 @@ const DatasetCheckboxes = ({
           </div>
         )}
 
-        {displayedDatasets.filter((dataset) => !selectedDatasetIds.includes(dataset.id)).map((dataset) => (
-          <div
-            key={dataset.id}
-            className="relative flex items-center gap-1 truncate py-1 max-w-full"
-          >
-            <button
-              className="text-xs font-medium text-gray-700 hover:text-gray-600 truncate"
-              onClick={() => addChip(dataset.id)}
-              disabled={selectedDatasetIds.includes(dataset.id)}
+        {displayedDatasets
+          .filter((dataset) => !selectedDatasetIds.includes(dataset.id))
+          .map((dataset) => (
+            <div
+              key={dataset.id}
+              className="relative flex max-w-full items-center gap-1 truncate py-1"
             >
-              {dataset.id}
-            </button>
-          </div>
-        ))}
+              <button
+                className="truncate text-xs font-medium text-gray-700 hover:text-gray-600"
+                onClick={() => addChip(dataset.id)}
+                disabled={selectedDatasetIds.includes(dataset.id)}
+              >
+                {dataset.id}
+              </button>
+            </div>
+          ))}
       </div>
     </div>
   )
@@ -281,11 +279,12 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
           system: system,
         }),
       })
+      inputRef.current.value = ''
 
       setLoading(false)
 
       if (!response.ok) {
-        return await onError(response)
+        return onError(response)
       }
 
       // This data is a ReadableStream
@@ -318,7 +317,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
       }
       chats[0].messages.push(lastMessage)
     } catch (error) {
-       onError(error)
+      onError(error)
     } finally {
       setLoading(false)
       setStreaming(false)
@@ -338,7 +337,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
 
   return (
     <div className="grid grid-cols-4  gap-5">
-      <div className="col-span-1 flex-col flex space-y-3">
+      <div className="col-span-1 flex flex-col space-y-3">
         <div className="flex flex-col ">
           <div className="flex items-center ">
             <Label>System message</Label>
@@ -351,7 +350,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
             row={3}
             className="text-gray-400"
             placeholder="You are a powerful AI that answer questions about a dataset..."
-            value={system}
             onChange={(e) => setSystem(e.target.value)}
             defaultValue={defaultChatSystem}
           />
@@ -431,7 +429,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
             </PrimaryButton>
           </form>
           <Footer />
-
         </div>
       </div>
     </div>
