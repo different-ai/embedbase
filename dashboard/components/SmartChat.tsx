@@ -336,7 +336,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
   const isSubmitDisabled = loading || streaming
 
   return (
-    <div className="grid grid-cols-4  gap-5">
+    <div className="flex flex-col sm:grid grid-cols-4  gap-5">
       <div className="col-span-1 flex flex-col space-y-3">
         <div className="flex flex-col ">
           <div className="flex items-center ">
