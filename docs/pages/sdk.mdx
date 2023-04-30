@@ -72,7 +72,7 @@ const embedbase = createClient(url, apiKey)
 ```ts
 // fetching data
 const data = await embedbase
-  .dataset('amazon-reviews')
+  .dataset('test-amazon-product-reviews')
   .search('best hot dogs accessories', { limit: 3 })
 
 console.log(data)
@@ -98,7 +98,7 @@ console.log(data)
 const data =
   await // embeddings are extremely good for retrieving unstructured data
   // in this example we store an unparsable html string
-  embedbase.dataset('amazon-reviews').add(`
+  embedbase.dataset('test-amazon-product-reviews').add(`
   <div>
     <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
 `)
@@ -188,7 +188,7 @@ console.log(data)
 ```js
 const data =
   await
-  embedbase.dataset('amazon-reviews').add(`
+  embedbase.dataset('test-amazon-product-reviews').add(`
   <div>
     <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
     // metadata can be anything you want that will appear in the search results later
@@ -210,7 +210,7 @@ console.log(data)
 ```js
 const data = await embedbase.datasets()
 console.log(data)
-// [{"datasetId": "amazon-reviews", "documentsCount": 2}]
+// [{"datasetId": "test-amazon-product-reviews", "documentsCount": 2}]
 ```
 
 ## Create a recommendation engine
