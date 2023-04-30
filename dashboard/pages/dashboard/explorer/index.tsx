@@ -110,7 +110,7 @@ export function DatasetList() {
         <div className="flex flex-wrap gap-4">
           {datasets.map((dataset) => (
             <Link key={dataset.id} href={`/dashboard/explorer/${dataset.id}`}>
-              <Card className="flex h-[200px] w-[300px] max-w-xs flex-1 items-center justify-center rounded-md ">
+              <Card className="flex h-[130px] w-[300px] max-w-xs flex-1 items-center justify-center rounded-md ">
                 <CardTitle className="flex items-center text-lg font-normal text-gray-600">
                   {dataset.id}
                 </CardTitle>

@@ -9,18 +9,10 @@ import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 import { DatasetList } from './explorer'
 
-const env = process.env.NODE_ENV
-console.log(env)
-
 export function APIKeySection() {
   return (
     // a left and right panel, left panel is the search bar, right panel is tips to add data
-    <div className="flex flex-col gap-6">
-      {/* a sheader for a section about api keys */}
-      <div className="flex w-3/4 flex-col gap-6">
-        <ApiKeyList />
-      </div>
-    </div>
+    <ApiKeyList />
   )
 }
 
@@ -70,14 +62,19 @@ export default function Index({
 
   return (
     <Dashboard>
-      <div className="flex flex-col gap-6 py-6">
-        <div className="rounded-2xl bg-gray-100 py-4 px-5">
-          <h3 className="mb-6 text-2xl font-semibold">API Key</h3>
+      <div className="flex flex-col gap-3 py-6">
+        <div className="w-full rounded-2xl bg-gray-100 py-4 px-5">
+          <h3 className="mb-3 text-2xl font-semibold ">Your API Keys</h3>
+          <p className="mb-3 text-sm text-gray-500">
+            Click on an API Key below to add it to your clipboard.
+          </p>
+
           <APIKeySection />
         </div>
-
-        <h3 className="text-2xl font-semibold">Datasets</h3>
-        <DatasetList />
+        <div className="col-span-6">
+          <h3 className="mb-2 text-2xl font-semibold">Datasets</h3>
+          <DatasetList />
+        </div>
       </div>
     </Dashboard>
   )

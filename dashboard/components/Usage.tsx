@@ -66,7 +66,7 @@ interface UsageProps {
   limit: number
 }
 
-export default function Example({ usage, limit }: UsageProps) {
+export default function Usage({ usage, limit }: UsageProps) {
   const stats = convertUsageToStats(usage)
   return (
     // just wrap text not more width

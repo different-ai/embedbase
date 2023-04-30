@@ -1,4 +1,4 @@
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Transition } from '@headlessui/react'
 import {
   Bars2Icon,
   Bars3CenterLeftIcon,
@@ -10,78 +10,96 @@ import {
   PlayIcon,
   UserCircleIcon,
   PlusCircleIcon,
-} from "@heroicons/react/24/outline";
+  QuestionMarkCircleIcon,
+} from '@heroicons/react/24/outline'
 
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { Fragment, useState } from "react";
-import { classNames } from "../lib/utils";
-import Breadcrumbs from "./Breadcrumbs";
-import { User } from "./User";
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { Fragment, useState } from 'react'
+import { classNames } from '../lib/utils'
+import Breadcrumbs from './Breadcrumbs'
+import { User } from './User'
+import Image from 'next/image'
 
-export const navigation = [
+const navigation = [
   {
-    path: "/dashboard",
-    name: "Dashboard",
+    path: '/dashboard',
+    name: 'Dashboard',
     icon: HomeIcon,
     current: true,
+    color: 'text-blue-500' // Adding text-blue-100 class for blue background
   },
   {
-    path: "/dashboard/playground",
-    name: "Playground",
+    path: '/dashboard/playground',
+    name: 'Playground',
     icon: PlayIcon,
     current: false,
+    color: 'text-purple-500' // Adding text-purple-300 class for purple background
   },
+
   {
-    path: "/dashboard/tutorial",
-    name: "Quickstart",
-    icon: Bars2Icon,
-    current: false,
-  },
-  {
-    path: "/dashboard/pricing",
-    name: "Account",
+    path: '/dashboard/pricing',
+    name: 'Account',
     icon: CreditCardIcon,
     current: false,
+    color: 'text-green-500' // Adding text-green-300 class for green background
   },
   {
-    path: "https://discord.gg/pMNeuGrDky",
-    name: "Discord",
-    icon: ChatBubbleBottomCenterTextIcon,
+    path: 'https://discord.gg/pMNeuGrDky',
+    name: 'Get Help',
+    icon: QuestionMarkCircleIcon,
     current: false,
+    color: 'text-pink-500' // Adding text-pink-300 class for pink background
   },
-  { path: "https://docs.embedbase.xyz", name: "Docs", icon: BookOpenIcon, current: false },
-];
+  {
+    path: 'https://docs.embedbase.xyz',
+    name: 'Docs',
+    icon: BookOpenIcon,
+    current: false,
+    color: 'text-red-500' // Adding text-red-300 class for red background
+  },
+  {
+    path: '/dashboard/tutorial',
+    name: 'Quickstart',
+    icon: Bars2Icon,
+    current: false,
+    color: 'text-yellow-500' // Adding text-yellow-300 class for yellow background
+  },
+]
 
+// We update the className property in the Link component to use the color value defined in the navigation array
 const DesktopSidebar = ({ current }) => {
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4">
-      <div className="flex flex-shrink-0 items-center px-6"></div>
+    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4 bg-white">
+      <div className="flex flex-shrink-0 items-center px-3 font-semibold tracking-wide">
+        embedbase
+      </div>
       {/* Sidebar component, swap this element with another sidebar if you like */}
       <div className="mt-5 flex h-0 flex-1 flex-col overflow-y-auto pt-1">
         {/* User account dropdown */}
         <User />
         {/* Navigation */}
         <nav className="mt-6 px-3">
-          <div className="space-y-1">
+          <div className="space-y-2">
             {navigation.map((item) => (
               <Link
                 href={item.path}
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? "bg-gray-200 text-gray-900"
-                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-50",
-                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
+                    ? `bg-gray-100 text-gray-800 font-bold`
+                    : `text-gray-800 hover:bg-gray-100 font-medium`,
+                    // Using template literals to add the color value defined in the navigation array
+                  'group flex cursor-pointer items-center rounded-2xl px-3 py-3  text-lg'
                 )}
-                aria-current={item.current ? "page" : undefined}
+                aria-current={item.current ? 'page' : undefined}
               >
                 <item.icon
                   className={classNames(
-                    item.current
-                      ? "text-gray-500"
-                      : "text-gray-400 group-hover:text-gray-500",
-                    "mr-3 flex-shrink-0 h-6 w-6"
+                    item.path === current
+                      ? `text-gray-800 `
+                      : 'text-gray-800 group-hover:text-gray-800',
+                    'mr-5 h-6 w-6 flex-shrink-0 font-bold stroke-2'
                   )}
                   aria-hidden="true"
                 />
@@ -89,21 +107,19 @@ const DesktopSidebar = ({ current }) => {
               </Link>
             ))}
           </div>
-
         </nav>
       </div>
     </div>
-  );
-};
+  )
+}
+
 
 export default function Dashboard({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
-  const current = router?.pathname;
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+  const current = router?.pathname
 
   /* should extract the following in a separate component */
-
-
 
   return (
     <>
@@ -170,18 +186,18 @@ export default function Dashboard({ children }) {
                             key={item.name}
                             className={classNames(
                               item.path === current
-                                ? "bg-gray-100 text-gray-900"
-                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                              "group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md cursor-pointer"
+                                ? 'bg-gray-100 text-gray-900'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                              'group flex cursor-pointer items-center rounded-md px-2 py-2 text-base font-medium leading-5'
                             )}
-                            aria-current={item.current ? "page" : undefined}
+                            aria-current={item.current ? 'page' : undefined}
                           >
                             <item.icon
                               className={classNames(
                                 item.path === current
-                                  ? "text-gray-500"
-                                  : "text-gray-400 group-hover:text-gray-500",
-                                "mr-3 flex-shrink-0 h-6 w-6"
+                                  ? 'text-gray-500'
+                                  : 'text-gray-400 group-hover:text-gray-500',
+                                'mr-3 h-6 w-6 flex-shrink-0'
                               )}
                               aria-hidden="true"
                             />
@@ -206,7 +222,7 @@ export default function Dashboard({ children }) {
           <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-gray-200 bg-white lg:hidden">
             <button
               type="button"
-              className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 lg:hidden"
+              className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black lg:hidden"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>
@@ -224,5 +240,5 @@ export default function Dashboard({ children }) {
         </div>
       </div>
     </>
-  );
+  )
 }

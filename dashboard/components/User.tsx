@@ -21,11 +21,11 @@ export function User() {
   return (
     <Menu as="div" className="relative inline-block px-3 text-left">
       <div>
-        <Menu.Button className="group w-full rounded-md bg-gray-100 px-3.5 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-100">
+        <Menu.Button className="group w-full rounded-md bg-gray-100 px-3.5 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-transparent focus:ring-offset-2 focus:ring-offset-gray-100">
           <span className="flex w-full items-center justify-between">
             <span className="flex min-w-0 items-center justify-between space-x-3">
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm text-gray-500">
+                <span className="truncate text-sm text-gray-700">
                   {user?.email}
                 </span>
               </span>
