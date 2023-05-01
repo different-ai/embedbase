@@ -16,6 +16,13 @@ class AddRequest(BaseModel):
     documents: List[Document]
     store_data: bool = True
 
+class UpdateDocument(BaseModel):
+    id: str
+    data: Optional[str] = None
+    metadata: Optional[dict] = None
+
+class UpdateRequest(BaseModel):
+    documents: List[UpdateDocument]
 
 class DeleteRequest(BaseModel):
     ids: List[str]

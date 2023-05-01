@@ -254,10 +254,10 @@ async def test_batch_select_large_content():
             unit_testing_dataset,
         )
         results = await batch_select(
-            vector_database,
-            list(set(hashes)),
-            None,
-            None,
+            vector_database=vector_database,
+            hashes=list(set(hashes)),
+            dataset_id=None,
+            user_id=None,
         )
         assert len(list(results)) == len(d), f"failed for {vector_database}"
 
@@ -291,10 +291,10 @@ async def test_distinct():
             unit_testing_dataset,
         )
         results = await batch_select(
-            vector_database,
-            list(set(hashes)),
-            None,
-            None,
+            vector_database=vector_database,
+            hashes=list(set(hashes)),
+            dataset_id=None,
+            user_id=None,
         )
         # should only return one result
         assert len(list(results)) == 1, f"failed for {vector_database}"

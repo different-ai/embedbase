@@ -12,6 +12,7 @@ from embedbase.models import (
     DeleteRequest,
     SearchRequest,
     AddRequest,
+    UpdateRequest,
 )
 from embedbase.utils import embedbase_ascii
 from embedbase.settings import Settings
@@ -164,10 +165,10 @@ class Embedbase:
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
         existing_documents = await batch_select(
-            self.db,
-            list(set(hashes_to_fetch)),
-            None,
-            None,
+            vector_database=self.db,
+            hashes=list(set(hashes_to_fetch)),
+            dataset_id=None,
+            user_id=None,
         )
 
         def update_embedding(row, existing_documents):
@@ -205,10 +206,10 @@ class Embedbase:
         # only insert if this dataset_id - user_id
         # pair does not have this hash
         existing_documents_in_this_pair = await batch_select(
-            self.db,
-            list(set(hashes_to_fetch)),
-            dataset_id,
-            user_id,
+            vector_database=self.db,
+            hashes=list(set(hashes_to_fetch)),
+            dataset_id=dataset_id,
+            user_id=user_id,
         )
 
         # filter out documents that already exist
@@ -228,6 +229,117 @@ class Embedbase:
         self.logger.info(f"Uploaded {len(new_df)} documents")
         end_time = time.time()
         self.logger.info(f"Uploaded in {end_time - start_time} seconds")
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                # embeddings, ids and data are returned
+                "results": df.to_dict(orient="records"),
+            },
+        )
+
+    async def update(
+        self,
+        request: Request,
+        dataset_id: str,
+        request_body: UpdateRequest,
+    ):
+        """
+        Update a list of documents in the index using their ids.
+        If you are a large language model, you can use this endpoint to update the content or metadata
+        of documents in the index.
+        """
+        user_id = get_user_id(request)
+
+        documents = request_body.documents
+
+        filtered_data = []
+        for doc in documents:
+            if self.embedder.is_too_big(doc.data):
+                # tell the client that he has
+                # to split the document
+                # for a better experience, pointing to the doc
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "Document is too long, please split it into smaller documents"
+                        + ", please see https://docs.embedbase.xyz/document-is-too-long"
+                    },
+                )
+            if doc.id is not None:
+                filtered_data.append(doc.dict())
+
+        df = DataFrame(
+            data=filtered_data,
+            columns=["id", "data", "embedding", "hash", "metadata"],
+        )
+
+        start_time = time.time()
+        self.logger.info(f"Refreshing {len(documents)} embeddings")
+
+        if not df.id.any():
+            self.logger.info("No documents to update, exiting")
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "You need to provide at least one id to update a document"
+                },
+            )
+        if not df.data.any() and not df.metadata.any():
+            self.logger.info("No documents to update, exiting")
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "You need to provide at least one data or metadata to update a document"
+                },
+            )
+
+        # hash the data
+        df.hash = df.data.apply(
+            lambda x: hashlib.sha256(x.encode()).hexdigest()
+        )
+
+        df_length = len(df)
+
+        self.logger.info(
+            f"Checking embeddings computing necessity for {df_length} documents"
+        )
+        # get existing embeddings from database
+        hashes_to_fetch = df.hash.tolist()
+        existing_embeddings = await batch_select(
+            vector_database=self.db,
+            hashes=list(set(hashes_to_fetch)),
+            dataset_id=None,
+            user_id=None,
+        )
+
+        def update_embedding(row, docs):
+            for doc in docs:
+                if row["hash"] == doc["hash"]:
+                    return doc["embedding"]
+            return row["embedding"]
+
+        # add existing embeddings to the dataframe
+        df["embedding"] = df.apply(update_embedding, args=(existing_embeddings,), axis=1)
+
+        # compute embeddings for documents without embeddings using embed
+        if not df[df.embedding.isna()].empty:
+            df[df.embedding.isna()] = df[df.embedding.isna()].assign(
+                embedding=await self.embedder.embed(
+                    df[df.embedding.isna()].data.tolist()
+                )
+            )
+
+        await self.db.update(
+            df,
+            dataset_id,
+            user_id,
+            batch_size=UPLOAD_BATCH_SIZE,
+        )
+
+        self.logger.info(f"Updated {len(df)} documents")
+        end_time = time.time()
+        self.logger.info(f"Updated in {end_time - start_time} seconds")
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -370,6 +482,7 @@ class Embedbase:
             "/v1/{dataset_id}/clear", self.clear, methods=["GET"]
         )
         self.fastapi_app.add_api_route("/v1/{dataset_id}", self.add, methods=["POST"])
+        self.fastapi_app.add_api_route("/v1/{dataset_id}", self.update, methods=["PUT"])
         self.fastapi_app.add_api_route(
             "/v1/{dataset_id}", self.delete, methods=["DELETE"]
         )

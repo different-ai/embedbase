@@ -13,6 +13,7 @@ from httpx import AsyncClient
 
 from embedbase import get_app
 from embedbase.database.base import VectorDatabase
+from embedbase.database.postgres_db import Postgres
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
@@ -27,6 +28,7 @@ vector_databases: List[VectorDatabase] = []
 def init_databases():
     settings = get_settings_from_file()
 
+    vector_databases.append(Postgres())
     vector_databases.append(MemoryDatabase())
     vector_databases.append(
         Supabase(
@@ -389,3 +391,59 @@ async def test_get_datasets_with_auth():
             # TODO: iterate on this test by insert first docs with this user then
             # check datasets
             assert json_response.get("datasets") == []
+
+
+@pytest.mark.asyncio
+async def test_update_documents():
+    async for app in run_around_tests():
+        # First, insert some documents
+        documents = [
+            {
+                "data": f"Document {i}",
+                "metadata": {"index": i},
+            }
+            for i in range(3)
+        ]
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": documents},
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 3
+
+            document_ids = [result["id"] for result in json_response.get("results")]
+
+        # Now, update the inserted documents
+        updated_documents = [
+            {
+                "id": document_id,
+                "data": f"Updated document {i}",
+                "metadata": {"index": i, "updated": True},
+            }
+            for i, document_id in enumerate(document_ids)
+        ]
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.put(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": updated_documents},
+            )
+            assert response.status_code == 200
+
+        # Search for updated documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search",
+                json={"query": "Updated document"},
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("similarities")) == 3
+
+            # Check if the documents are updated
+            for similarity in json_response.get("similarities"):
+                assert similarity["data"].startswith("Updated document")
+                assert similarity["metadata"]["updated"] is True
