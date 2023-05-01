@@ -58,14 +58,13 @@ export function GithubDataLoader() {
 
     return (
         <div className="flex flex-col gap-3">
-            <p className="text-gray-500 font-semibold text-sm sm:col-span-2 sm:mt-0">
+            <p className="text-gray-500 text-sm sm:col-span-2 sm:mt-0">
                 Import data without code. Drop a public GitHub repository
                 URL in the bar.
 
                 We will automatically import this repository into a dataset in Embedbase.
             </p>
             <form className="w-full" onSubmit={handleSubmit(handleUpload)}>
-                <label htmlFor="phone-number" className="block text-sm font-medium text-gray-700"></label>
                 <div className="relative mt-1 rounded-md gap-3">
                     <div className="flex gap-3">
                         <Input

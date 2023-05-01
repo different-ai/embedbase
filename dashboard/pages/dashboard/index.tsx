@@ -19,12 +19,10 @@ export function APIKeySection() {
 function DataImporter() {
   return (
     <div className="rounded-2xl bg-gray-50 py-4 px-5">
-      <h3 className="mb-6 text-2xl font-semibold">Dataset Importer</h3>
-      <p className="mb-3 text-gray-500">
-        Here you can easily import your data into Embedbase. You can either
-        upload a file or import a Github repository.
+      <p className="mb-3 text-sm text-gray-500">
+        The fastest way to import your data into Embedbase.{' '}
       </p>
-      <p className="mb-3 text-gray-500">
+      <p className="mb-3 text-sm text-gray-500">
         For more complex use cases, check out our{' '}
         <a
           className="text-blue-700 underline"
@@ -34,13 +32,8 @@ function DataImporter() {
         </a>{' '}
         to learn how to import data programmatically.
       </p>
-      <h3 className="mb-3 text-xl font-semibold">PDF Importer</h3>
-
+      <h3 className="">PDF Importer</h3>
       <FileDataLoader />
-      <div className="my-6 text-gray-600">or</div>
-      <h3 className="mb-3 text-xl font-semibold">Github Importer</h3>
-
-      <GithubDataLoader />
     </div>
   )
 }
@@ -62,8 +55,8 @@ export default function Index({
 
   return (
     <Dashboard>
-      <div className="flex flex-col gap-3 py-6">
-          <h3 className="mb-3 text-2xl font-semibold ">Your API Keys</h3>
+      <div className="flex flex-col py-6">
+        <h3 className="mb-3 font-semibold text-gray-700 ">Your API Keys</h3>
         <div className="w-full rounded-2xl bg-gray-50 py-4 px-5">
           <p className="mb-3 text-sm text-gray-500">
             Click on an API Key below to add it to your clipboard.
@@ -71,8 +64,10 @@ export default function Index({
 
           <APIKeySection />
         </div>
-        <div className="col-span-6">
-          <h3 className="mb-2 text-2xl font-semibold">Datasets</h3>
+        <div className="col-span-6 mt-3">
+          <h3 className="mb-3 font-semibold text-gray-700">Dataset Importer</h3>
+          <DataImporter />
+          <h3 className="my-3 font-semibold text-gray-700">Your Datasets</h3>
           <DatasetList />
         </div>
       </div>
