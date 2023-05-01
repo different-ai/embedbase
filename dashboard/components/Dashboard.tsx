@@ -87,7 +87,7 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-gray-100 text-gray-600 font-medium`
+                    ? `bg-gray-100 text-gray-600 `
                     : `text-gray-600 hover:bg-gray-100 `,
                     // Using template literals to add the color value defined in the navigation array
                   'group flex cursor-pointer items-center rounded-2xl px-3 py-2  text-sm'
