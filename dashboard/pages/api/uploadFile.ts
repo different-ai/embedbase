@@ -1,26 +1,26 @@
-import { createClient } from "embedbase-js";
-import { BatchAddDocument } from "embedbase-js/dist/module/types";
-import { splitText } from "embedbase-js/dist/main/split";
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { batch } from "@/utils/array";
-import fs from "fs";
-import * as Sentry from "@sentry/nextjs";
-import pdfParse from "pdf-parse";
+import { createClient } from 'embedbase-js'
+import { BatchAddDocument } from 'embedbase-js/dist/module/types'
+import { splitText } from 'embedbase-js/dist/main/split'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { batch } from '@/utils/array'
+import fs from 'fs'
+import * as Sentry from '@sentry/nextjs'
+import pdfParse from 'pdf-parse'
 
-import formidable from "formidable";
+import formidable from 'formidable'
 
-const EMBEDBASE_URL = "https://api.embedbase.xyz";
+const EMBEDBASE_URL = 'https://api.embedbase.xyz'
 
 export const config = {
   api: {
     bodyParser: false,
   },
   // runtime: 'edge'
-};
+}
 
 const getApiKey = async (req, res) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient({ req, res });
+  const supabase = createServerSupabaseClient({ req, res })
   // Check if we have a session
   const {
     data: { session },
@@ -42,7 +42,6 @@ const getApiKey = async (req, res) => {
     if (!apiKey) {
       throw new Error('No API key found')
     }
-
   } catch (error) {
     console.log(error)
   }
@@ -51,8 +50,8 @@ const getApiKey = async (req, res) => {
 
 export default async function sync(req: any, res: any) {
   console.log(req)
-  if (req.method === "POST") {
-    const form = new formidable.IncomingForm();
+  if (req.method === 'POST') {
+    const form = new formidable.IncomingForm()
     const apiKey = await getApiKey(req, res)
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -64,42 +63,40 @@ export default async function sync(req: any, res: any) {
     const startTime = Date.now()
     form.parse(req, async (err, fields, files) => {
       if (err) {
-        console.error(err, fields, files);
-        Sentry.captureException(err);
-        res.status(500).json({ message: "Error processing request" });
-        return;
+        console.error(err, fields, files)
+        Sentry.captureException(err)
+        res.status(500).json({ message: 'Error processing request' })
+        return
       }
 
-      const datasetId = fields.datasetId as string;
-      console.log("datasetId:", datasetId);
+      const datasetId = fields.datasetId as string
+      console.log('datasetId:', datasetId)
 
-      const embedbase = createClient(EMBEDBASE_URL, apiKey);
+      const embedbase = createClient(EMBEDBASE_URL, apiKey)
       console.log('after create client')
 
       // HACK to create dataset
-      await embedbase.dataset(datasetId).add('');
+      await embedbase.dataset(datasetId).add('.')
       console.log('after empty add')
 
-
-      const file = (files.file as any);
-      const pdfPath = file.filepath;
-      const pdfData = fs.readFileSync(pdfPath);
+      const file = files.file as any
+      const pdfPath = file.filepath
+      const pdfData = fs.readFileSync(pdfPath)
       console.log('after read sync')
 
       try {
-
-        console.log("PDF data:", file);
+        console.log('PDF data:', file)
         const metadata = {
           name: file.originalFilename,
           mimeType: file.mimetype,
           lastModifiedDate: file.lastModifiedDate,
           size: file.size,
         }
-        const pdfText = await pdfParse(pdfData);
+        const pdfText = await pdfParse(pdfData)
 
-        console.log("PDF Content:", pdfText.text);
+        console.log('PDF Content:', pdfText.text)
 
-        const chunks: BatchAddDocument[] = [];
+        const chunks: BatchAddDocument[] = []
         splitText(
           pdfText.text,
           { maxTokens: 500, chunkOverlap: 200 },
@@ -108,24 +105,27 @@ export default async function sync(req: any, res: any) {
               data: chunk,
               metadata: metadata,
             })
-        );
-        await batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
-        console.log(`Synced ${chunks.length} docs from ${datasetId} in ${Date.now() - startTime}ms`)
-        res.status(200).json({ message: "File uploaded successfully" });
+        )
+        await batch(chunks, (chunk) =>
+          embedbase.dataset(datasetId).batchAdd(chunk)
+        )
+        console.log(
+          `Synced ${chunks.length} docs from ${datasetId} in ${
+            Date.now() - startTime
+          }ms`
+        )
+        res.status(200).json({ message: 'File uploaded successfully' })
 
         // Save the PDF file to the server
         // const pdfFilePath = path.join(process.cwd(), ".", "uploaded-file.pdf");
         // fs.writeFileSync(pdfFilePath, pdfData);
-
       } catch (error) {
-        Sentry.captureException(error);
-        console.log(error);
-        res.status(500).json({ message: "Error parsing PDF" });
+        Sentry.captureException(error)
+        console.log(error)
+        res.status(500).json({ message: 'Error parsing PDF' })
       }
-    });
+    })
   } else {
-    res.status(405).json({ message: "Method not allowed" });
+    res.status(405).json({ message: 'Method not allowed' })
   }
-
-
 }

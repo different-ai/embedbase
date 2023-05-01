@@ -43,6 +43,7 @@ function uploadFile(
 export default function FileDataLoader() {
   const { push } = useRouter()
   const { register, handleSubmit, watch, formState, setValue } = useForm()
+  const errors = formState.errors
   const isLoading = formState.isSubmitting
   const datasetId = watch('datasetId')
   const file = watch('file')
@@ -145,8 +146,14 @@ export default function FileDataLoader() {
               <Input
                 type="search"
                 placeholder="my-dataset-id"
-                {...register('datasetId', { required: true })}
+                {...register('datasetId', {
+                  required: true,
+                  pattern: /^[a-z\-]+$/i,
+                })}
               />
+              {errors.datasetId?.type === 'pattern' && (
+                <span className='text-xs text-gray-500'>You can only have letters and hyphens</span>
+              )}
             </div>
             <PrimaryButton
               // center children horizontal
@@ -159,7 +166,7 @@ export default function FileDataLoader() {
                   <span>Importing {uploadProgress.toFixed(0)}%</span>
                 </div>
               ) : (
-                'Import to Embedbase'
+                'Import PDF'
               )}
             </PrimaryButton>
           </div>
