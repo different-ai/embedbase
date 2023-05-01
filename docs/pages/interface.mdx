@@ -52,6 +52,30 @@ fetch(`${URL}/v1/${DATASET_ID}`, {
 })
 ```
 
+### Updating Data
+
+You can update your data like this:
+
+```ts
+const URL = 'https://api.embedbase.xyz'
+const DATASET_ID = 'people'
+const API_KEY = '<https://app.embedbase.xyz/signup>'
+fetch(`${URL}/v1/${DATASET_ID}`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + API_KEY
+  },
+  body: JSON.stringify({
+    documents: [
+      {
+        id: '<some id>',
+        data: 'Elon is sipping a tea on Neptune'
+      }
+    ]
+  })
+})
+```
 
 ### Delete data
 
