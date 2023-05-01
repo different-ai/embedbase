@@ -24,6 +24,8 @@ Please refer to the [documentation](https://docs.embedbase.xyz/sdk-py).
 
 ## Getting started
 
+To install the Embedbase Python client library, run the following command:
+
 ```bash
-pip install git+https://github.com/different-ai/embedbase.git@main#subdirectory=sdk/embedbase-py
+pip install embedbase-client
 ```
