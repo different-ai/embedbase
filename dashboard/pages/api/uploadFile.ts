@@ -107,7 +107,8 @@ export default async function sync(req: any, res: any) {
             })
         )
         await batch(chunks, (chunk) =>
-          embedbase.dataset(datasetId).batchAdd(chunk)
+          embedbase.dataset(datasetId).batchAdd(chunk),
+          300
         )
         console.log(
           `Synced ${chunks.length} docs from ${datasetId} in ${
