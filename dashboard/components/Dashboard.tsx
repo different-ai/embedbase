@@ -87,19 +87,19 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-gray-100 text-gray-700 font-medium`
-                    : `text-gray-700 hover:bg-gray-100 `,
+                    ? `bg-gray-100 text-gray-600 font-medium`
+                    : `text-gray-600 hover:bg-gray-100 `,
                     // Using template literals to add the color value defined in the navigation array
-                  'group flex cursor-pointer items-center rounded-2xl px-3 py-3  text-sm'
+                  'group flex cursor-pointer items-center rounded-2xl px-3 py-2  text-sm'
                 )}
                 aria-current={item.current ? 'page' : undefined}
               >
                 <item.icon
                   className={classNames(
                     item.path === current
-                      ? `text-gray-700 `
-                      : 'text-gray-700 group-hover:text-gray-700',
-                    'mr-5 h-6 w-6 flex-shrink-0 font-bold stroke-1'
+                      ? `text-gray-600 `
+                      : 'text-gray-600 group-hover:text-gray-700',
+                    'mr-3 h-6 w-6 flex-shrink-0 font-bold stroke-1'
                   )}
                   aria-hidden="true"
                 />
