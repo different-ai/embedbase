@@ -374,7 +374,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
         </div>
       </div>
       <div className="col-span-3">
-        <div className="gap-4 rounded-t-lg bg-gray-100 p-2 ">
+        <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">
           <div className="flex h-[400px] flex-col gap-3 space-y-2 overflow-y-auto p-2">
             {messages.map((message, index) => {
               if (message.message === lastMessage.message) return null
@@ -396,7 +396,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
             </div>
           </div>
         </div>
-        <div className="rounded-b-lg bg-gray-100 p-8 ">
+        <div className="rounded-b-lg bg-gray-50 p-8 ">
           <form onSubmit={handleSubmit} className="flex">
             <Input
               disabled={loading}
@@ -408,7 +408,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
                 loading ? 'Waiting for response...' : 'Type your question...'
               }
               ref={inputRef}
-              className="w-full border-gray-200 bg-gray-50 text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+              className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
             />
             <PrimaryButton
               type="submit"

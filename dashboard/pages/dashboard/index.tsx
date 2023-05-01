@@ -18,7 +18,7 @@ export function APIKeySection() {
 
 function DataImporter() {
   return (
-    <div className="rounded-2xl bg-gray-100 py-4 px-5">
+    <div className="rounded-2xl bg-gray-50 py-4 px-5">
       <h3 className="mb-6 text-2xl font-semibold">Dataset Importer</h3>
       <p className="mb-3 text-gray-500">
         Here you can easily import your data into Embedbase. You can either
@@ -63,8 +63,8 @@ export default function Index({
   return (
     <Dashboard>
       <div className="flex flex-col gap-3 py-6">
-        <div className="w-full rounded-2xl bg-gray-100 py-4 px-5">
           <h3 className="mb-3 text-2xl font-semibold ">Your API Keys</h3>
+        <div className="w-full rounded-2xl bg-gray-50 py-4 px-5">
           <p className="mb-3 text-sm text-gray-500">
             Click on an API Key below to add it to your clipboard.
           </p>

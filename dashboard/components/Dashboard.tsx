@@ -39,7 +39,7 @@ const navigation = [
 
   {
     path: '/dashboard/pricing',
-    name: 'Account',
+    name: 'Billing',
     icon: CreditCardIcon,
     current: false,
     color: 'text-green-500' // Adding text-green-300 class for green background
@@ -87,19 +87,19 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-gray-100 text-gray-800 font-bold`
-                    : `text-gray-800 hover:bg-gray-100 font-medium`,
+                    ? `bg-gray-100 text-gray-700 font-medium`
+                    : `text-gray-700 hover:bg-gray-100 `,
                     // Using template literals to add the color value defined in the navigation array
-                  'group flex cursor-pointer items-center rounded-2xl px-3 py-3  text-lg'
+                  'group flex cursor-pointer items-center rounded-2xl px-3 py-3  text-sm'
                 )}
                 aria-current={item.current ? 'page' : undefined}
               >
                 <item.icon
                   className={classNames(
                     item.path === current
-                      ? `text-gray-800 `
-                      : 'text-gray-800 group-hover:text-gray-800',
-                    'mr-5 h-6 w-6 flex-shrink-0 font-bold stroke-2'
+                      ? `text-gray-700 `
+                      : 'text-gray-700 group-hover:text-gray-700',
+                    'mr-5 h-6 w-6 flex-shrink-0 font-bold stroke-1'
                   )}
                   aria-hidden="true"
                 />
@@ -229,7 +229,7 @@ export default function Dashboard({ children }) {
               <Bars3CenterLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <main className="flex-1 px-4 ">
+          <main className="flex-1 px-4 bg-white">
             {/* Page title & actions */}
             {/* Pinned projects */}
             <div className="mt-4">

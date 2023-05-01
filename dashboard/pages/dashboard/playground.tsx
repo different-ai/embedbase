@@ -28,11 +28,12 @@ export function Playground() {
             />
           }
           <div className="mb-6 gap-6 space-y-1">
-            <div className="rounded-2xl bg-gray-100 py-5 px-5">
               <h3 className="mb-6 text-2xl font-semibold text-gray-900">
                 Playground{' '}
               </h3>
 
+
+            <div className="rounded-2xl bg-gray-50 py-5 px-5">
               <p className="text-gray-500 text-sm">
                 {`The playground simplifies prototyping. On the left you can
                 select an embedbase "dataset". The playground will automatically

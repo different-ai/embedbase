@@ -18,25 +18,34 @@ const FreePlan = () => {
 }
 
 interface Subscription {
-  cancel_at: null | Date;
-  cancel_at_period_end: boolean;
-  canceled_at: null | Date;
-  created: string;
-  current_period_end: string;
-  current_period_start: string;
-  ended_at: null | Date;
-  id: string;
-  metadata: Record<string, unknown>;
-  price_id: string;
-  quantity: number;
-  status: "active" | "trialing" | "past_due" | "unpaid" | "canceled" | "incomplete" | "incomplete_expired";
-  trial_end: null | Date;
-  trial_start: null | Date;
-  user_id: string;
+  cancel_at: null | Date
+  cancel_at_period_end: boolean
+  canceled_at: null | Date
+  created: string
+  current_period_end: string
+  current_period_start: string
+  ended_at: null | Date
+  id: string
+  metadata: Record<string, unknown>
+  price_id: string
+  quantity: number
+  status:
+    | 'active'
+    | 'trialing'
+    | 'past_due'
+    | 'unpaid'
+    | 'canceled'
+    | 'incomplete'
+    | 'incomplete_expired'
+  trial_end: null | Date
+  trial_start: null | Date
+  user_id: string
 }
 
-
-const useSubscription = (): { user: User | null, subscription: Subscription | null } => {
+const useSubscription = (): {
+  user: User | null
+  subscription: Subscription | null
+} => {
   const user = useUser()
   const supabase = useSupabaseClient()
   const [subscription, setSubscription] = useState(null)
@@ -116,7 +125,7 @@ const EnterprisePlan = () => {
 }
 
 export default function Index({ usage }: { usage: UsageItem[] }) {
-  const {subscription} = useSubscription()
+  const { subscription } = useSubscription()
   const limit =
     (subscription?.price_id &&
       tiers.find((t) => t.id == subscription?.price_id)?.playgroundLimit) ||
@@ -124,11 +133,10 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
 
   return (
     <Dashboard>
-      <div className="mt-6 flex flex-col gap-8">
-        <Usage usage={usage} limit={limit} />
-        <div className="rounded-2xl bg-gray-100 py-5 px-5">
+      <div className="mt-6 flex flex-col gap-3">
+        <h3 className="text-2xl font-semibold">Account</h3>
+        <div className="rounded-2xl bg-gray-50 py-5 px-5">
           {/* add info text about pricing page somehting like hi wleocme to pcicing page you can downgrad e ugprade or you can manage your account here */}
-          <h3 className="mb-6 text-2xl font-semibold">Account</h3>
           <p className="mb-3 text-gray-500">
             You can manage you subscription here. Easily upgrade, downgrade or
             cancel your subscription.
@@ -140,12 +148,13 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
               target="_blank"
               rel="noreferrer"
             >
-              <PrimaryButton className="mx-auto flex w-1/4 items-center justify-center">
+              <PrimaryButton className="mx-auto flex w-1/4 items-center justify-center min-w-max font-normal">
                 Manage my subscription
               </PrimaryButton>
             </a>
           )}
         </div>
+        <Usage usage={usage} limit={limit} />
 
         <div className="mx-auto grid max-w-md grid-cols-1 gap-4 lg:max-w-5xl lg:grid-cols-3 lg:gap-4">
           <FreePlan />
