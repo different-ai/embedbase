@@ -14,7 +14,7 @@
   - [x] [supabase](https://supabase.com/)
   - [x] postgres
   - [ ] [pinecone](https://www.pinecone.io/)
-  - [x] local (sqlite, etc.)
+  - [x] local (memory, sqlite, etc.)
 * [fastapi](https://github.com/tiangolo/fastapi)
 * Authentication (optional)
   - [x] [firebase](https://firebase.google.com/)
@@ -99,3 +99,19 @@ addressed now, or filing an issue to handle it later.
 Upon making a release on GitHub, all docker images are automatically built and
 pushed to ghcr.io. The docker images are tagged with the release version and the
 `latest` tag.
+
+### Releasing
+
+To release a new version of Embedbase project, bump the version in `pyproject.toml` and run:
+
+```bash
+make release
+```
+
+For the Python SDK, bump the version in `sdk/embedbase-py/pyproject.toml` and run:
+
+```bash
+make release/sdk-py
+```
+
+For the Javascript SDK, just push to main, we use semantic-release to automatically release when a change has been made to the main branch.

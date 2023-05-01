@@ -60,18 +60,14 @@ jobs:
         with:
           tag: core-${{ env.version }}
           tag_exists_error: true
-          message: "Release ${{ steps.get_version.outputs.version }}"
+          message: "Release ${{ env.version }}"
 
       - name: Create Release
         if: ${{ steps.regex-match.outputs.match != '' }}
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.get_version.outputs.version }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: core-${{ steps.get_version.outputs.version }}
-          release_name: core-${{ steps.get_version.outputs.version }}
+          tag_name: core-${{ env.version }}
+          name: core-${{ env.version }}
           draft: false
           prerelease: false
 

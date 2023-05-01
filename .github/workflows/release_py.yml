@@ -55,13 +55,9 @@ jobs:
 
       - name: Create Release
         if: ${{ steps.regex-match.outputs.match != '' }}
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.regex-match.outputs.group1 }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: sdk-py-${{ steps.regex-match.outputs.group1 }}
-          release_name: sdk-py-${{ steps.regex-match.outputs.group1 }}
+          tag_name: sdk-py-${{ env.version }}
+          name: sdk-py-${{ env.version }}
           draft: false
           prerelease: false
