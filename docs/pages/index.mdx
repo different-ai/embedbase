@@ -88,8 +88,7 @@ about your data:
 ```ts copy {3}
 import { Configuration, OpenAIApi } from 'openai'
 const question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
-const data = await embedbase.dataset(datasetId).search(question)
-const context = data.join('\n\n')
+const context = await embedbase.dataset(datasetId).createContext(question)
 const prompt = 
     `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
 const configuration = new Configuration({
@@ -113,8 +112,7 @@ However, please note that they may not be the most suitable for climbing.
 import os
 import openai
 question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
-search_results = embedbase.dataset(dataset_id).search(question)
-context = '\n\n'.join([result.data for result in search_results])
+context = embedbase.dataset(dataset_id).create_context(question)
 prompt = f'Based on the following context:\n{context}\nAnswer the user\'s question: {question}'
 
 openai.api_key = os.environ.get('OPENAI_API_KEY')
