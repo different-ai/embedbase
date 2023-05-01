@@ -17,6 +17,10 @@
       <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
     </a>
     <br />
+    <a href="https://replit.com/@benjaminshafii/Embedbase-Quickstart-JS?v=1">
+      <img src="https://replit.com/badge?caption=Try%20with%20Replit" alt="Try with Replit Badge">
+    </a>
+    <br />
     <a target="_blank" href="https://colab.research.google.com/github/different-ai/embedbase/blob/main/notebooks/Embedbase_Getting_started.ipynb">
       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
     </a>
