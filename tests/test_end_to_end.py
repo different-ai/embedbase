@@ -28,14 +28,20 @@ vector_databases: List[VectorDatabase] = []
 def init_databases():
     settings = get_settings_from_file()
 
-    vector_databases.append(Postgres())
+    try:
+        vector_databases.append(Postgres())
+    except: # pylint: disable=bare-except
+        print("Postgres dependency not installed, skipping")
     vector_databases.append(MemoryDatabase())
-    vector_databases.append(
-        Supabase(
-            url=settings.supabase_url,
-            key=settings.supabase_key,
+    try:
+        vector_databases.append(
+            Supabase(
+                url=settings.supabase_url,
+                key=settings.supabase_key,
+            )
         )
-    )
+    except: # pylint: disable=bare-except
+        print("Supabase dependency not installed, skipping")
 
 
 async def run_around_tests():
