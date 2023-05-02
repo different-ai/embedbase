@@ -152,8 +152,9 @@ async def test_fetch_by_hash():
 @pytest.mark.asyncio
 async def test_clear():
     data = [
-        [0.0] * 1536,
-        [1.0] * 1536,
+        # random numpy array of length 1536
+        np.random.rand(1536).tolist(),
+        np.random.rand(1536).tolist(),
     ]
     df = pd.DataFrame(
         [
@@ -180,6 +181,8 @@ async def test_clear():
         ids = [result.id for result in results]
         assert ids[0] == df.id[0], f"failed for {vector_database}"
         assert ids[1] == df.id[1], f"failed for {vector_database}"
+        # check there is score
+        assert results[0].score >= 0, f"failed for {vector_database}"
         await vector_database.clear(unit_testing_dataset)
 
     for vector_database in vector_databases:
@@ -194,8 +197,9 @@ async def test_clear():
 @pytest.mark.asyncio
 async def test_upload():
     data = [
-        [0.0] * 1536,
-        [1.0] * 1536,
+        # random numpy array of length 1536
+        np.random.rand(1536).tolist(),
+        np.random.rand(1536).tolist(),
     ]
     df = pd.DataFrame(
         [

@@ -6,6 +6,22 @@ from embedbase.database.base import (
 )
 
 
+# Calculate cosine similarity
+def cosine_similarity(np, a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
+# Semantic search function
+def semantic_search(np, documents, query_embedding, document_embeddings, top_n=3):
+    similarities = [
+        cosine_similarity(np, query_embedding, doc_emb)
+        for doc_emb in document_embeddings
+    ]
+    sorted_indexes = np.argsort(similarities)[::-1]
+
+    return [(i, list(documents.keys())[i], similarities[i]) for i in sorted_indexes[:top_n]]
+
+
 class MemoryDatabase(VectorDatabase):
     """
     Implements a simple in-memory database for development and testing purposes.
@@ -80,20 +96,18 @@ class MemoryDatabase(VectorDatabase):
 
     async def search(self, vector, top_k, dataset_ids, user_id=None):
         query_embedding = self._np.array(vector)
-        similarities = [
-            (
-                doc_id,
-                self._np.dot(doc["embedding"], query_embedding)
-                / (
-                    self._np.linalg.norm(doc["embedding"])
-                    * self._np.linalg.norm(query_embedding)
-                ),
-            )
-            for doc_id, doc in self.storage.items()
-            if doc["dataset_id"] in dataset_ids
-            and (user_id is None or doc["user_id"] == user_id)
-        ]
-        similarities.sort(key=lambda x: x[1], reverse=True)
+        similarities = semantic_search(
+            self._np,
+            self.storage,
+            query_embedding,
+            [
+                doc["embedding"]
+                for doc in self.storage.values()
+                if doc["dataset_id"] in dataset_ids
+                and (user_id is None or doc["user_id"] == user_id)
+            ],
+            top_n=top_k,
+        )
         return [
             SearchResponse(
                 id=doc_id,
@@ -103,7 +117,7 @@ class MemoryDatabase(VectorDatabase):
                 embedding=self.storage[doc_id]["embedding"].tolist(),
                 hash=self.storage[doc_id]["hash"],
             )
-            for doc_id, sim in similarities[:top_k]
+            for idx, doc_id, sim in similarities
         ]
 
     async def delete(self, ids, dataset_id, user_id=None):
