@@ -180,11 +180,9 @@ class Embedbase:
         # add existing embeddings to the dataframe
         df["embedding"] = df.apply(update_embedding, args=(existing_documents,), axis=1)
 
-        # generate ids using hash of uuid + time to avoid collisions
+        # generate ids
         df.id = df.apply(
-            lambda x: hashlib.sha256(
-                (str(uuid.uuid4()) + str(time.time())).encode()
-            ).hexdigest(),
+            lambda _: str(uuid.uuid4()),
             axis=1,
         )
 
@@ -295,9 +293,7 @@ class Embedbase:
             )
 
         # hash the data
-        df.hash = df.data.apply(
-            lambda x: hashlib.sha256(x.encode()).hexdigest()
-        )
+        df.hash = df.data.apply(lambda x: hashlib.sha256(x.encode()).hexdigest())
 
         df_length = len(df)
 
@@ -320,7 +316,9 @@ class Embedbase:
             return row["embedding"]
 
         # add existing embeddings to the dataframe
-        df["embedding"] = df.apply(update_embedding, args=(existing_embeddings,), axis=1)
+        df["embedding"] = df.apply(
+            update_embedding, args=(existing_embeddings,), axis=1
+        )
 
         # compute embeddings for documents without embeddings using embed
         if not df[df.embedding.isna()].empty:
