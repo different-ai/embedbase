@@ -11,6 +11,9 @@ on:
       - rc
     paths:
       - 'embedbase/**'
+      # when pyproject.toml changes
+      - "pyproject.toml"
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
