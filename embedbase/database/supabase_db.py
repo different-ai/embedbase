@@ -126,6 +126,14 @@ class Supabase(VectorDatabase):
         }
         if user_id:
             d["query_user_id"] = user_id
+        response = (
+            self.supabase.rpc(
+                "match_documents",
+                d,
+            )
+            .execute()
+            .data
+        )
         return [
             SearchResponse(
                 id=row["id"],
@@ -135,12 +143,7 @@ class Supabase(VectorDatabase):
                 metadata=row["metadata"],
                 score=row["score"],
             )
-            for row in self.supabase.rpc(
-                "match_documents",
-                d,
-            )
-            .execute()
-            .data
+            for row in response
         ]
 
     async def clear(self, dataset_id: str, user_id: Optional[str] = None):

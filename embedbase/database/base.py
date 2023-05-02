@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Coroutine, List, Optional
+from typing import Coroutine, List, Optional, Union
 from pandas import DataFrame
 from pydantic import BaseModel
+
 
 # TODO use pydantic validation
 class Dataset(BaseModel):
     dataset_id: str
     documents_count: int
+
 
 class SearchResponse(BaseModel):
     score: float
@@ -15,8 +17,11 @@ class SearchResponse(BaseModel):
     # and rather store it on the client side
     data: Optional[str]
     hash: str
-    embedding: List[float] | str
+    # HACK supabase pgvector returns a string of float '[0.1, 0.2, ...]' not sure its
+    # any inconvenience for now. Let's see if we can fix this later
+    embedding: Union[List[float], str]
     metadata: Optional[dict]
+
 
 class SelectResponse(BaseModel):
     id: str
@@ -24,13 +29,15 @@ class SelectResponse(BaseModel):
     # and rather store it on the client side
     data: Optional[str]
     hash: str
-    embedding: List[float] | str
+    embedding: Union[List[float], str]
     metadata: Optional[dict]
+
 
 class VectorDatabase(ABC):
     """
     Base class for all vector databases
     """
+
     def __init__(self, dimensions: int = 1536):
         self._dimensions = dimensions
 
