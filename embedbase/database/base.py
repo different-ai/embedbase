@@ -1,29 +1,31 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Coroutine, List, Optional
 from pandas import DataFrame
+from pydantic import BaseModel
 
-@dataclass
-class Dataset:
+# TODO use pydantic validation
+class Dataset(BaseModel):
     dataset_id: str
     documents_count: int
 
-@dataclass
-class SearchResponse:
+class SearchResponse(BaseModel):
     score: float
     id: str
-    data: str
+    # data-privacy aware setup avoid storing data on the database
+    # and rather store it on the client side
+    data: Optional[str]
     hash: str
-    embedding: List[float]
-    metadata: dict
+    embedding: List[float] | str
+    metadata: Optional[dict]
 
-@dataclass
-class SelectResponse:
+class SelectResponse(BaseModel):
     id: str
-    data: str
+    # data-privacy aware setup avoid storing data on the database
+    # and rather store it on the client side
+    data: Optional[str]
     hash: str
-    embedding: List[float]
-    metadata: dict
+    embedding: List[float] | str
+    metadata: Optional[dict]
 
 class VectorDatabase(ABC):
     """

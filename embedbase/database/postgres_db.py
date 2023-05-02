@@ -4,6 +4,7 @@ from typing import List, Optional
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
+from embedbase.database.base import Dataset, SearchResponse, SelectResponse
 
 
 class Postgres(VectorDatabase):
@@ -141,13 +142,13 @@ where
         )
         for row in results:
             data.append(
-                {
-                    "id": row[0],
-                    "data": row[1],
-                    "embedding": row[2].tolist(),
-                    "hash": row[3],
-                    "metadata": row[4],
-                }
+                SelectResponse(
+                    id=row[0],
+                    data=row[1],
+                    embedding=row[2].tolist(),
+                    hash=row[3],
+                    metadata=row[4],
+                )
             )
         return data
 
@@ -229,16 +230,15 @@ where
             return []
         data = []
         for row in results:
-            # tuple to dict
             data.append(
-                {
-                    "id": row[0],
-                    "data": row[1],
-                    "score": row[2],
-                    "hash": row[3],
-                    "embedding": row[4].tolist(),
-                    "metadata": row[5],
-                }
+                SearchResponse(
+                    id=row[0],
+                    data=row[1],
+                    score=row[2],
+                    hash=row[3],
+                    embedding=row[4].tolist(),
+                    metadata=row[5],
+                )
             )
         return data
 
@@ -246,8 +246,6 @@ where
         req = f"delete from documents where dataset_id = '{dataset_id}'"
         if user_id:
             req += f" and user_id = {user_id}"
-        from psycopg import sql
-
         self.conn.execute(req)
 
     async def get_datasets(self, user_id: Optional[str] = None):
@@ -260,9 +258,9 @@ where
         data = []
         for row in results:
             data.append(
-                {
-                    "dataset_id": row[0],
-                    "documents_count": row[2],
-                }
+                Dataset(
+                    dataset_id=row[0],
+                    documents_count=row[2],
+                )
             )
         return data

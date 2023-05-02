@@ -1,4 +1,9 @@
-from embedbase.database.base import VectorDatabase
+from embedbase.database.base import (
+    Dataset,
+    SearchResponse,
+    SelectResponse,
+    VectorDatabase,
+)
 
 
 class MemoryDatabase(VectorDatabase):
@@ -41,13 +46,13 @@ class MemoryDatabase(VectorDatabase):
     ):
         if ids:
             return [
-                {
-                    "id": doc_id,
-                    "data": self.storage[doc_id]["data"],
-                    "embedding": self.storage[doc_id]["embedding"].tolist(),
-                    "metadata": self.storage[doc_id]["metadata"],
-                    "hash": self.storage[doc_id]["hash"],
-                }
+                SelectResponse(
+                    id=doc_id,
+                    data=self.storage[doc_id]["data"],
+                    embedding=self.storage[doc_id]["embedding"].tolist(),
+                    metadata=self.storage[doc_id]["metadata"],
+                    hash=self.storage[doc_id]["hash"],
+                )
                 for doc_id in ids
                 if doc_id in self.storage
                 and (
@@ -58,13 +63,13 @@ class MemoryDatabase(VectorDatabase):
             ]
         elif hashes:
             return [
-                {
-                    "id": id,
-                    "data": doc["data"],
-                    "embedding": doc["embedding"].tolist(),
-                    "metadata": doc["metadata"],
-                    "hash": doc["hash"],
-                }
+                SelectResponse(
+                    id=id,
+                    data=doc["data"],
+                    embedding=doc["embedding"].tolist(),
+                    metadata=doc["metadata"],
+                    hash=doc["hash"],
+                )
                 for id, doc in self.storage.items()
                 if doc["hash"] in hashes
                 and (dataset_id is None or doc["dataset_id"] == dataset_id)
@@ -90,14 +95,14 @@ class MemoryDatabase(VectorDatabase):
         ]
         similarities.sort(key=lambda x: x[1], reverse=True)
         return [
-            {
-                "id": doc_id,
-                "score": sim,
-                "data": self.storage[doc_id]["data"],
-                "metadata": self.storage[doc_id]["metadata"],
-                "embedding": self.storage[doc_id]["embedding"].tolist(),
-                "hash": self.storage[doc_id]["hash"],
-            }
+            SearchResponse(
+                id=doc_id,
+                score=sim,
+                data=self.storage[doc_id]["data"],
+                metadata=self.storage[doc_id]["metadata"],
+                embedding=self.storage[doc_id]["embedding"].tolist(),
+                hash=self.storage[doc_id]["hash"],
+            )
             for doc_id, sim in similarities[:top_k]
         ]
 
@@ -122,7 +127,13 @@ class MemoryDatabase(VectorDatabase):
                     datasets[dataset_id] = 1
                 else:
                     datasets[dataset_id] += 1
-        return [{"dataset_id": k, "documents_count": v} for k, v in datasets.items()]
+        return [
+            Dataset(
+                dataset_id=k,
+                documents_count=v,
+            )
+            for k, v in datasets.items()
+        ]
 
     async def clear(self, dataset_id, user_id=None):
         doc_ids_to_remove = [

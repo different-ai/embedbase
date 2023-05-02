@@ -8,7 +8,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import pytest
-
+import uuid
 from embedbase.database import VectorDatabase
 from embedbase.database.db_utils import batch_select
 from embedbase.database.memory_db import MemoryDatabase
@@ -57,7 +57,7 @@ async def test_search():
             {
                 "data": d[i],
                 "embedding": embedding,
-                "id": str(i),
+                "id": str(uuid.uuid4()),
                 "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
@@ -75,10 +75,10 @@ async def test_search():
             dataset_ids=[unit_testing_dataset],
         )
         assert len(results) > 0, f"failed for {vector_database}"
-        assert results[0]["id"] == "0", f"failed for {vector_database}"
-        assert results[0]["data"] == d[0], f"failed for {vector_database}"
-        assert len(results[0]["embedding"]) > 0, f"failed for {vector_database}"
-        assert results[0]["score"] > 0, f"failed for {vector_database}"
+        assert results[0].id == df.id[0], f"failed for {vector_database}"
+        assert results[0].data == d[0], f"failed for {vector_database}"
+        assert len(results[0].embedding) > 0, f"failed for {vector_database}"
+        assert results[0].score > 0, f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
@@ -96,7 +96,7 @@ async def test_fetch():
             {
                 "data": d[i],
                 "embedding": embedding,
-                "id": str(i),
+                "id": str(uuid.uuid4()),
                 "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
@@ -109,10 +109,10 @@ async def test_fetch():
         await vector_database.clear(unit_testing_dataset)
         await vector_database.update(df, unit_testing_dataset)
         results = await vector_database.select(
-            ids=["0"], dataset_id=unit_testing_dataset
+            ids=[df.id[0]], dataset_id=unit_testing_dataset
         )
         assert len(results) > 0, f"failed for {vector_database}"
-        assert results[0]["id"] == "0", f"failed for {vector_database}"
+        assert results[0].id == df.id[0], f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
@@ -130,7 +130,7 @@ async def test_fetch_by_hash():
             {
                 "data": d[i],
                 "embedding": embedding,
-                "id": str(i),
+                "id": str(uuid.uuid4()),
                 "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(embeddings)
@@ -146,21 +146,21 @@ async def test_fetch_by_hash():
             hashes=[df.hash[0]], dataset_id=unit_testing_dataset
         )
         assert len(results) > 0, f"failed for {vector_database}"
-        assert results[0]["id"] == "0", f"failed for {vector_database}"
+        assert results[0].id == df.id[0], f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
 async def test_clear():
     data = [
         [0.0] * 1536,
-        [0.0] * 1536,
+        [1.0] * 1536,
     ]
     df = pd.DataFrame(
         [
             {
                 "data": "Bob is a human",
                 "embedding": embedding,
-                "id": str(i),
+                "id": str(uuid.uuid4()),
                 "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(data)
@@ -177,9 +177,9 @@ async def test_clear():
             top_k=2,
             dataset_ids=[unit_testing_dataset],
         )
-        ids = sorted([result["id"] for result in results])
-        assert ids[0] == "0", f"failed for {vector_database}"
-        assert ids[1] == "1", f"failed for {vector_database}"
+        ids = [result.id for result in results]
+        assert ids[0] == df.id[0], f"failed for {vector_database}"
+        assert ids[1] == df.id[1], f"failed for {vector_database}"
         await vector_database.clear(unit_testing_dataset)
 
     for vector_database in vector_databases:
@@ -195,14 +195,14 @@ async def test_clear():
 async def test_upload():
     data = [
         [0.0] * 1536,
-        [0.0] * 1536,
+        [1.0] * 1536,
     ]
     df = pd.DataFrame(
         [
             {
                 "data": "Bob is a human",
                 "embedding": embedding,
-                "id": str(i),
+                "id": str(uuid.uuid4()),
                 "metadata": {"test": "test"},
             }
             for i, embedding in enumerate(data)
@@ -226,9 +226,9 @@ async def test_upload():
             top_k=2,
             dataset_ids=[unit_testing_dataset],
         )
-        ids = sorted([result["id"] for result in results])
-        assert ids[0] == "0", f"failed for {vector_database}"
-        assert ids[1] == "1", f"failed for {vector_database}"
+        ids = [result.id for result in results]
+        assert ids[0] == df.id[0], f"failed for {vector_database}"
+        assert ids[1] == df.id[1], f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
@@ -249,7 +249,7 @@ async def test_batch_select_large_content():
                     {
                         "data": x,
                         "embedding": [0.0] * 1536,
-                        "id": str(i),
+                        "id": str(uuid.uuid4()),
                         "metadata": {"test": "test"},
                         "hash": hashes[i],
                     }
@@ -286,7 +286,7 @@ async def test_distinct():
                     {
                         "data": x,
                         "embedding": [0.0] * 1536,
-                        "id": str(i),
+                        "id": str(uuid.uuid4()),
                         "metadata": {"test": "test"},
                         "hash": hashes[i],
                     }

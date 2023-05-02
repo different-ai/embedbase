@@ -2,10 +2,16 @@ import asyncio
 from typing import List, Optional
 from pandas import DataFrame, Series
 from embedbase.database import VectorDatabase
+from embedbase.database.base import Dataset, SearchResponse, SelectResponse
 from embedbase.utils import BatchGenerator
 
 
 class Supabase(VectorDatabase):
+    """
+    Implements a vector database using supabase
+    Supabase is an open source Firebase alternative.
+    """
+
     def __init__(self, url: str, key: str, **kwargs):
         """
         :param url: supabase url
@@ -50,7 +56,16 @@ class Supabase(VectorDatabase):
         if user_id:
             req = req.eq("user_id", user_id)
 
-        return req.execute().data
+        return [
+            SelectResponse(
+                id=row["id"],
+                data=row["data"],
+                embedding=row["embedding"],
+                hash=row["hash"],
+                metadata=row["metadata"],
+            )
+            for row in req.execute().data
+        ]
 
     async def update(
         self,
@@ -77,16 +92,13 @@ class Supabase(VectorDatabase):
                     data["data"] = row.data
                 return data
 
-            response = (
+            (
                 self.supabase.table("documents")
                 .upsert([_d(row) for _, row in batch_df.iterrows()])
                 .execute()
             )
-            return response
 
-        # TODO: not sure truly parallel, python garbage
-        results = await asyncio.gather(*[_insert(batch_df) for batch_df in batches])
-        return results
+        await asyncio.gather(*[_insert(batch_df) for batch_df in batches])
 
     async def delete(
         self,
@@ -114,14 +126,22 @@ class Supabase(VectorDatabase):
         }
         if user_id:
             d["query_user_id"] = user_id
-        return (
-            self.supabase.rpc(
+        return [
+            SearchResponse(
+                id=row["id"],
+                data=row["data"],
+                embedding=row["embedding"],
+                hash=row["hash"],
+                metadata=row["metadata"],
+                score=row["score"],
+            )
+            for row in self.supabase.rpc(
                 "match_documents",
                 d,
             )
             .execute()
             .data
-        )
+        ]
 
     async def clear(self, dataset_id: str, user_id: Optional[str] = None):
         req = self.supabase.table("documents").delete().eq("dataset_id", dataset_id)
@@ -136,4 +156,10 @@ class Supabase(VectorDatabase):
         if user_id:
             req = req.eq("user_id", user_id)
         data = req.execute().data
-        return data
+        return [
+            Dataset(
+                dataset_id=row["dataset_id"],
+                documents_count=row["documents_count"],
+            )
+            for row in data
+        ]

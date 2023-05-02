@@ -1,11 +1,12 @@
 import asyncio
+import itertools
 import os
 from typing import Awaitable, Callable, Optional, Tuple, Union, Any
 import warnings
 from fastapi import FastAPI, Request
 from fastapi.middleware import Middleware
 from starlette.types import Scope
-from embedbase.database.base import VectorDatabase
+from embedbase.database.base import SearchResponse, VectorDatabase
 from embedbase.embedding.base import Embedder
 from embedbase.logging_utils import get_logger
 from embedbase.models import (
@@ -171,10 +172,10 @@ class Embedbase:
             user_id=None,
         )
 
-        def update_embedding(row, existing_documents):
+        def update_embedding(row, existing_documents: itertools.chain[SearchResponse]):
             for doc in existing_documents:
-                if row["hash"] == doc["hash"]:
-                    return doc["embedding"]
+                if row["hash"] == doc.hash:
+                    return doc.embedding
             return row["embedding"]
 
         # add existing embeddings to the dataframe
@@ -213,7 +214,7 @@ class Embedbase:
         # filter out documents that already exist
         # in this dataset_id - user_id pair
         new_df = df[  # HACK: is it fine to only return client the new documents?
-            ~df.hash.isin([doc["hash"] for doc in existing_documents_in_this_pair])
+            ~df.hash.isin([doc.hash for doc in existing_documents_in_this_pair])
         ]
 
         await self.db.update(
@@ -309,10 +310,10 @@ class Embedbase:
             user_id=None,
         )
 
-        def update_embedding(row, docs):
+        def update_embedding(row, docs: itertools.chain[SearchResponse]):
             for doc in docs:
-                if row["hash"] == doc["hash"]:
-                    return doc["embedding"]
+                if row["hash"] == doc.hash:
+                    return doc.embedding
             return row["embedding"]
 
         # add existing embeddings to the dataframe
@@ -418,16 +419,14 @@ class Embedbase:
 
         similarities = []
         for match in query_response:
-            decoded_id = urllib.parse.unquote(match["id"])
-            self.logger.debug(f"ID: {decoded_id}")
             similarities.append(
                 {
-                    "score": match["score"],
-                    "id": decoded_id,
-                    "data": match["data"],
-                    "hash": match["hash"],  # TODO: probably shouldn't return this
-                    "embedding": match["embedding"],
-                    "metadata": match["metadata"],
+                    "score": match.score,
+                    "id": match.id,
+                    "data": match.data,
+                    "hash": match.hash,
+                    "embedding": match.embedding,
+                    "metadata": match.metadata,
                 }
             )
         return JSONResponse(
@@ -449,7 +448,7 @@ class Embedbase:
         datasets = await self.db.get_datasets(user_id)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"datasets": datasets},
+            content={"datasets": [e.dict() for e in datasets]},
         )
 
     # health check endpoint

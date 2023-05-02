@@ -315,7 +315,7 @@ async def test_get_datasets_without_auth():
         """
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.get(
-                f"/v1/datasets",
+                "/v1/datasets",
             )
             assert response.status_code == 200
             json_response = response.json()
@@ -348,7 +348,7 @@ async def test_get_datasets_without_auth():
         # get datasets
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.get(
-                f"/v1/datasets",
+                "/v1/datasets",
             )
             assert response.status_code == 200
             json_response = response.json()

@@ -2,17 +2,18 @@ import asyncio
 import itertools
 from typing import List, Optional
 
-from embedbase.database.base import VectorDatabase
+from embedbase.database.base import SelectResponse, VectorDatabase
 
 
 # TODO: move this to VectorDatabase
+# pylint: disable=dangerous-default-value
 async def batch_select(
     vector_database: VectorDatabase,
     ids: Optional[List[str]] = [],
     hashes: Optional[List[str]] = [],
     dataset_id: Optional[str] = None,
     user_id: Optional[str] = None,
-):
+) -> itertools.chain[SelectResponse]:
     """
     :param vector_database: vector database
     :param ids: list of ids
@@ -21,9 +22,7 @@ async def batch_select(
     :param user_id: user id
     """
     # either hashes or ids should be provided
-    assert (
-        len(ids) > 0 or len(hashes) > 0
-    ), "ids or hashes should be provided"
+    assert len(ids) > 0 or len(hashes) > 0, "ids or hashes should be provided"
 
     if len(ids) > 0:
         # this depend on the vector database used
