@@ -32,11 +32,10 @@ classifiers = [
 python = "^3.8"
 
 fastapi = "^0.95.1"
-uvicorn = {extras = ["standard"], version = "^0.15.0"}
+uvicorn = "^0.15.0"
 pandas = "^1.3.4"
 openai = "^0.27.0"
 tenacity = "^8.0.1"
-gunicorn = "^20.1.0"
 pydantic_yaml = {extras = ["pyyaml"], version = "^0.4.0"}
 tiktoken = "^0.3.3"
 
@@ -59,14 +58,6 @@ pytest-html = "^3.1.1"
 pytest-cov = "^4.0.0"
 httpx = "^0.24.0"
 pytest-asyncio = "^0.21.0"
-
-[project.optional-dependencies]
-minimal = []
-firebase = ["firebase_admin"]
-observability = ["sentry-sdk[fastapi]"]
-pinecone = ["pinecone-client"]
-supabase = ["supabase"]
-postgres = ["psycopg[binary,pool]", "pgvector"]
 
 [tool.black]
 target-version = ["py38"]
