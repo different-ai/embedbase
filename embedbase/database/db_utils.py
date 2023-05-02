@@ -1,6 +1,6 @@
 import asyncio
 import itertools
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from embedbase.database.base import SelectResponse, VectorDatabase
 
@@ -13,7 +13,8 @@ async def batch_select(
     hashes: Optional[List[str]] = [],
     dataset_id: Optional[str] = None,
     user_id: Optional[str] = None,
-) -> itertools.chain[SelectResponse]:
+    # ) -> itertools.chain[SelectResponse]: # TODO does not work on python 3.8
+) -> Any:
     """
     :param vector_database: vector database
     :param ids: list of ids
