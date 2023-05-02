@@ -32,7 +32,7 @@ function DataImporter() {
         </a>{' '}
         to learn how to import data programmatically.
       </p>
-      <h3 className="">PDF Importer</h3>
+      {/* <h3 className="">PDF Importer</h3> */}
       <FileDataLoader />
     </div>
   )
