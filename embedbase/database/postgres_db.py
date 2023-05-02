@@ -107,7 +107,7 @@ GROUP BY dataset_id, user_id;
         user_id: Optional[str] = None,
         # todo: distinct is not implemented
         distinct: bool = True,
-    ) -> List[dict]:
+    ):
         # either ids or hashes must be provided
         assert ids or hashes, "ids or hashes must be provided"
         from psycopg import sql
@@ -200,14 +200,14 @@ where
         ids: List[str],
         dataset_id: str,
         user_id: Optional[str] = None,
-    ) -> None:
+    ):
         req = "delete from documents where id in %s and dataset_id = %s", (
             tuple(ids),
             dataset_id,
         )
         if user_id:
             req += f" and user_id = {user_id}"
-        return [dict(row) for row in self.conn.execute(req)]
+        [dict(row) for row in self.conn.execute(req)]
 
     async def search(
         self,
@@ -215,7 +215,7 @@ where
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
-    ) -> List[dict]:
+    ):
         d = {
             "query_embedding": str(vector),
             "similarity_threshold": 0,  # TODO: make this configurable
@@ -242,7 +242,7 @@ where
             )
         return data
 
-    async def clear(self, dataset_id: str, user_id: Optional[str] = None) -> None:
+    async def clear(self, dataset_id: str, user_id: Optional[str] = None):
         req = f"delete from documents where dataset_id = '{dataset_id}'"
         if user_id:
             req += f" and user_id = {user_id}"
@@ -250,7 +250,7 @@ where
 
         self.conn.execute(req)
 
-    async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
+    async def get_datasets(self, user_id: Optional[str] = None):
         req = "select * from distinct_datasets"
         if user_id:
             req += f" where user_id = '{user_id}'"

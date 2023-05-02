@@ -29,7 +29,6 @@ class MemoryDatabase(VectorDatabase):
                 "user_id": user_id,
                 "hash": row.hash,
             }
-        return True
 
     async def select(
         self,
@@ -113,7 +112,6 @@ class MemoryDatabase(VectorDatabase):
                 and (user_id is None or self.storage[doc_id]["user_id"] == user_id)
             ):
                 del self.storage[doc_id]
-        return None
 
     async def get_datasets(self, user_id=None):
         datasets = {}
@@ -135,4 +133,3 @@ class MemoryDatabase(VectorDatabase):
         ]
         for doc_id in doc_ids_to_remove:
             del self.storage[doc_id]
-        return None

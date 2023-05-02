@@ -1,5 +1,5 @@
 import asyncio
-from typing import Coroutine, List, Optional
+from typing import List, Optional
 from pandas import DataFrame, Series
 from embedbase.database import VectorDatabase
 from embedbase.utils import BatchGenerator
@@ -28,7 +28,7 @@ class Supabase(VectorDatabase):
         dataset_id: Optional[str] = None,
         user_id: Optional[str] = None,
         distinct: bool = True,
-    ) -> List[dict]:
+    ):
         # either ids or hashes must be provided
         assert ids or hashes, "ids or hashes must be provided"
 
@@ -49,7 +49,7 @@ class Supabase(VectorDatabase):
             req = req.eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
-        
+
         return req.execute().data
 
     async def update(
@@ -59,7 +59,7 @@ class Supabase(VectorDatabase):
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
-    ) -> Coroutine:
+    ):
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
 
@@ -93,11 +93,11 @@ class Supabase(VectorDatabase):
         ids: List[str],
         dataset_id: str,
         user_id: Optional[str] = None,
-    ) -> None:
+    ):
         req = self.supabase.table("documents").delete().eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
-        return req.in_("id", ids).execute()
+        req.in_("id", ids).execute()
 
     async def search(
         self,
@@ -105,7 +105,7 @@ class Supabase(VectorDatabase):
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
-    ) -> List[dict]:
+    ):
         d = {
             "query_embedding": vector,
             "similarity_threshold": 0.1,  # TODO: make this configurable
@@ -123,13 +123,13 @@ class Supabase(VectorDatabase):
             .data
         )
 
-    async def clear(self, dataset_id: str, user_id: Optional[str] = None) -> None:
+    async def clear(self, dataset_id: str, user_id: Optional[str] = None):
         req = self.supabase.table("documents").delete().eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
-        return req.execute()
+        req.execute()
 
-    async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
+    async def get_datasets(self, user_id: Optional[str] = None):
         req = self.supabase.table("distinct_datasets").select(
             "dataset_id", "documents_count"
         )

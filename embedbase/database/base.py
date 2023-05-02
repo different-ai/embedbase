@@ -1,7 +1,29 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Coroutine, List, Optional
 from pandas import DataFrame
 
+@dataclass
+class Dataset:
+    dataset_id: str
+    documents_count: int
+
+@dataclass
+class SearchResponse:
+    score: float
+    id: str
+    data: str
+    hash: str
+    embedding: List[float]
+    metadata: dict
+
+@dataclass
+class SelectResponse:
+    id: str
+    data: str
+    hash: str
+    embedding: List[float]
+    metadata: dict
 
 class VectorDatabase(ABC):
     """
@@ -18,7 +40,7 @@ class VectorDatabase(ABC):
         dataset_id: Optional[str] = None,
         user_id: Optional[str] = None,
         distinct: bool = True,
-    ) -> List[dict]:
+    ) -> List[SelectResponse]:
         """
         :param ids: list of ids
         :param hashes: list of hashes
@@ -65,7 +87,7 @@ class VectorDatabase(ABC):
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
-    ) -> List[dict]:
+    ) -> List[SearchResponse]:
         """
         :param vector: vector
         :param top_k: top k
@@ -84,7 +106,7 @@ class VectorDatabase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_datasets(self, user_id: Optional[str] = None) -> List[dict]:
+    async def get_datasets(self, user_id: Optional[str] = None) -> List[Dataset]:
         """
         :param user_id: user id
         :return: list of datasets
