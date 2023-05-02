@@ -69,7 +69,8 @@ export default function FileDataLoader() {
       })
       return
     }
-    if (singleFile.size > 3145728) {
+    // limits disabled in dev to make it easy to process data
+    if (singleFile.size > 3145728 && process.env.NODE_ENV !== 'development') {
       setError('selectedfile', {
         type: 'filesize',
         message: 'We only support PDFs up to 3MB',
