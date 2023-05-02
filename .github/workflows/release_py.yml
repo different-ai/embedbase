@@ -34,16 +34,19 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+        working-directory: sdk/embedbase-py
 
       - name: Build package
         run: |
           poetry build
+        working-directory: sdk/embedbase-py
 
       - name: Publish to PyPI
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish
+        working-directory: sdk/embedbase-py
 
       - uses: rickstaa/action-create-tag@v1
         if: ${{ steps.regex-match.outputs.match != '' }}
