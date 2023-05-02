@@ -60,7 +60,7 @@ jobs:
         with:
           tag: core-${{ env.version }}
           tag_exists_error: true
-          message: "Release ${{ env.version }}"
+          message: ${{ github.event.head_commit.message }}
 
       - name: Create Release
         if: ${{ steps.regex-match.outputs.match != '' }}
@@ -70,6 +70,8 @@ jobs:
           name: core-${{ env.version }}
           draft: false
           prerelease: false
+          # TODO: iterate on this changelog thing later
+          body: ${{ github.event.head_commit.message }}
 
       # TODO: until docker usage is clarified
       # - name: Login to GitHub Container Registry
