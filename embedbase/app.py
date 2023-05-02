@@ -172,7 +172,7 @@ class Embedbase:
             user_id=None,
         )
 
-        def update_embedding(row, existing_documents: itertools.chain[SearchResponse]):
+        def update_embedding(row, existing_documents):
             for doc in existing_documents:
                 if row["hash"] == doc.hash:
                     return doc.embedding
@@ -310,7 +310,7 @@ class Embedbase:
             user_id=None,
         )
 
-        def update_embedding(row, docs: itertools.chain[SearchResponse]):
+        def update_embedding(row, docs):
             for doc in docs:
                 if row["hash"] == doc.hash:
                     return doc.embedding
