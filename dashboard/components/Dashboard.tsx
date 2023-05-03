@@ -27,14 +27,14 @@ const navigation = [
     name: 'Dashboard',
     icon: HomeIcon,
     current: true,
-    color: 'text-blue-500' // Adding text-blue-100 class for blue background
+    color: 'text-blue-500', // Adding text-blue-100 class for blue background
   },
   {
     path: '/dashboard/playground',
     name: 'Playground',
     icon: PlayIcon,
     current: false,
-    color: 'text-purple-500' // Adding text-purple-300 class for purple background
+    color: 'text-purple-500', // Adding text-purple-300 class for purple background
   },
 
   {
@@ -42,37 +42,37 @@ const navigation = [
     name: 'Billing',
     icon: CreditCardIcon,
     current: false,
-    color: 'text-green-500' // Adding text-green-300 class for green background
+    color: 'text-green-500', // Adding text-green-300 class for green background
   },
   {
     path: 'https://discord.gg/pMNeuGrDky',
     name: 'Get Help',
     icon: QuestionMarkCircleIcon,
     current: false,
-    color: 'text-pink-500' // Adding text-pink-300 class for pink background
+    color: 'text-pink-500', // Adding text-pink-300 class for pink background
   },
   {
     path: 'https://docs.embedbase.xyz',
     name: 'Docs',
     icon: BookOpenIcon,
     current: false,
-    color: 'text-red-500' // Adding text-red-300 class for red background
+    color: 'text-red-500', // Adding text-red-300 class for red background
   },
   {
     path: '/dashboard/tutorial',
     name: 'Quickstart',
     icon: Bars2Icon,
     current: false,
-    color: 'text-yellow-500' // Adding text-yellow-300 class for yellow background
+    color: 'text-yellow-500', // Adding text-yellow-300 class for yellow background
   },
 ]
 
 // We update the className property in the Link component to use the color value defined in the navigation array
 const DesktopSidebar = ({ current }) => {
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4 bg-white">
-      <div className="flex flex-shrink-0 items-center px-3 font-semibold tracking-wide">
-        embedbase
+    <div className="hidden bg-white lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4">
+      <div className='flex justify-center'>
+      <Image height={100} width={150} src="/logo.svg" alt="embedbase logo" />
       </div>
       {/* Sidebar component, swap this element with another sidebar if you like */}
       <div className="mt-5 flex h-0 flex-1 flex-col overflow-y-auto pt-1">
@@ -89,7 +89,7 @@ const DesktopSidebar = ({ current }) => {
                   item.path === current
                     ? `bg-gray-100 text-gray-600 `
                     : `text-gray-600 hover:bg-gray-100 `,
-                    // Using template literals to add the color value defined in the navigation array
+                  // Using template literals to add the color value defined in the navigation array
                   'group flex cursor-pointer items-center rounded-2xl px-3 py-2  text-sm'
                 )}
                 aria-current={item.current ? 'page' : undefined}
@@ -99,7 +99,7 @@ const DesktopSidebar = ({ current }) => {
                     item.path === current
                       ? `text-gray-600 `
                       : 'text-gray-600 group-hover:text-gray-700',
-                    'mr-3 h-6 w-6 flex-shrink-0 font-bold stroke-1'
+                    'mr-3 h-6 w-6 flex-shrink-0 stroke-1 font-bold'
                   )}
                   aria-hidden="true"
                 />
@@ -112,7 +112,6 @@ const DesktopSidebar = ({ current }) => {
     </div>
   )
 }
-
 
 export default function Dashboard({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -229,7 +228,7 @@ export default function Dashboard({ children }) {
               <Bars3CenterLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <main className="flex-1 px-4 bg-white">
+          <main className="flex-1 bg-white px-4">
             {/* Page title & actions */}
             {/* Pinned projects */}
             <div className="mt-4">

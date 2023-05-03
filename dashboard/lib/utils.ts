@@ -3,6 +3,7 @@ import {
   ParsedEvent,
   ReconnectInterval,
 } from 'eventsource-parser'
+import { Role } from '../pages/api/chat'
 
 export function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -10,7 +11,7 @@ export function classNames(...classes) {
 
 export interface OpenAIPayload {
   model: string
-  messages: { role: 'user' | 'system'; content: string }[]
+  messages: { role: Role; content: string }[]
   stream: boolean
 }
 export const createCompletion = async (payload: OpenAIPayload) => {

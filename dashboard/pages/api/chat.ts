@@ -12,35 +12,29 @@ export const config = {
 
 interface RequestPayload {
   prompt: string
-  history: string[]
+  history: Chat[]
   system?: string
 }
 
-type Role = 'user' | 'system'
+export type Role = 'user' | 'system' | 'assistant'
 type Chat = {
   role: Role
   content: string
 }
 const handler = async (req: Request, res: Response): Promise<Response> => {
   const { prompt, history, system } = (await req.json()) as RequestPayload
-  const formattedHistory: Chat[] = history.map((h): Chat => {
-    return {
-      role: 'user',
-      content: h,
-    }
-  })
-
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
       status: 400,
     })
   }
+
   const messages: Chat[] = [
     {
       role: 'system',
       content: system || defaultChatSystem,
     },
-    ...formattedHistory,
+    ...history,
     { role: 'user', content: prompt },
   ]
 

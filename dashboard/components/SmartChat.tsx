@@ -10,6 +10,7 @@ import { defaultChatSystem } from '../utils/constants'
 import { CreateContextResponse } from '../utils/types'
 import Markdown from './Markdown'
 import { PrimaryButton } from './Button'
+import { create } from 'zustand'
 
 const Footer = () => (
   <div className={`mt-2 text-xs text-gray-500 `}>
@@ -26,13 +27,6 @@ const Footer = () => (
     </p>
   </div>
 )
-interface DatasetCheckboxesProps {
-  datasets: Dataset[]
-  isLoading: boolean
-  selectedDatasetIds: string[]
-  setSelectedDatasetIds: React.Dispatch<React.SetStateAction<string[]>>
-}
-
 function ChatSkeleton() {
   return (
     <div className="h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
@@ -154,6 +148,55 @@ const DatasetCheckboxes = ({
   )
 }
 
+const SystemMessage = () => {
+  const setSystemMessage = useChatStore((state) => state.setSystemMessage)
+  return (
+    <>
+      <div className="flex items-center ">
+        <Label>System message</Label>
+      </div>
+
+      <TextArea
+        row={3}
+        placeholder="You are a powerful AI that answer questions about a dataset..."
+        onChange={(e) => setSystemMessage(e.target.value)}
+        defaultValue={defaultChatSystem}
+      />
+      <div className="mt-3 text-xs italic text-gray-500">
+        This system message provide general guidance to GPT-4 on how to behave.
+        You can leave this blank.
+      </div>
+    </>
+  )
+}
+
+interface ChatState {
+  messages: Message[]
+  history: { content: string; role: string }[]
+  addMessage: (message: Message) => void
+  systemMessage: string
+  setSystemMessage: (message: string) => void
+}
+
+export const useChatStore = create<ChatState>((set) => ({
+  messages: [],
+  history: [],
+  setSystemMessage: (message) => {
+    set((state) => ({
+      systemMessage: message,
+    }))
+  },
+  systemMessage: '',
+  addMessage: (message) => {
+    // commit to history but leave out metadata
+    const { metadata, ...messageWithoutReferences } = message
+    set((state) => ({
+      history: [...state.history, { ...messageWithoutReferences }],
+      messages: [...state.messages, message],
+    }))
+  },
+}))
+//
 export interface Chat {
   id: string
   createdAt: Date
@@ -161,8 +204,8 @@ export interface Chat {
 }
 
 interface Message {
-  message: string
-  type: 'userMessage' | 'apiMessage'
+  content: string
+  role: 'user' | 'assistant' | 'system'
   metadata?: {
     references: string[]
     [key: string]: unknown
@@ -173,22 +216,22 @@ interface SmartChatProps {
 }
 export default function SmartChat({ datasetIds }: SmartChatProps) {
   const inputRef = useRef(null)
-  const [history, setHistory] = useState([])
+  const messages = useChatStore((state) => state.messages)
+  const addMessage = useChatStore((state) => state.addMessage)
+  const history = useChatStore((state) => state.history)
   const [loading, setLoading] = useState(false)
   const [streaming, setStreaming] = useState(false)
   const defaultMessage = 'Hi there! How can I help?'
-  const [messages, setMessages] = useState<Message[]>([])
   const [lastMessage, setLastMessage] = useState<Message>({
-    message: defaultMessage,
-    type: 'apiMessage',
+    content: defaultMessage,
+    role: 'assistant',
     metadata: { references: [] },
   })
   const datasets = useAppStore((state) => state.datasets)
   const [selectedDatasetIds, setSelectedDatasetIds] = useState(datasetIds)
   const apiKey = useAppStore((state) => state.apiKey)
-  const chats = useAppStore((state) => state.chats)
   const firstApiKey = apiKey
-  const [system, setSystem] = useState(defaultChatSystem)
+  const system = useChatStore((state) => state.systemMessage)
   const messageListRef = useRef(null)
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -209,21 +252,14 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
         : error instanceof Response && error.status === 402
         ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
         : 'Oops! There seems to be an error. Please try again.'
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      {
-        message: 'Oops! There seems to be an error. Please try again.',
-        type: 'apiMessage',
-      },
-    ])
-    toast(userFacingMessage, {
+
+    addMessage({
+      content: 'Oops! There seems to be an error. Please try again',
+      role: 'assistant',
+    })
+
+    toast.error(userFacingMessage, {
       duration: 5000,
-      icon: '🚨',
-      style: {
-        borderRadius: '10px',
-        background: '#333',
-        color: '#fff',
-      },
     })
   }
 
@@ -238,14 +274,13 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
       }
 
       setLoading(true)
-      // commit the previous last message to the messages array as well as the current user input
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        lastMessage,
-        { message: userInput, type: 'userMessage' },
-      ])
+      // commit the previous assistant message to chat & history
+      addMessage(lastMessage)
+      // add new user messsage to chat & history
+      addMessage({ content: userInput, role: 'user' })
+      // clear input
+      setLastMessage({ content: '', role: 'assistant' })
 
-      setLastMessage({ message: '', type: 'apiMessage' })
       // 2.a ask the context based on a query
       const res: CreateContextResponse =
         selectedDatasetIds.length > 0
@@ -262,7 +297,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
             }).then((res) => res.json())
           : { chunkedContext: '', contexts: [] }
 
-      console.log('context', res)
       setStreaming(true)
       //3. Send user the questions and hisitory as well as the relevant dataset (in this case the github repo)
       const response = await fetch('/api/chat', {
@@ -302,8 +336,8 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
         done = doneReading
         const chunkValue = decoder.decode(value)
         setLastMessage((prev) => ({
-          message: prev.message + chunkValue,
-          type: 'apiMessage',
+          content: prev.content + chunkValue,
+          role: 'assistant',
           metadata: {
             references: Array.from(
               new Set([
@@ -315,7 +349,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
           },
         }))
       }
-      chats[0].messages.push(lastMessage)
     } catch (error) {
       onError(error)
     } finally {
@@ -324,39 +357,13 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
     }
   }
 
-  // Keep history in sync with messages
-  useEffect(() => {
-    if (messages.length >= 1) {
-      setHistory([
-        messages[messages.length - 2].message,
-        messages[messages.length - 1].message,
-      ])
-    }
-  }, [messages])
   const isSubmitDisabled = loading || streaming
 
   return (
-    <div className="flex flex-col sm:grid grid-cols-4  gap-5">
+    <div className="flex grid-cols-4 flex-col gap-5  sm:grid">
       <div className="col-span-1 flex flex-col space-y-3">
         <div className="flex flex-col ">
-          <div className="flex items-center ">
-            <Label>System message</Label>
-          </div>
-          {/* subtitle */}
-
-          <TextArea
-            name="system"
-            id="system"
-            row={3}
-            className="text-gray-400"
-            placeholder="You are a powerful AI that answer questions about a dataset..."
-            onChange={(e) => setSystem(e.target.value)}
-            defaultValue={defaultChatSystem}
-          />
-          <div className="mt-3 text-xs italic text-gray-500">
-            This system message provide general guidance to GPT-4 on how to
-            behave. You can leave this blank.
-          </div>
+          <SystemMessage />
         </div>
         {/* wrapped checkboxes to select the datasets to use */}
         <div className="flex flex-col">
@@ -377,11 +384,11 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
         <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">
           <div className="flex h-[400px] flex-col gap-3 space-y-2 overflow-y-auto p-2">
             {messages.map((message, index) => {
-              if (message.message === lastMessage.message) return null
+              if (message.content === lastMessage.content) return null
               return (
                 <div key={index}>
                   <ChatBox>
-                    <Markdown>{message.message}</Markdown>
+                    <Markdown>{message.content}</Markdown>
                   </ChatBox>
                 </div>
               )
@@ -390,7 +397,7 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
             <div ref={messageListRef}>
               {!loading && (
                 <ChatBox>
-                  <Markdown>{lastMessage.message}</Markdown>
+                  <Markdown>{lastMessage.content}</Markdown>
                 </ChatBox>
               )}
             </div>
