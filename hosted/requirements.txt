@@ -1,0 +1,6 @@
+posthog
+supabase
+firebase_admin
+embedbase==1.1.4
+openai
+sentry_sdk[fastapi]

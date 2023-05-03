@@ -97,20 +97,30 @@ addressed now, or filing an issue to handle it later.
 
 #### Embedbase Core
 
-To release a new version of Embedbase project, bump the version in `pyproject.toml` and run:
-
+1. Bump the version in `pyproject.toml`
+2. 
 ```bash
 make release
 ```
 
 #### Embedbase Python SDK
 
-For the Python SDK, bump the version in `sdk/embedbase-py/pyproject.toml` and run:
-
+1. `cd sdk/embedbase-py`.
+2. Bump the version in `pyproject.toml`
+3. 
 ```bash
-make release/sdk-py
+make release
 ```
 
 #### Embedbase Javascript SDK
 
 For the Javascript SDK, just push to main, we use semantic-release to automatically release when a change has been made to the main branch.
+
+#### Embedbase Hosted
+
+1. `cd hosted`
+1. Bump the version in `service.prod.yaml`
+2. 
+```bash
+make release
+```

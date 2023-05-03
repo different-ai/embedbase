@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  embedbase:
+    container_name: embedbase-hosted
+    image: gcr.io/embedbase/embedbase-hosted:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8000
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./svc.prod.json:/secrets_firebase/svc.prod.json
+
+# docker exec -it embedbase-hosted bash

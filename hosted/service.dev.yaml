@@ -1,0 +1,69 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: embedbase-hosted-dev
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/startup-cpu-boost: "true"
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "20"
+    spec:
+      serviceAccountName: embedbase-cloud-run@embedbase.iam.gserviceaccount.com
+      containerConcurrency: 80
+      containers:
+        image: gcr.io/embedbase/embedbase-hosted:latest-dev
+        startupProbe:
+          httpGet:
+            path: /health
+          initialDelaySeconds: 30
+          successThreshold: 1
+          periodSeconds: 30
+          timeoutSeconds: 30
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /health
+          initialDelaySeconds: 30
+          successThreshold: 1
+          periodSeconds: 30
+          timeoutSeconds: 30
+          failureThreshold: 30
+        env:
+          - name: ENVIRONMENT
+            value: "development"
+          - name: UPLOAD_BATCH_SIZE
+            value: "100"
+          - name: SENTRY_RELEASE
+            value: "0.3.4"
+        ports:
+          - containerPort: 8080
+            name: http1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2048Mi
+        volumeMounts:
+          - name: settings
+            readOnly: true
+            mountPath: /secrets
+          - name: firebase_admin_service_account
+            mountPath: /secrets_firebase
+            readOnly: true
+      volumes:
+        - name: settings
+          secret:
+            secretName: EMBEDBASE_HOSTED_DEV
+            items:
+              - key: "3"
+                path: config.yaml
+        - name: firebase_admin_service_account
+          secret:
+            secretName: FIREBASE_ADMIN_SERVICE_ACCOUNT
+            items:
+              - key: "1"
+                path: svc.prod.json
+      timeoutSeconds: 120

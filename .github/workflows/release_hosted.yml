@@ -1,0 +1,97 @@
+name: Embedbase hosted release
+
+on:
+  push:
+    branches:
+      - main
+      - next
+      - rc
+    paths:
+      - "hosted/**"
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: embedbase
+  SERVICE: embedbase-hosted
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: regex-match
+        with:
+          text: ${{ github.event.head_commit.message }}
+          regex: "^Release hosted ([^ ]+)"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install virtualenv
+          make install
+        working-directory: hosted
+
+      # TODO: Add tests
+
+      - id: auth
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY_PROD }}"
+
+      - name: Authorize Docker push
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        run: gcloud auth configure-docker
+
+      - name: Get the version
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: get_version
+        run: echo "VERSION=$(sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)" >> $GITHUB_ENV
+        working-directory: hosted
+
+      - name: Build and push
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: hosted
+          file: ./hosted/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
+            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
+      - name: Deploy to Cloud Run
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          metadata: hosted/service.prod.yaml
+          project_id: ${{ env.PROJECT_ID }}
+          region: us-central1
+          tag: ${{ env.VERSION }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
+
+      - uses: rickstaa/action-create-tag@v1
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: "tag_create"
+        with:
+          tag: hosted-${{ env.version }}
+          tag_exists_error: true
+          message: ${{ github.event.head_commit.message }}
+
+      - name: Create Release
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: hosted-${{ env.version }}
+          name: hosted-${{ env.version }}
+          draft: false
+          prerelease: false
+          # TODO: iterate on this changelog thing later
+          body: ${{ github.event.head_commit.message }}

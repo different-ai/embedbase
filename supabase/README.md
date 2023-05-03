@@ -9,15 +9,15 @@ npx supabase
 
 [Other ways](https://supabase.com/docs/guides/cli).
 
+## VSCode + Deno
+
+1. install deno extension
+2. cmd+shift+p -> deno setup workspace thingy
+
 ## Migrations
 
 You can create a new migration with
 
 ```bash
-npx supabase migration new create_extensions_vector
-npx supabase migration new create_documents_table
-npx supabase migration new create_row_level_security_documents_table
-npx supabase migration new create_function_match_documents
-npx supabase migration new create_index_documents_ivfflat
-npx supabase migration new create_distinct_datasets_view
+npx supabase migration new <name>
 ```

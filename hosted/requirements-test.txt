@@ -1,0 +1,17 @@
+black
+mypy
+pylint
+pytest-cov
+pytest-xdist
+pytest
+ipykernel
+ipywidgets
+httpx
+trio
+anyio
+pytest-asyncio
+jupyter
+# for automatically removing unused imports
+autoflake
+fire
+pandas

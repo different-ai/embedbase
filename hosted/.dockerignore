@@ -1,0 +1,9 @@
+# ignore everything
+**
+.*
+
+# Allow files and directories
+!docker-entrypoint.sh
+!middlewares/**/*.py
+!requirements.txt
+!main.py
