@@ -374,8 +374,8 @@ class Embedbase:
         """
         query = request_body.query
 
-        # if query is empty, return empty results
-        if not query:
+        # if query is empty and no where are provided, return an empty list
+        if not query and not request_body.where:
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={"query": query, "similarities": []},
@@ -407,6 +407,7 @@ class Embedbase:
             vector=query_embedding,
             dataset_ids=[dataset_id],
             user_id=user_id,
+            where=request_body.where,
         )
 
         similarities = []

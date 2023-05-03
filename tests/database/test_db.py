@@ -2,22 +2,27 @@
 Tests at the database abstraction level.
 """
 
-import hashlib
 from typing import List
+
+import hashlib
+import uuid
 
 import numpy as np
 import pandas as pd
 import pytest
-import uuid
+
 from embedbase.database import VectorDatabase
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.database.postgres_db import Postgres
 from embedbase.database.supabase_db import Supabase
 from embedbase.settings import get_settings_from_file
 from tests.test_utils import unit_testing_dataset
+from sentence_transformers import SentenceTransformer
 
 vector_databases: List[VectorDatabase] = []
 
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+# small optimisation would be use mps for local dev
 
 # before running any test initialize the databases
 @pytest.fixture(scope="session", autouse=True)
@@ -305,3 +310,75 @@ async def test_distinct():
         )
         # should only return one result
         assert len(list(results)) == 1, f"failed for {vector_database}"
+
+
+@pytest.mark.asyncio
+async def test_search_with_where():
+    """
+    should not throw an error
+    """
+    d = [
+        {
+            "data": "Alice invited Bob at 6 PM",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        },
+        {
+            "data": "John pushed code at 8 AM",
+            "metadata": {
+                "source": "github.com",
+                "path": "https://github.com/john/john",
+            },
+        },
+        {
+            "data": "The lion is the king of the savannah",
+            "metadata": {
+                "source": "wikipedia.org",
+                "path": "https://en.wikipedia.org/wiki/Lion",
+            },
+        },
+    ]
+
+    def pad_to_1536(x):
+        return x + [0.0] * (1536 - len(x))
+    for vector_database in vector_databases:
+        if isinstance(vector_database, Postgres):
+            continue
+        # add documents
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(
+            pd.DataFrame(
+                [
+                    {
+                        "data": x["data"],
+                        "embedding": pad_to_1536(model.encode(x["data"]).tolist()),
+                        "id": str(uuid.uuid4()),
+                        "metadata": x["metadata"],
+                        "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        results = await vector_database.search(
+            pad_to_1536(model.encode("Time related").tolist()),
+            top_k=2,
+            dataset_ids=[unit_testing_dataset],
+            where={"source": "github.com"},
+        )
+        assert len(results) == 1, f"failed for {vector_database}"
+        assert results[0].metadata["source"] == "github.com", f"failed for {vector_database}"
+        assert results[0].data == "John pushed code at 8 AM", f"failed for {vector_database}"
+
+@pytest.mark.asyncio
+async def test_delete_with_where():
+    pass
+
+@pytest.mark.asyncio
+async def test_update_with_where():
+    pass
+
+@pytest.mark.asyncio
+async def test_select_with_where():
+    pass

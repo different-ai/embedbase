@@ -141,6 +141,7 @@ class Supabase(VectorDatabase):
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
+        where=None,
     ):
         d = {
             "query_embedding": vector,
@@ -150,11 +151,21 @@ class Supabase(VectorDatabase):
         }
         if user_id:
             d["query_user_id"] = user_id
+        query = self.supabase.rpc(
+            "match_documents",
+            d,
+        )
+        
+        if where:
+            # raise if where is not a dict
+            if not isinstance(where, dict):
+                raise ValueError("currently only dict is supported for where")
+            metadata_field = list(where.keys())[0]
+            metadata_value = where[metadata_field]
+            d["metadata_field"] = metadata_field
+            d["metadata_value"] = metadata_value
         response = (
-            self.supabase.rpc(
-                "match_documents",
-                d,
-            )
+            query
             .execute()
             .data
         )

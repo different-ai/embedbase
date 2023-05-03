@@ -59,6 +59,7 @@ pytest-cov = "^4.0.0"
 httpx = "^0.23.0"
 pytest-asyncio = "^0.21.0"
 requests-mock = "^1.10.0"
+sentence-transformers = "^2.2.2"
 
 # TODO: following integrations might be moved outside this repo - loose coupling
 firebase-admin = "^6.1.0"

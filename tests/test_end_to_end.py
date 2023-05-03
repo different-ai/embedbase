@@ -44,8 +44,10 @@ def init_databases():
         print("Supabase dependency not installed, skipping")
 
 
-async def run_around_tests():
+async def run_around_tests(skip_db = None):
     for vector_database in vector_databases:
+        if skip_db is not None and isinstance(vector_database, skip_db):
+            continue
         await vector_database.clear(unit_testing_dataset)
         settings = get_settings_from_file()
         app = (
@@ -453,3 +455,53 @@ async def test_update_documents():
             for similarity in json_response.get("similarities"):
                 assert similarity["data"].startswith("Updated document")
                 assert similarity["metadata"]["updated"] is True
+
+@pytest.mark.asyncio
+async def test_search_with_where():
+    d = [
+        {
+            "data": "Alice invited Bob at 6 PM",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        },
+        {
+            "data": "John pushed code at 8 AM",
+            "metadata": {
+                "source": "github.com",
+                "path": "https://github.com/john/john",
+            },
+        },
+        {
+            "data": "The lion is the king of the savannah",
+            "metadata": {
+                "source": "wikipedia.org",
+                "path": "https://en.wikipedia.org/wiki/Lion",
+            },
+        },
+    ]
+    async for app in run_around_tests(skip_db=Postgres):
+        # First, insert some documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": d},
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 3
+
+        # Now, search the inserted documents
+        # Search for updated documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search",
+                json={
+                    "query": "Time related",
+                    "where": {
+                        "source": "github.com",
+                    },
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("similarities")) == 1
+            assert json_response.get("similarities")[0]["data"] == "John pushed code at 8 AM"

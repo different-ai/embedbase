@@ -96,12 +96,14 @@ class VectorDatabase(ABC):
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
     ) -> List[SearchResponse]:
         """
-        :param vector: vector
-        :param top_k: top k
+        :param vector: vector the similarity is calculated against
+        :param top_k: top k number of results returned
         :param dataset_id: dataset id
         :param user_id: user id
+        :param where: where condition to filter results
         :return: list of documents
         """
         raise NotImplementedError

@@ -51,7 +51,9 @@ create or replace function match_documents (
   similarity_threshold float,
   match_count int,
   query_dataset_ids text[],
-  query_user_id text default null
+  query_user_id text default null,
+  metadata_field text default null,
+  metadata_value text default null
 )
 returns table (
   id text,
@@ -76,6 +78,7 @@ begin
   where 1 - (documents.embedding <=> query_embedding) > similarity_threshold
     and documents.dataset_id = any(query_dataset_ids)
     and (query_user_id is null or query_user_id = documents.user_id)
+    and (metadata_field is null or documents.metadata->>metadata_field = metadata_value) -- filter by metadata
   order by documents.embedding <=> query_embedding
   limit match_count;
 end;
@@ -240,15 +243,30 @@ where
         top_k: Optional[int],
         dataset_ids: List[str],
         user_id: Optional[str] = None,
+        where=None,
     ):
+
         d = {
             "query_embedding": str(vector),
             "similarity_threshold": 0,  # TODO: make this configurable
             "match_count": top_k,
             "query_dataset_ids": dataset_ids,
-            "query_user_id": user_id,
         }
-        q = "select * from match_documents(%(query_embedding)s, %(similarity_threshold)s, %(match_count)s, %(query_dataset_ids)s, %(query_user_id)s)"
+        q = "select * from match_documents(%(query_embedding)s, %(similarity_threshold)s, %(match_count)s, %(query_dataset_ids)s"
+        if user_id:
+            d["query_user_id"] = user_id
+            q += ", %(query_user_id)s"
+        if where:
+            raise NotImplementedError("where is not implemented yet in postgres")
+            # raise if where is not a dict
+            if not isinstance(where, dict):
+                raise ValueError("currently only dict is supported for where")
+            metadata_field = list(where.keys())[0]
+            metadata_value = where[metadata_field]
+            d["metadata_field"] = metadata_field
+            d["metadata_value"] = metadata_value
+            q += ", %(metadata_field)s, %(metadata_value)s"
+        q += ")"
         results = self.conn.execute(q, d)
         if results.rowcount == 0:
             return []

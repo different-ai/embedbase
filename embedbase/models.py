@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel
 
 # TODO: response models once stable
@@ -31,3 +31,4 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 6
+    where: Optional[Union[dict, List[dict]]] = None

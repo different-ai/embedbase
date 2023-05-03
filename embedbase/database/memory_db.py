@@ -19,7 +19,9 @@ def semantic_search(np, documents, query_embedding, document_embeddings, top_n=3
     ]
     sorted_indexes = np.argsort(similarities)[::-1]
 
-    return [(i, list(documents.keys())[i], similarities[i]) for i in sorted_indexes[:top_n]]
+    return [
+        (i, list(documents.keys())[i], similarities[i]) for i in sorted_indexes[:top_n]
+    ]
 
 
 class MemoryDatabase(VectorDatabase):
@@ -31,10 +33,12 @@ class MemoryDatabase(VectorDatabase):
         super().__init__(*args, **kwargs)
         self.storage = {}
         try:
+            # pylint: disable=import-outside-toplevel
             import numpy as np
 
             self._np = np
         except ImportError:
+            # pylint: disable=raise-missing-from
             raise ImportError("Please install numpy with `pip install numpy`")
 
     async def update(
@@ -94,15 +98,29 @@ class MemoryDatabase(VectorDatabase):
         else:
             return []
 
-    async def search(self, vector, top_k, dataset_ids, user_id=None):
+    async def search(self, vector, top_k, dataset_ids, user_id=None, where=None):
+        storage = self.storage
+        # make a copy of storage filtered by where
+        if where:
+            # raise if where is not a dict
+            if not isinstance(where, dict):
+                raise ValueError("currently only dict is supported for where")
+            storage = self.storage.copy()
+            for k, v in where.items():
+                # search in metadata
+                storage = {
+                    k1: v1
+                    for k1, v1 in storage.items()
+                    if k in v1["metadata"] and v1["metadata"][k] == v
+                }
         query_embedding = self._np.array(vector)
         similarities = semantic_search(
             self._np,
-            self.storage,
+            storage,
             query_embedding,
             [
                 doc["embedding"]
-                for doc in self.storage.values()
+                for doc in storage.values()
                 if doc["dataset_id"] in dataset_ids
                 and (user_id is None or doc["user_id"] == user_id)
             ],
@@ -112,10 +130,10 @@ class MemoryDatabase(VectorDatabase):
             SearchResponse(
                 id=doc_id,
                 score=sim,
-                data=self.storage[doc_id]["data"],
-                metadata=self.storage[doc_id]["metadata"],
-                embedding=self.storage[doc_id]["embedding"].tolist(),
-                hash=self.storage[doc_id]["hash"],
+                data=storage[doc_id]["data"],
+                metadata=storage[doc_id]["metadata"],
+                embedding=storage[doc_id]["embedding"].tolist(),
+                hash=storage[doc_id]["hash"],
             )
             for idx, doc_id, sim in similarities
         ]
