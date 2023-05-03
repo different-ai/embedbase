@@ -65,7 +65,7 @@ sentence-transformers = "^2.2.2"
 firebase-admin = "^6.1.0"
 sentry-sdk = {extras = ["fastapi"], version = "^1.21.1"}
 supabase = "^1.0.3"
-psycopg = {extras = ["binary", "pool"], version = "^3.1.8"}
+psycopg = {extras = ["binary", "pool"], version = "^3.1.9"}
 pgvector = "^0.1.6"
 
 [tool.black]
