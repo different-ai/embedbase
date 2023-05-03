@@ -44,19 +44,17 @@ deploy/dev: ## [Local development] Deploy the Cloud run service.
 	docker push ${LATEST_IMAGE_URL}-dev
 	gcloud run services replace ./service.dev.yaml --region ${REGION}
 
-scripts/users:
+scripts/users: ## [Local development] Export users from the database.
 	python3 scripts/main.py get_users
 
 release: ## [Local development] Release a new version of the API.
-	@echo "Releasing version ${VERSION}"; \
+	@echo "Releasing Embedbase Hosted version ${VERSION}"; \
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${VERSION}: $$COMMIT'"; \
-	git commit -m "${VERSION}: $$COMMIT"; \
-	git push origin main; \
-	git tag ${VERSION}; \
-	git push origin ${VERSION}
-	@echo "Done, check https://github.com/different-ai/embedbase-hosted/actions"
+	git commit -m "Release hosted ${VERSION}: $$COMMIT"; \
+	git push origin main
+	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
 .PHONY: help
 
