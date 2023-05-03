@@ -1,6 +1,7 @@
+import asyncio
 import json
 from typing import List, Optional
-
+import itertools
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
@@ -90,10 +91,12 @@ GROUP BY dataset_id, user_id;
             )
 
         except ImportError:
+            # pylint: disable=raise-missing-from
             raise ImportError(
                 "Please install pgvector and psycopg with `pip install pgvector psycopg[binary]`"
             )
         except psycopg.OperationalError:
+            # pylint: disable=raise-missing-from
             raise psycopg.OperationalError(
                 "Please run a postgresql and create a database named embedbase"
             )
@@ -119,38 +122,59 @@ from documents
 where
     {conditions}
 """
-        conditions = []
+
+        async def _fetch(ids, hashes) -> List[dict]:
+            try:
+                conditions = []
+                if ids:
+                    conditions.append(
+                        sql.SQL("id in ({})").format(
+                            sql.SQL(",").join(map(sql.Literal, ids))
+                        )
+                    )
+                if hashes:
+                    conditions.append(
+                        sql.SQL("hash in ({})").format(
+                            sql.SQL(",").join(map(sql.Literal, hashes))
+                        )
+                    )
+                if dataset_id:
+                    conditions.append(
+                        sql.SQL("dataset_id = {}").format(sql.Literal(dataset_id))
+                    )
+                if user_id:
+                    conditions.append(
+                        sql.SQL("user_id = {}").format(sql.Literal(user_id))
+                    )
+                return list(self.conn.execute(
+                    sql.SQL(query).format(conditions=sql.SQL(" and ").join(conditions))
+                ))
+            except Exception as e:
+                raise e
+
+        # we need to run parallel requests with postgres
+        n = 50
+        docs = []
         if ids:
-            conditions.append(
-                sql.SQL("id in ({})").format(sql.SQL(",").join(map(sql.Literal, ids)))
+            elements = [ids[i : i + n] for i in range(0, len(ids), n)]
+            docs = await asyncio.gather(
+                *[_fetch(e, []) for e in elements]
             )
-        if hashes:
-            conditions.append(
-                sql.SQL("hash in ({})").format(
-                    sql.SQL(",").join(map(sql.Literal, hashes))
-                )
+        else:
+            elements = [hashes[i : i + n] for i in range(0, len(hashes), n)]
+            docs = await asyncio.gather(
+                *[_fetch([], e) for e in elements]
             )
-        if dataset_id:
-            conditions.append(
-                sql.SQL("dataset_id = {}").format(sql.Literal(dataset_id))
+        return [
+            SelectResponse(
+                id=row[0],
+                data=row[1],
+                embedding=row[2].tolist(),
+                hash=row[3],
+                metadata=row[4],
             )
-        if user_id:
-            conditions.append(sql.SQL("user_id = {}").format(sql.Literal(user_id)))
-        data = []
-        results = self.conn.execute(
-            sql.SQL(query).format(conditions=sql.SQL(" and ").join(conditions))
-        )
-        for row in results:
-            data.append(
-                SelectResponse(
-                    id=row[0],
-                    data=row[1],
-                    embedding=row[2].tolist(),
-                    hash=row[3],
-                    metadata=row[4],
-                )
-            )
-        return data
+            for row in itertools.chain.from_iterable(docs)
+        ]
 
     async def update(
         self,

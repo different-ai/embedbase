@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from typing import List, Optional
 from pandas import DataFrame, Series
 from embedbase.database import VectorDatabase
@@ -38,24 +39,47 @@ class Supabase(VectorDatabase):
         # either ids or hashes must be provided
         assert ids or hashes, "ids or hashes must be provided"
 
-        req = self.supabase.table("documents").select("*")
-        if ids:
-            req = req.in_("id", ids)
-            if distinct:
-                # hack: supabase does not support distinct
-                req = req.order("id", desc=True)
-                req = req.limit(len(ids))
-        if hashes:
-            req = req.in_("hash", hashes)
-            if distinct:
-                # hack: supabase does not support distinct
-                req = req.order("hash", desc=True)
-                req = req.limit(len(hashes))
-        if dataset_id:
-            req = req.eq("dataset_id", dataset_id)
-        if user_id:
-            req = req.eq("user_id", user_id)
+        # raise if both ids and hashes are provided
+        assert not (ids and hashes), "ids and hashes cannot be provided at the same time"
+        # TODO not supported yet
 
+        async def _fetch(ids, hashes) -> List[dict]:
+            try:
+                req = self.supabase.table("documents").select("*")
+                if ids:
+                    req = req.in_("id", ids)
+                    if distinct:
+                        # hack: supabase does not support distinct
+                        req = req.order("id", desc=True)
+                        req = req.limit(len(ids))
+                if hashes:
+                    req = req.in_("hash", hashes)
+                    if distinct:
+                        # hack: supabase does not support distinct
+                        req = req.order("hash", desc=True)
+                        req = req.limit(len(hashes))
+                if dataset_id:
+                    req = req.eq("dataset_id", dataset_id)
+                if user_id:
+                    req = req.eq("user_id", user_id)
+
+                return req.execute().data
+            except Exception as e:
+                raise e
+
+        # we need to run parallel requests with supabase
+        n = 50
+        docs = []
+        if ids:
+            elements = [ids[i : i + n] for i in range(0, len(ids), n)]
+            docs = await asyncio.gather(
+                *[_fetch(e, []) for e in elements]
+            )
+        else:
+            elements = [hashes[i : i + n] for i in range(0, len(hashes), n)]
+            docs = await asyncio.gather(
+                *[_fetch([], e) for e in elements]
+            )
         return [
             SelectResponse(
                 id=row["id"],
@@ -64,7 +88,7 @@ class Supabase(VectorDatabase):
                 hash=row["hash"],
                 metadata=row["metadata"],
             )
-            for row in req.execute().data
+            for row in itertools.chain.from_iterable(docs)
         ]
 
     async def update(

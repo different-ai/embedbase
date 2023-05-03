@@ -10,7 +10,6 @@ import pandas as pd
 import pytest
 import uuid
 from embedbase.database import VectorDatabase
-from embedbase.database.db_utils import batch_select
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.database.postgres_db import Postgres
 from embedbase.database.supabase_db import Supabase
@@ -263,10 +262,9 @@ async def test_batch_select_large_content():
             ),
             unit_testing_dataset,
         )
-        results = await batch_select(
-            vector_database=vector_database,
+        results = await vector_database.select(
             hashes=list(set(hashes)),
-            dataset_id=None,
+            dataset_id=unit_testing_dataset,
             user_id=None,
         )
         assert len(list(results)) == len(d), f"failed for {vector_database}"
@@ -300,10 +298,9 @@ async def test_distinct():
             ),
             unit_testing_dataset,
         )
-        results = await batch_select(
-            vector_database=vector_database,
+        results = await vector_database.select(
             hashes=list(set(hashes)),
-            dataset_id=None,
+            dataset_id=unit_testing_dataset,
             user_id=None,
         )
         # should only return one result

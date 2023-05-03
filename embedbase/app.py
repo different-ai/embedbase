@@ -1,12 +1,10 @@
 import asyncio
-import itertools
 import os
-from typing import Awaitable, Callable, Optional, Tuple, Union, Any
-import warnings
-from fastapi import FastAPI, Request
+from typing import Awaitable, Callable, Optional, Tuple, Union
+from fastapi import FastAPI, Request, status
 from fastapi.middleware import Middleware
 from starlette.types import Scope
-from embedbase.database.base import SearchResponse, VectorDatabase
+from embedbase.database.base import VectorDatabase
 from embedbase.embedding.base import Embedder
 from embedbase.logging_utils import get_logger
 from embedbase.models import (
@@ -15,19 +13,16 @@ from embedbase.models import (
     AddRequest,
     UpdateRequest,
 )
-from embedbase.utils import embedbase_ascii
+from embedbase.utils import embedbase_ascii, get_user_id
 from embedbase.settings import Settings
 import hashlib
 import time
 import urllib.parse
 import uuid
 
-from fastapi import Request, status
 from fastapi.responses import JSONResponse, ORJSONResponse
 from pandas import DataFrame
 
-from embedbase.database.db_utils import batch_select
-from embedbase.utils import get_user_id
 
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
@@ -165,8 +160,7 @@ class Embedbase:
         )
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
-        existing_documents = await batch_select(
-            vector_database=self.db,
+        existing_documents = await self.db.select(
             hashes=list(set(hashes_to_fetch)),
             dataset_id=None,
             user_id=None,
@@ -204,8 +198,7 @@ class Embedbase:
 
         # only insert if this dataset_id - user_id
         # pair does not have this hash
-        existing_documents_in_this_pair = await batch_select(
-            vector_database=self.db,
+        existing_documents_in_this_pair = await self.db.select(
             hashes=list(set(hashes_to_fetch)),
             dataset_id=dataset_id,
             user_id=user_id,
@@ -303,8 +296,7 @@ class Embedbase:
         )
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
-        existing_embeddings = await batch_select(
-            vector_database=self.db,
+        existing_embeddings = await self.db.select(
             hashes=list(set(hashes_to_fetch)),
             dataset_id=None,
             user_id=None,
