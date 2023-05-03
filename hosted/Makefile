@@ -17,7 +17,7 @@ install: ## [DEVELOPMENT] Install the API dependencies
 	pip install -r requirements-test.txt
 	@echo "Done, run '\033[0;31msource env/bin/activate\033[0m' to activate the virtual environment"
 
-run:
+run: ## [Local development] Run the API locally.
 	python3 -m uvicorn main:app --reload --port ${LOCAL_PORT}
 
 docker/run/dev: ## [Local development] Run the development docker image.
