@@ -9,11 +9,10 @@
   - [ ] [cohere embeddings](https://cohere.ai/embed)
   - [ ] [Google PaLM embeddings](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
   - [x] local (BERT, LLaMa, Vicuna, etc.)
-  - [ ] enterprise-scale (FAISS, qdrant, etc.)
 * Vector database
   - [x] [supabase](https://supabase.com/)
   - [x] postgres
-  - [ ] [pinecone](https://www.pinecone.io/)
+  - [x] qdrant
   - [x] local (memory, sqlite, etc.)
 * [fastapi](https://github.com/tiangolo/fastapi)
 * Authentication (optional)
@@ -31,7 +30,7 @@ open questions you want to discuss.
 If the issue is currently unclear but you are interested, please post in Discord
 and someone can help clarify the issue in more detail.
 
-**Always Welcome:** Documentation markdowns in https://github.com/different-ai/embedbase-docs, where the documentation is automatically indexed on changes in Embedbase Cloud and provide a GPT-4-QA interface.
+We write the documentation using Nextra in the `docs` folder in https://github.com/different-ai/embedbase. It is automatically indexed on changes in Embedbase Cloud and provide a GPT-4-QA interface.
 
 ### Submitting Work
 
@@ -94,13 +93,9 @@ owning reviewer has approved the PR. Be sure to acknowledge any non-blocking
 comments either by making the requested change, explaining why it's not being
 addressed now, or filing an issue to handle it later.
 
-### Deployment
-
-Upon making a release on GitHub, all docker images are automatically built and
-pushed to ghcr.io. The docker images are tagged with the release version and the
-`latest` tag.
-
 ### Releasing
+
+#### Embedbase Core
 
 To release a new version of Embedbase project, bump the version in `pyproject.toml` and run:
 
@@ -108,10 +103,14 @@ To release a new version of Embedbase project, bump the version in `pyproject.to
 make release
 ```
 
+#### Embedbase Python SDK
+
 For the Python SDK, bump the version in `sdk/embedbase-py/pyproject.toml` and run:
 
 ```bash
 make release/sdk-py
 ```
+
+#### Embedbase Javascript SDK
 
 For the Javascript SDK, just push to main, we use semantic-release to automatically release when a change has been made to the main branch.
