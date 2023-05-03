@@ -13,8 +13,6 @@ env
 .env
 
 config.yaml
-.space
 
 postgres
-main.py
 dist
