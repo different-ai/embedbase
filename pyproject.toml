@@ -33,7 +33,7 @@ python = "^3.8"
 
 fastapi = "^0.95.1"
 uvicorn = {extras = ["standard"], version = "^0.15.0"}
-pandas = "^1.3.4"
+pandas = ">=1.3.4,<3.0.0"
 openai = "^0.27.0"
 tenacity = "^8.0.1"
 pydantic_yaml = {extras = ["pyyaml"], version = "^0.4.0"}
