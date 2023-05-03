@@ -2,12 +2,12 @@
 # Docs: https://docs.github.com/en/github/administering-a-repository/keeping-your-dependencies-updated-automatically
 
 version: 2
-
+# TODO: tune up interval once more stable
 updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     allow:
       - dependency-type: "all"
     commit-message:
@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     allow:
       - dependency-type: "all"
     commit-message:
@@ -27,7 +27,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/docker"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     allow:
       - dependency-type: "all"
     commit-message:
