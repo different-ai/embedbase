@@ -1,4 +1,4 @@
-name: Release JS SDK
+name: Embedbase JS SDK release
 
 on:
   push:

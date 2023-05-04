@@ -81,7 +81,7 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: "tag_create"
         with:
-          tag: hosted-${{ env.version }}
+          tag: hosted-${{ env.VERSION }}
           tag_exists_error: true
           message: ${{ github.event.head_commit.message }}
 
@@ -89,8 +89,8 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: hosted-${{ env.version }}
-          name: hosted-${{ env.version }}
+          tag_name: hosted-${{ env.VERSION }}
+          name: hosted-${{ env.VERSION }}
           draft: false
           prerelease: false
           # TODO: iterate on this changelog thing later

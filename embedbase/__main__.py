@@ -47,7 +47,7 @@ app = get_app().use_db(MemoryDatabase()).use_embedder(LocalEmbedder()).run()
 
 # pylint: disable=missing-function-docstring
 def run_app():
-    uvicorn.run("embedbase:app", host="0.0.0.0")
+    uvicorn.run(app, host="0.0.0.0")
 
 
 if __name__ == "__main__":

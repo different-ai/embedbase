@@ -119,8 +119,18 @@ For the Javascript SDK, just push to main, we use semantic-release to automatica
 #### Embedbase Hosted
 
 1. `cd hosted`
-1. Bump the version in `service.prod.yaml`
-2. 
+2. Bump the version in `service.prod.yaml`
+3. 
 ```bash
 make release
 ```
+
+#### Embedbase Dashboard
+
+Just push
+
+#### Embedbase Docs
+
+Just push
+
+FYI the documentation gpt4 extension is using a dataset automatically synced with all Embedbase content (github, discord, etc.).

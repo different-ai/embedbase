@@ -3,7 +3,8 @@
     "python.formatting.provider": "black",
     "python.testing.pytestArgs": [
         ".",
-        "--ignore=sdk/embedbase-js"
+        "--ignore=sdk/embedbase-js",
+        "--ignore=hosted"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
