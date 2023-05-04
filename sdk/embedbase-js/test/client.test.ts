@@ -162,4 +162,41 @@ describe('Check if the client is able to fetch data', () => {
     expect(datasetIds).toContain('bar')
     expect(datasetIds).toContain('baz')
   })
+  test('should be able to filter by metadata using where', async () => {
+    const embedbase = createClient(URL, KEY)
+
+    const d = [
+      {
+          "data": "Alice invited Bob at 6 PM at the restaurant",
+          "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+      },
+      {
+          "data": "John pushed code on github at 8 AM",
+          "metadata": {
+              "source": "github.com",
+              "path": "https://github.com/john/john",
+          },
+      },
+      {
+          "data": "The lion is the king of the savannah.",
+          "metadata": {
+              "source": "wikipedia.org",
+              "path": "https://en.wikipedia.org/wiki/Lion",
+          },
+      },
+    ]
+
+    await Promise.all(d.map((input) =>
+      embedbase.dataset('unit').add(input.data, input.metadata)))
+
+    const data = await embedbase
+      .dataset('unit')
+      .search('Time related')
+      .where('source', '==', 'github.com')
+
+    expect(data).toBeDefined()
+    expect(data).toBeInstanceOf(Array)
+    expect(data.length).toBeGreaterThanOrEqual(1)
+    expect(data[0].metadata).toHaveProperty('source', 'github.com')
+  }, 10000)
 })

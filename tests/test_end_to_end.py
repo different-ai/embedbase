@@ -464,10 +464,24 @@ async def test_search_with_where():
             "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
         },
         {
+            "data": "Lee woke up at 4 AM",
+            "metadata": {
+                "source": "ouraring.com",
+                "path": "https://ouraring.com/lee",
+            },
+        },
+        {
             "data": "John pushed code at 8 AM",
             "metadata": {
                 "source": "github.com",
                 "path": "https://github.com/john/john",
+            },
+        },
+        {
+            "data": "John pushed code at 8 AM",
+            "metadata": {
+                "source": "google.com",
+                "path": "https://google.com/john",
             },
         },
         {
@@ -487,7 +501,7 @@ async def test_search_with_where():
             )
             assert response.status_code == 200
             json_response = response.json()
-            assert len(json_response.get("results")) == 3
+            assert len(json_response.get("results")) == 5
 
         # Now, search the inserted documents
         # Search for updated documents
@@ -499,6 +513,7 @@ async def test_search_with_where():
                     "where": {
                         "source": "github.com",
                     },
+                    "top_k": 3,
                 },
             )
             assert response.status_code == 200
