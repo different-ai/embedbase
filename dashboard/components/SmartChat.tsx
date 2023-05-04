@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input, Label, TextArea } from './Input'
 
-import { Dataset } from '@/hooks/useDatasets'
 import { posthog } from 'posthog-js'
 import React from 'react'
 import { toast } from 'react-hot-toast'
