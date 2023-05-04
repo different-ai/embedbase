@@ -13,5 +13,5 @@ services:
       - PYTHONUNBUFFERED=1
       - PORT=8000
     volumes:
-      - ./config.yaml:/app/config.yaml
+      - ./config.yaml:/secrets/config.yaml
       - ./svc.prod.json:/secrets_firebase/svc.prod.json
