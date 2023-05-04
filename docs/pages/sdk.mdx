@@ -81,17 +81,33 @@ console.log(data)
 // [
 //   {
 //       "similarity": 0.810843349,
-//       "data": "The world is going to smell very different once electric      vehicles become commonplace"
+//       "data": "This nice little hot dog toaster is a great addition to our kitchen. It is easy to use and makes a great hot dog. It is also easy to clean. I would recommend this to anyone who likes hot dogs."
+//       "metadata": {
+//         "path": "https://amazon.com/hotdogtoaster",
+//         "source": "amazon"
+//       },
+//       "embedding": [0.35332, 0.23423, ...]
 //   },
 //   {
-//       "similarity": 0.794602573,
+//       "similarity": 0.294602573,
 //       "data": "200 years ago, people would never have guessed that humans in the future would communicate by silently tapping on glass"
+//       "embedding": [0.76532, 0.23423, ...]
 //   },
 //   {
-//       "similarity": 0.792932034,
+//       "similarity": 0.192932034,
 //       "data": "The average car in space is nicer than the average car on Earth"
+//       "embedding": [0.52342, 0.23423, ...]
 //   },
 // ]
+```
+
+You can also filter by metadata:
+
+```ts
+const data = await embedbase
+  .dataset('test-amazon-product-reviews')
+  .search('best hot dogs accessories')
+  .where('source', '==', "amazon")
 ```
 
 ### Adding Data
