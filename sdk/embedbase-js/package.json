@@ -7,7 +7,7 @@
     "typescript",
     "embedbase"
   ],
-  "homepage": "https://github.com/different-ai/embedbase/sdk/embedbase-js",
+  "homepage": "https://github.com/different-ai/embedbase/tree/main/sdk/embedbase-js",
   "bugs": "https://github.com/different-ai/embedbase/issues",
   "license": "MIT",
   "author": "Different AI",
