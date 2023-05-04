@@ -1,3 +1,5 @@
+import './globals.css';
+
 export default function RootLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
@@ -7,13 +9,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="">{children}</body>
     </html>
   )
 }
 
 export const metadata = {
-    title: 'Home',
-    description: 'Welcome to Next.js',
+    title: 'Embedbase | Missing link between your data an LLMs',
+    description: 'Welcome to [embed]base',
   };
   
