@@ -1,11 +1,30 @@
+import { Tab, Tabs } from 'nextra-theme-docs'
+import { useState } from 'react'
+
+export function SyncTabs(props, { children }) {
+  const [selected, setSelected] = useState(0)
+  return (
+      <Tabs {...props} onChange={setSelected} selectedIndex={selected}>
+        {children}
+      </Tabs>
+  )
+}
 
 sdk is still in alpha, if you if you have some feedback [join our discord](https://discord.gg/pMNeuGrDky) 🔥
 
-[find it on github](https://github.com/different-ai/embedbase/sdk/embedbase-js)
+[find it on github](https://github.com/different-ai/embedbase)
 
 ## Embedbase
 
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 [![Try with Replit Badge](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@benjaminshafii/Embedbase-Quickstart-JS?v=1)
+  </Tab>
+    <Tab>
+[![Try with Replit Badge](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@LouisBeaumont1/Embedbase-Python-Quick-Tour?v=1/)
+  </Tab>
+</Tabs>
+
 
 **Open-source API & SDK to connect any data to ChatGPT**
 
@@ -13,51 +32,46 @@ Before you start, you need get a an API key at [app.embedbase.xyz](https://app.e
 
 *Note: we're working on a fully client-side SDK. In the meantime, you can use the hosted instance of Embedbase.*
 
-```
-npm i embedbase-js
-```
-
-## Table of contents
-
-- [What is it](#what-is-it)
-- [Installation](#installation)
-- [Searching](#fetching-embeddings)
-- [Adding data](#adding-data)
-- [Splitting and chunking large texts](#splitting-and-chunking-large-texts)
-- [Creating a "context"](#creating-a-context)
-- [Adding metadata](#adding-metadata)
-- [Listing datasets](#listing-datasets)
-- [Example: Create a recommendation engine](#create-a-recommendation-engine)
 
 ## Design philosophy
 
 - Simple
 - Open-source
-- Composable (integrates well with LLM & various databases)
-
-
+- Composable (integrates well with any AI providers, databases and LLM helpers)
 
 ## What is it
 
-This is the official typescript client for Embedbase. Embedbase is an open-source API to connect your data to ChatGPT.
+These are the official clients for Embedbase. Open-source API & SDK to easily create, store and retrieve embeddings.
 
 ## Who is it for
 
 People who want to
-* plug their own data into ChatGPT.
-
-
+* plug their own data into ChatGPT or any other LLM
+* build recommendation systems
+* build search engines
+* build classification engines
+* etc.
 
 ## Installation
 
-You can install embedbase-js via the terminal.
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```bash
+npm install embedbase-js
+```
+  </Tab>
+    <Tab>
+```bash
+pip install embedbase-client
+```
+  </Tab>
+</Tabs>
 
-```
-npm i embedbase-js
-```
 
 ### Initializing
 
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 ```ts
 import { createClient } from 'embedbase-js'
 
@@ -68,8 +82,34 @@ const url = 'https://api.embedbase.xyz'
 
 const embedbase = createClient(url, apiKey)
 ```
+  </Tab>
+    <Tab>
+To get started, import the `EmbedbaseClient` class and create a new instance:
+
+```python
+from embedbase_client.client import EmbedbaseClient
+
+embedbase_url = "https://api.embedbase.xyz"
+embedbase_key = "<get your key here: https://app.embedbase.xyz>"
+client = EmbedbaseClient(embedbase_url, embedbase_key)
+```
+
+In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
+This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
+```python
+from embedbase_client.client import EmbedbaseAsyncClient
+```
+
+Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
+
+Learn more about asynchronous Python [here](https://docs.python.org/3/library/asyncio.html).
+  </Tab>
+</Tabs>
 
 ### Searching datasets
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 
 ```ts
 // fetching data
@@ -90,12 +130,12 @@ console.log(data)
 //   },
 //   {
 //       "similarity": 0.294602573,
-//       "data": "200 years ago, people would never have guessed that humans in the future would communicate by silently tapping on glass"
+//       "data": "200 years ago, people would never have guessed that humans in the future would communicate by silently tapping on glass",
 //       "embedding": [0.76532, 0.23423, ...]
 //   },
 //   {
 //       "similarity": 0.192932034,
-//       "data": "The average car in space is nicer than the average car on Earth"
+//       "data": "The average car in space is nicer than the average car on Earth",
 //       "embedding": [0.52342, 0.23423, ...]
 //   },
 // ]
@@ -109,9 +149,43 @@ const data = await embedbase
   .search('best hot dogs accessories')
   .where('source', '==', "amazon")
 ```
+  </Tab>
+    <Tab>
+To search a dataset, call the `search` method on a `Dataset` object:
+
+```python
+data = client.dataset("your_dataset_name").search("your_query", limit=5)
+print(data)
+# [
+#   {
+#       "similarity": 0.810843349,
+#       "data": "This nice little hot dog toaster is a great addition to our kitchen. It is easy to use and makes a great hot dog. It is also easy to clean. I would recommend this to anyone who likes hot dogs."
+#       "metadata": {
+#         "path": "https://amazon.com/hotdogtoaster",
+#         "source": "amazon"
+#       },
+#       "embedding": [0.35332, 0.23423, ...]
+#   },
+#   {
+#       "similarity": 0.294602573,
+#       "data": "200 years ago, people would never have guessed that humans in the future would communicate by silently tapping on glass",
+#       "embedding": [0.76532, 0.23423, ...]
+#   },
+#   {
+#       "similarity": 0.192932034,
+#       "data": "The average car in space is nicer than the average car on Earth",
+#       "embedding": [0.52342, 0.23423, ...]
+#   },
+# ]
+```
+  </Tab>
+</Tabs>
+
 
 ### Adding Data
 
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 ```js
 const data =
   await // embeddings are extremely good for retrieving unstructured data
@@ -126,7 +200,8 @@ console.log(data)
 // {
 //   "id": "eiew823",
 //   "data": "Lightweight. Telescopic. Easy zipper case for storage.
-//          Didn't put in dishwasher. Still perfect after many uses."
+//          Didn't put in dishwasher. Still perfect after many uses.",
+//   "embedding": [0.1, 0.2, 0.3, ...]
 // }
 ```
 
@@ -138,7 +213,8 @@ embedbase.dataset(datasetId).batchAdd([{
 }])
 ```
 
-For better performance, you can use batches with `Promise.all`:
+For better performance, you can run these add in parallel. For example,
+you can use batches with `Promise.all`:
 
 ```ts
 const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
@@ -155,8 +231,58 @@ const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
 batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
 ```
 
+  </Tab>
+    <Tab>
+To add data to a dataset, call the `add` method on a `Dataset` object:
+
+```python
+data = embedbase.dataset(dataset_id).add("""
+  <div>
+    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
+  </div>
+""")
+print(data)
+# {
+#   "id": "eiew823",
+#   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+#          Didn't put in dishwasher. Still perfect after many uses.",
+#   "embedding": [0.1, 0.2, 0.3, ...]
+# }
+```
+
+If you have many documents to add, you should use `batch_add`:
+
+```python
+embedbase.dataset(dataset_id).batch_add([
+  {
+    "data": "some text",
+  },
+  {
+    "data": "some more text",
+  },
+])
+```
+
+For better performance, you can run these add in parallel. For example,
+you can use batches with `concurrent.futures`:
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+def batch_add(chunk):
+    embedbase.dataset(dataset_id).batch_add(chunk)
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    executor.map(batch_add, chunks)
+```
+  </Tab>
+</Tabs>
+
 ### Splitting and chunking large texts
 
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
 We highly recommend using this function.
 To split and chunk large texts, use the `splitText` function:
@@ -183,8 +309,47 @@ splitText(text, { maxTokens: maxTokens, chunkOverlap: chunkOverlap }, async ({ c
 
 Check [how we send our documentation to Embedbase](https://github.com/different-ai/embedbase-docs/blob/cb082d5b54b1038bee73511d9b9046fbb22d8a6f/scripts/sync.ts) to let you ask it questions through GPT-4.
 
+  </Tab>
+    <Tab>
+
+AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
+We highly recommend using this function.
+To split and chunk large texts, use the `split_text` function from the `split` module:
+
+```python
+from embedbase_client.split import split_text
+
+text = "your_long_text"
+# ⚠️ note here that the value of max_tokens depends
+# on the used embedder in embedbase.
+# With models such as OpenAI's embeddings model, you can
+# use a max_tokens of 500. With other models, you may need to
+# use a lower max_tokens value.
+# (embedbase cloud use openai model at the moment) ⚠️
+max_tokens = 500
+# chunk_overlap is the number of tokens that will overlap between chunks
+# it is useful to have some overlap to ensure that the context is not
+# cut off in the middle of a sentence.
+chunk_overlap = 200
+
+chunks = split_text(text, max_tokens, chunk_overlap)
+
+# then ...
+documents = []
+for c in chunks:
+    documents.append({
+        "data": c.chunk,
+    })
+result = client.dataset("my-dataset").batch_add(documents)
+```
+  </Tab>
+</Tabs>
+
+
 ### Creating a "context"
 
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 `createContext` is very similar to `.search` but it returns strings instead of an object. This is useful if you want to easily feed it to GPT.
 
 ```js
@@ -200,9 +365,31 @@ console.log(data)
  "Embedabase API is self-hostable...",
 ]
 ```
+  </Tab>
+    <Tab>
+`create_context` is very similar to `.search` but it returns strings instead of an object. This is useful if you want to easily feed it to GPT.
+
+```python
+data = embedbase.dataset(dataset_id).create_context("my-context")
+print(data)
+# [
+#   "Embedbase API allows to store unstructured data...",
+#   "Embedbase API has 3 main functions a) provides a plug and play solution to store embeddings b) makes it easy to connect to get the right data into llms c)..",
+#   "Embedabase API is self-hostable...",
+# ]
+```
+  </Tab>
+</Tabs>
+
 
 ### Adding metadata
 
+Adding metadata can be useful, for example if you are feeding a LLM like ChatGPT,
+a typical best practice is to add the source of the text as metadata.
+For example an URL. Then you can ask the AI to add links or footnotes in it's output.
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 ```js
 const data =
   await
@@ -210,7 +397,7 @@ const data =
   <div>
     <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
     // metadata can be anything you want that will appear in the search results later
-`, {category: 'smallItems', user: 'bob'})
+`, {path: 'https://www.amazon.com/dp/B00004OCNS'})
 
 console.log(data)
 //
@@ -218,20 +405,58 @@ console.log(data)
 //   "id": "eiew823",
 //   "data": "Lightweight. Telescopic. Easy zipper case for storage.
 //          Didn't put in dishwasher. Still perfect after many uses.",
-//   "metadata": {"category": "smallItems", "user": "bob"}
+//   "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+//   "embedding": [0.1, 0.2, 0.3, ...]
 // }
 ```
+  </Tab>
+    <Tab>
+```python
+data = embedbase.dataset(dataset_id).add(
+    "Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.",
+    {"path": "https://www.amazon.com/dp/B00004OCNS"}
+)
+print(data)
+# {
+#   "id": "eiew823",
+#   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+#          Didn't put in dishwasher. Still perfect after many uses.",
+#   "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+#   "embedding": [0.1, 0.2, 0.3, ...]
+# }
+```
+  </Tab>
+</Tabs>
+
 
 
 ### Listing datasets
 
+
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
 ```js
 const data = await embedbase.datasets()
 console.log(data)
 // [{"datasetId": "test-amazon-product-reviews", "documentsCount": 2}]
 ```
+  </Tab>
+    <Tab>
+```python
+data = embedbase.datasets()
+print(data)
+# [{"dataset_id": "test-amazon-product-reviews", "documents_count": 2}]
+```
+  </Tab>
+</Tabs>
 
 ## Create a recommendation engine
 
 Check out [this tutorial](https://docs.embedbase.xyz/tutorials/recommendation-engine-to-increase-time-spent).
 
+## Contributing
+
+[We welcome contributions to Embedbase](https://github.com/different-ai/embedbase/blob/main/CONTRIBUTING.md).
+
+If you have any feedback or suggestions, please open an issue or join our [Discord](https://discord.gg/pMNeuGrDky) to discuss your ideas.

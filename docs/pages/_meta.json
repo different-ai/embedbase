@@ -1,7 +1,6 @@
 {
   "index": "🏡 Start Here",
-  "sdk": "☕️ Javascript SDK",
-  "sdk-py": "🐍 Python SDK",
+  "sdk": "👨‍💻 SDK",
   "interface": "📡 API",
   "tutorials": "❓ Tutorials",
   "examples": "🤯 Customizing Embedbase",
