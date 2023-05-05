@@ -1,9 +1,4 @@
-import { OpenAIPayload, OpenAIStream } from '@/lib/utils'
-import { defaultChatSystem } from '@/utils/constants'
-import * as Sentry from '@sentry/nextjs'
 import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { PROJECT_ID } from '../../middleware'
-import { v4 } from 'uuid'
 import { getRedirectURL } from '@/lib/redirectUrl'
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set')
@@ -72,9 +67,6 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
   }
   const userId = session.user.id
 
-  // generate a uuid
-  const uuid = v4()
-
   const { data, error } = await supabase
     .from('apps')
     .insert({
@@ -82,8 +74,16 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
       name: name,
       datasets: datasets,
       system_message: systemMessage,
-      public_api_key: uuid,
     })
+    .select('public_api_key')
+    .single()
+  console.log(data)
+
+  if (!data) {
+    return new Response(JSON.stringify({ error: 'No data returned' }), {
+      status: 500,
+    })
+  }
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -93,7 +93,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   const baseUrl = getRedirectURL()
   return new Response(
-    JSON.stringify({ link: `${baseUrl}chat?appId=${uuid}` }),
+    JSON.stringify({ link: `${baseUrl}chat?appId=${data?.public_api_key}` }),
     {
       status: 200,
     }
