@@ -1,17 +1,15 @@
-import {
-  createServerComponentSupabaseClient,
-  createServerSupabaseClient,
-} from '@supabase/auth-helpers-nextjs'
+import { createServerComponentSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
 
 import Chat from './Chat'
 // just an example to test app dir
-async function getAppName(appId) {
+async function getAppName(appId: string) {
+  console.log('getAppName', appId)
 
   const supabase = createServerComponentSupabaseClient({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    headers: () => headers().get('authorization'),
+    headers: () => headers(),
     cookies: () => cookies(),
   })
 
@@ -31,8 +29,8 @@ export default async function Dashboard(ctx) {
   // const projects = await getProjects()
 
   return (
-    <div className='w-full mt-10'>
-      <div className='text-md'>{appName}</div>
+    <div className="mt-10 w-full">
+      <div className="text-md">{appName}</div>
       <Chat />
     </div>
   )

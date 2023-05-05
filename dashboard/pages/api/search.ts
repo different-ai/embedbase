@@ -4,7 +4,7 @@ import { CreateContextResponse } from '@/utils/types'
 import { get_encoding } from '@dqbd/tiktoken'
 import * as Sentry from '@sentry/nextjs'
 import { getEmbedbaseApp } from '@/lib/getEmbedbaseApp'
-import { getApiKey } from '@/lib/getApiKey'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 export const merge = async (chunks: string[], maxLen = 1800) => {
   let curLen = 0
@@ -58,6 +58,43 @@ const createContext = async (
 // 2. Get a context from a dataset
 export default async function search(req: any, res: any) {
   const question = req.body.query
+  const getApiKey = async (owner: string) => {
+    const supabase = createServerSupabaseClient(
+      console.log(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      // @ts-ignore
+      { req, res },
+      {
+        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      }
+    )
+    console.log('owner', owner)
+    const { data } = await supabase
+      .from('api-keys')
+      .select('api_key')
+      .eq('user_id', owner)
+      .single()
+    return data
+  }
+  const getEmbedbaseApp = async (publicApiKey: string) => {
+    const supabase = createServerSupabaseClient(
+      // @ts-ignore
+      { req, res },
+      {
+        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      }
+    )
+
+    const { data } = await supabase
+      .from('apps')
+      .select('owner, name, datasets, system_message')
+      .eq('public_api_key', publicApiKey)
+      .single()
+
+    console.log(data)
+    return data
+  }
   if (!question) {
     res.status(400).json({ error: 'No query' })
     return
@@ -70,7 +107,9 @@ export default async function search(req: any, res: any) {
   const appData = await getEmbedbaseApp(publicApiKey)
   console.log(appData)
   // retrieve api key from public api key
+  console.log(appData.owner)
   const apiKey = await getApiKey(appData.owner)
+  console.log(apiKey)
   const datasetIds = appData.datasets
 
   if (!datasetIds) {
@@ -81,7 +120,7 @@ export default async function search(req: any, res: any) {
   // retrieve api key from public api key
 
   try {
-    const context = await createContext(question, datasetIds, apiKey)
+    const context = await createContext(question, datasetIds, apiKey.api_key)
     res.status(200).json({ ...context, systemMessage: appData.system_message })
   } catch (error) {
     Sentry.captureException(error)
