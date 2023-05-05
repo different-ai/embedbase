@@ -60,7 +60,6 @@ export default async function search(req: any, res: any) {
   const question = req.body.query
   const getApiKey = async (owner: string) => {
     const supabase = createServerSupabaseClient(
-      console.log(process.env.SUPABASE_SERVICE_ROLE_KEY),
       // @ts-ignore
       { req, res },
       {
