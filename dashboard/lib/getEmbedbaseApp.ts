@@ -8,7 +8,7 @@ export const getEmbedbaseApp = async (publicApiKey: string) => {
   const { data } = await supabase
     .from('apps')
     .select('owner, name, datasets, system_message')
-    .eq('publicApiKey', publicApiKey)
+    .eq('public_api_key', publicApiKey)
     .single();
 
   console.log(data);

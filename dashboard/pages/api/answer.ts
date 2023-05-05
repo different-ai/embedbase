@@ -38,11 +38,10 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
       }
     )
 
-    console.log('hello')
     const { data } = await supabase
       .from('apps')
       .select('owner, name, datasets, system_message')
-      .eq('publicApiKey', publicApiKey)
+      .eq('public_api_key', publicApiKey)
       .single()
 
     console.log(data)

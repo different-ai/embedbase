@@ -18,7 +18,7 @@ async function getAppName(appId) {
   const { data } = await supabase
     .from('apps')
     .select('name')
-    .eq('publicApiKey', appId)
+    .eq('public_api_key', appId)
     .single()
   console.log(data)
   return data.name
