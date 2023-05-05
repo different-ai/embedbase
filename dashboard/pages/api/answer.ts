@@ -33,7 +33,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
       // @ts-ignore
       { req, res },
       {
-        supabaseKey: process.env.SUPBASE_SERVICE_KEY,
+        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       }
     )
