@@ -68,6 +68,7 @@ export default async function search(req: any, res: any) {
     return
   }
   const appData = await getEmbedbaseApp(publicApiKey)
+  console.log(appData)
   // retrieve api key from public api key
   const apiKey = await getApiKey(appData.owner)
   const datasetIds = appData.datasets
