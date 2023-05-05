@@ -97,7 +97,7 @@ export default function Example({ open, setOpen }: ShareModalProps) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-2 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                   <button
                     type="button"
@@ -109,7 +109,7 @@ export default function Example({ open, setOpen }: ShareModalProps) {
                   </button>
                 </div>
                 <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div className="mt-3 text-center sm:mt-0 sm:text-left">
                     <Dialog.Title
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
@@ -150,15 +150,20 @@ export default function Example({ open, setOpen }: ShareModalProps) {
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 rounded-lg bg-gray-50 py-2 px-4 text-sm text-gray-700">
-                  <p className="">
-                    The public link will include the following datasets:
-                  </p>
+                <div className='mt-3 font-semibold text-sm'>Using Share Settings</div>
+                <div className="text-sm text-gray-600">Datasets</div>
+
+                <div className="mt-1 rounded-lg bg-gray-50 py-2 px-4 text-sm text-gray-700">
                   <ul className="list-inside list-disc">
                     {selectedDatasetIds.map((dataset) => (
                       <li key="dataset">{dataset}</li>
                     ))}
                   </ul>
+                  <p></p>
+                </div>
+                <div className="mt-3 text-sm text-gray-600">System Message</div>
+                <div className="mt-1 rounded-lg bg-gray-50 py-2 px-4 text-sm text-gray-700">
+                  <p className="mt-2">{system}</p>
                 </div>
                 <div className="mt-5 sm:mt-6">
                   {!link && (
