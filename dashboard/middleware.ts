@@ -1,8 +1,10 @@
-import { createMiddlewareSupabaseClient, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import {
+  createMiddlewareSupabaseClient,
+  createServerSupabaseClient,
+} from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 
 import type { NextRequest } from 'next/server'
-import { tiers } from './components/PricingSection'
 
 // subscription_status:
 // | 'trialing'
@@ -15,7 +17,7 @@ import { tiers } from './components/PricingSection'
 // | 'paused';
 // NEXT_PUBLIC_SUPABASE_URL=https://teyceztmbotvelgagqwm.supabase.co
 // grab project id from it
-const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
+export const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
   'https://',
   ''
 )?.replace('.supabase.co', '')
@@ -34,17 +36,20 @@ export async function middleware(req: NextRequest) {
         status: 401,
       })
     }
-    
+
     const token = split[1]
     // call https://$SUPABASE_PROJECT_ID.functions.supabase.co/consumeApi
     try {
-      const response = await fetch(`https://${projectId}.functions.supabase.co/consumeApi`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ apiKey: token }),
-      })
+      const response = await fetch(
+        `https://${PROJECT_ID}.functions.supabase.co/consumeApi`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ apiKey: token }),
+        }
+      )
       // if we have a user id then we can continue
       if (!response.ok) {
         return response
@@ -80,20 +85,22 @@ export async function middleware(req: NextRequest) {
   }
   const userId = session.user.id
 
-  const response = await fetch(`https://${projectId}.functions.supabase.co/consumeApi`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ userId: userId }),
-  })
+  const response = await fetch(
+    `https://${PROJECT_ID}.functions.supabase.co/consumeApi`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: userId }),
+    }
+  )
   console.log(response.statusText)
 
   // if we have a user id then we can continue
   if (!response.ok) {
     return response
   }
-
 
   return res
 }
