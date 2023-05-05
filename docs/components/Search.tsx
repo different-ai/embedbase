@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useTheme } from 'nextra-theme-docs'
 import { PrimaryButton } from './Button'
 import Markdown from './Markdown'
+import { useRouter } from 'next/router'
 
 const Modal = ({ children, open, onClose }) => {
   const theme = useTheme()
@@ -105,7 +106,14 @@ export const EmbedbaseSearch = () => {
   const [loading, setLoading] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [output, setOutput] = useState('')
-
+  const router = useRouter()
+  const {search} = router.query
+  React.useEffect(() => {
+    if (search) {
+      setPrompt(search as string)
+      // qa({ preventDefault: () => {} })
+    }
+  }, [search])
   const qa = async (e: any) => {
     e.preventDefault()
     setLoading(true)

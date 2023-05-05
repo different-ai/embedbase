@@ -57,6 +57,10 @@ export default function SignupForm() {
       setIsLoading(false)
       return
     }
+
+    posthog.capture('sign up', {
+      provider: 'github',
+    })
   }
   return (
     <div className="sm:mx-auto sm:w-full sm:max-w-md">
