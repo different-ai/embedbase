@@ -53,12 +53,13 @@ function ChatBox({ children }) {
   )
 }
 
-const DatasetCheckboxes = ({
-  datasets,
-  isLoading,
-}) => {
-  const selectedDatasetIds = useSmartChatStore((state) => state.selectedDatasetIds)
-  const setSelectedDatasetIds = useSmartChatStore((state) => state.addToSetDatasetIds)
+const DatasetCheckboxes = ({ datasets, isLoading }) => {
+  const selectedDatasetIds = useSmartChatStore(
+    (state) => state.selectedDatasetIds
+  )
+  const setSelectedDatasetIds = useSmartChatStore(
+    (state) => state.addToSetDatasetIds
+  )
   const removeDatasetId = useSmartChatStore((state) => state.removeDatasetId)
   const [filter, setFilter] = useState('')
   const displayedDatasets = datasets
@@ -264,8 +265,8 @@ export default function SmartChat() {
       error instanceof Response && error.status === 401
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
         : error instanceof Response && error.status === 402
-          ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
-          : 'Oops! There seems to be an error. Please try again.'
+        ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
+        : 'Oops! There seems to be an error. Please try again.'
 
     addMessage({
       content: 'Oops! There seems to be an error. Please try again',
@@ -299,16 +300,16 @@ export default function SmartChat() {
       const res: CreateContextResponse =
         selectedDatasetIds.length > 0
           ? await fetch('/api/createContext', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              prompt: userInput,
-              datasetIds: selectedDatasetIds,
-              apiKey: firstApiKey,
-            }),
-          }).then((res) => res.json())
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                prompt: userInput,
+                datasetIds: selectedDatasetIds,
+                apiKey: firstApiKey,
+              }),
+            }).then((res) => res.json())
           : { chunkedContext: '', contexts: [] }
 
       setStreaming(true)
@@ -371,17 +372,17 @@ export default function SmartChat() {
     }
   }
 
-
   const isSubmitDisabled = loading || streaming
 
   return (
     <div className="flex grid-cols-4 flex-col gap-5  sm:grid">
-      <ShareModal open={isShareModalOpen} setOpen={setIsShareModalOpen}
-      />
+      <ShareModal open={isShareModalOpen} setOpen={setIsShareModalOpen} />
       <div className="col-span-1 flex flex-col space-y-3">
         <PrimaryButton
-          onClick={() => setIsShareModalOpen(true)}>
-          Share
+          onClick={() => setIsShareModalOpen(true)}
+          className="max-w-max"
+        >
+          Share this Playground
         </PrimaryButton>
         <div className="flex flex-col ">
           <SystemMessage />
@@ -393,10 +394,7 @@ export default function SmartChat() {
             This lets embedbase know what data you want ChatGPT to use to create
             answers. (select at least one)
           </div>
-          <DatasetCheckboxes
-            datasets={datasets}
-            isLoading={false}
-          />
+          <DatasetCheckboxes datasets={datasets} isLoading={false} />
         </div>
       </div>
       <div className="col-span-3">
