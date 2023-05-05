@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input, Label, TextArea } from './Input'
 
+import ShareModal from '@/components/ShareModal'
 import { posthog } from 'posthog-js'
-import React from 'react'
 import { toast } from 'react-hot-toast'
+import { create } from 'zustand'
 import { useAppStore } from '../lib/store'
 import { defaultChatSystem } from '../utils/constants'
 import { CreateContextResponse } from '../utils/types'
-import Markdown from './Markdown'
 import { PrimaryButton } from './Button'
-import { create } from 'zustand'
-
+import Markdown from './Markdown'
 const Footer = () => (
   <div className={`mt-2 text-xs text-gray-500 `}>
     <p>
@@ -57,9 +56,10 @@ function ChatBox({ children }) {
 const DatasetCheckboxes = ({
   datasets,
   isLoading,
-  selectedDatasetIds,
-  setSelectedDatasetIds,
 }) => {
+  const selectedDatasetIds = useSmartChatStore((state) => state.selectedDatasetIds)
+  const setSelectedDatasetIds = useSmartChatStore((state) => state.addToSetDatasetIds)
+  const removeDatasetId = useSmartChatStore((state) => state.removeDatasetId)
   const [filter, setFilter] = useState('')
   const displayedDatasets = datasets
     .filter((dataset) => filter === '' || dataset.id.includes(filter))
@@ -67,18 +67,18 @@ const DatasetCheckboxes = ({
 
   useEffect(() => {
     if (datasets.length > 0 && selectedDatasetIds.length === 0) {
-      setSelectedDatasetIds([datasets[0].id])
+      setSelectedDatasetIds(datasets[0].id)
     }
   }, [datasets])
 
   const addChip = (id) => {
     if (selectedDatasetIds.length < 5) {
-      setSelectedDatasetIds((prev) => [...prev, id])
+      setSelectedDatasetIds(id)
     }
   }
 
   const removeChip = (id) => {
-    setSelectedDatasetIds((prev) => prev.filter((chipId) => chipId !== id))
+    removeDatasetId(id)
   }
 
   return (
@@ -148,7 +148,7 @@ const DatasetCheckboxes = ({
 }
 
 const SystemMessage = () => {
-  const setSystemMessage = useChatStore((state) => state.setSystemMessage)
+  const setSystemMessage = useSmartChatStore((state) => state.setSystemMessage)
   return (
     <>
       <div className="flex items-center ">
@@ -175,9 +175,12 @@ interface ChatState {
   addMessage: (message: Message) => void
   systemMessage: string
   setSystemMessage: (message: string) => void
+  selectedDatasetIds: string[]
+  addToSetDatasetIds: (id: string) => void
+  removeDatasetId: (id: string) => void
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useSmartChatStore = create<ChatState>((set) => ({
   messages: [],
   history: [],
   setSystemMessage: (message) => {
@@ -185,13 +188,24 @@ export const useChatStore = create<ChatState>((set) => ({
       systemMessage: message,
     }))
   },
-  systemMessage: '',
+  systemMessage: defaultChatSystem,
   addMessage: (message) => {
     // commit to history but leave out metadata
     const { metadata, ...messageWithoutReferences } = message
     set((state) => ({
       history: [...state.history, { ...messageWithoutReferences }],
       messages: [...state.messages, message],
+    }))
+  },
+  selectedDatasetIds: [],
+  addToSetDatasetIds: (id) => {
+    set((state) => ({
+      selectedDatasetIds: [...state.selectedDatasetIds, id],
+    }))
+  },
+  removeDatasetId: (id) => {
+    set((state) => ({
+      selectedDatasetIds: state.selectedDatasetIds.filter((i) => i !== id),
     }))
   },
 }))
@@ -210,16 +224,14 @@ interface Message {
     [key: string]: unknown
   }
 }
-interface SmartChatProps {
-  datasetIds: string[]
-}
-export default function SmartChat({ datasetIds }: SmartChatProps) {
+export default function SmartChat() {
   const inputRef = useRef(null)
-  const messages = useChatStore((state) => state.messages)
-  const addMessage = useChatStore((state) => state.addMessage)
-  const history = useChatStore((state) => state.history)
+  const messages = useSmartChatStore((state) => state.messages)
+  const addMessage = useSmartChatStore((state) => state.addMessage)
+  const history = useSmartChatStore((state) => state.history)
   const [loading, setLoading] = useState(false)
   const [streaming, setStreaming] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const defaultMessage = 'Hi there! How can I help?'
   const [lastMessage, setLastMessage] = useState<Message>({
     content: defaultMessage,
@@ -227,10 +239,13 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
     metadata: { references: [] },
   })
   const datasets = useAppStore((state) => state.datasets)
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState(datasetIds)
+
+  const selectedDatasetIds = useSmartChatStore(
+    (state) => state.selectedDatasetIds
+  )
   const apiKey = useAppStore((state) => state.apiKey)
   const firstApiKey = apiKey
-  const system = useChatStore((state) => state.systemMessage)
+  const system = useSmartChatStore((state) => state.systemMessage)
   const messageListRef = useRef(null)
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -249,8 +264,8 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
       error instanceof Response && error.status === 401
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
         : error instanceof Response && error.status === 402
-        ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
-        : 'Oops! There seems to be an error. Please try again.'
+          ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
+          : 'Oops! There seems to be an error. Please try again.'
 
     addMessage({
       content: 'Oops! There seems to be an error. Please try again',
@@ -284,16 +299,16 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
       const res: CreateContextResponse =
         selectedDatasetIds.length > 0
           ? await fetch('/api/createContext', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                prompt: userInput,
-                datasetIds: selectedDatasetIds,
-                apiKey: firstApiKey,
-              }),
-            }).then((res) => res.json())
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: userInput,
+              datasetIds: selectedDatasetIds,
+              apiKey: firstApiKey,
+            }),
+          }).then((res) => res.json())
           : { chunkedContext: '', contexts: [] }
 
       setStreaming(true)
@@ -356,11 +371,18 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
     }
   }
 
+
   const isSubmitDisabled = loading || streaming
 
   return (
     <div className="flex grid-cols-4 flex-col gap-5  sm:grid">
+      <ShareModal open={isShareModalOpen} setOpen={setIsShareModalOpen}
+      />
       <div className="col-span-1 flex flex-col space-y-3">
+        <PrimaryButton
+          onClick={() => setIsShareModalOpen(true)}>
+          Share
+        </PrimaryButton>
         <div className="flex flex-col ">
           <SystemMessage />
         </div>
@@ -374,8 +396,6 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
           <DatasetCheckboxes
             datasets={datasets}
             isLoading={false}
-            selectedDatasetIds={selectedDatasetIds}
-            setSelectedDatasetIds={setSelectedDatasetIds}
           />
         </div>
       </div>

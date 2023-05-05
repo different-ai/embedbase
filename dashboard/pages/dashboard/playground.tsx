@@ -1,24 +1,30 @@
+import Banner from '@/components/Banner'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import Dashboard from '../../components/Dashboard'
-import SmartChat from '../../components/SmartChat'
+import SmartChat, { useSmartChatStore } from '../../components/SmartChat'
+import { Dataset } from '../../hooks/useDatasets'
 import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
-import { Dataset } from '../../hooks/useDatasets'
-import { useEffect } from 'react'
-import { useRouter } from 'next/router'
-import Banner from '@/components/Banner'
 
 
 
 export function Playground() {
   const router = useRouter()
+  const addToSetDatasetIds = useSmartChatStore((state) => state.addToSetDatasetIds)
+  useEffect(() => {
+    if (router.query.datasetId) {
+      addToSetDatasetIds(router.query.datasetId as string)
+    }
+  }, [router.query.datasetId])
 
   return (
     <>
 
       <div>
         <div className="mt-6">
-        {
+          {
             router.query.new === 'true' && <Banner
               className="mb-6"
               title={`Your dataset is loading`}
@@ -28,9 +34,9 @@ export function Playground() {
             />
           }
           <div className="mb-6 gap-6 space-y-1">
-              <h3 className="mb-6 text-2xl font-semibold text-gray-900">
-                Playground{' '}
-              </h3>
+            <h3 className="mb-6 text-2xl font-semibold text-gray-900">
+              Playground{' '}
+            </h3>
 
 
             <div className="rounded-2xl bg-gray-50 py-5 px-5">
@@ -42,10 +48,8 @@ export function Playground() {
               </p>
             </div>
           </div>
-          
-          <SmartChat
-            datasetIds={router.query.datasetId ? [router.query.datasetId as string] : []}
-          />
+
+          <SmartChat />
         </div>
       </div>
 
