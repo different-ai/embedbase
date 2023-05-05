@@ -1,18 +1,24 @@
 import Banner from '@/components/Banner'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Dashboard from '../../components/Dashboard'
 import SmartChat, { useSmartChatStore } from '../../components/SmartChat'
 import { Dataset } from '../../hooks/useDatasets'
 import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 
-
+import ShareModal from '@/components/ShareModal'
+import { PrimaryButton, SecondaryButton } from '@/components/Button'
+import { ShareIcon } from '@heroicons/react/24/outline'
 
 export function Playground() {
   const router = useRouter()
-  const addToSetDatasetIds = useSmartChatStore((state) => state.addToSetDatasetIds)
+  const addToSetDatasetIds = useSmartChatStore(
+    (state) => state.addToSetDatasetIds
+  )
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   useEffect(() => {
     if (router.query.datasetId) {
       addToSetDatasetIds(router.query.datasetId as string)
@@ -21,30 +27,40 @@ export function Playground() {
 
   return (
     <>
+      <ShareModal open={isShareModalOpen} setOpen={setIsShareModalOpen} />
 
       <div>
         <div className="mt-6">
-          {
-            router.query.new === 'true' && <Banner
+          {router.query.new === 'true' && (
+            <Banner
               className="mb-6"
               title={`Your dataset is loading`}
-              text={
-                `You can start asking questions.
+              text={`You can start asking questions.
                 This can take up to 5 minutes.`}
             />
-          }
+          )}
           <div className="mb-6 gap-6 space-y-1">
-            <h3 className="mb-6 text-2xl font-semibold text-gray-900">
-              Playground{' '}
-            </h3>
-
+            <div className="flex w-full justify-between">
+              <h3 className="mb-6 text-2xl font-semibold text-gray-900">
+                Playground{' '}
+              </h3>
+              <div>
+                <SecondaryButton
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="flex max-w-max gap-2"
+                >
+                  <ShareIcon height={18} width={18} />
+                  Share this Playground
+                </SecondaryButton>
+              </div>
+            </div>
 
             <div className="rounded-2xl bg-gray-50 py-5 px-5">
-              <p className="text-gray-500 text-sm">
+              <p className="text-sm text-gray-500">
                 {`The playground simplifies prototyping. On the left you can
                 select an embedbase "dataset". The playground will automatically
                 get information from this dataset and add it inside the ChatGPT
-                prompt.`}
+                prompt. You can share this playground with anyone by clicking on the "Share this Playground" button. `}
               </p>
             </div>
           </div>
@@ -52,7 +68,6 @@ export function Playground() {
           <SmartChat />
         </div>
       </div>
-
     </>
   )
 }

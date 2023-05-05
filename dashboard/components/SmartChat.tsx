@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input, Label, TextArea } from './Input'
 
-import ShareModal from '@/components/ShareModal'
 import { posthog } from 'posthog-js'
 import { toast } from 'react-hot-toast'
 import { create } from 'zustand'
@@ -232,7 +231,6 @@ export default function SmartChat() {
   const history = useSmartChatStore((state) => state.history)
   const [loading, setLoading] = useState(false)
   const [streaming, setStreaming] = useState(false)
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const defaultMessage = 'Hi there! How can I help?'
   const [lastMessage, setLastMessage] = useState<Message>({
     content: defaultMessage,
@@ -376,14 +374,7 @@ export default function SmartChat() {
 
   return (
     <div className="flex grid-cols-4 flex-col gap-5  sm:grid">
-      <ShareModal open={isShareModalOpen} setOpen={setIsShareModalOpen} />
       <div className="col-span-1 flex flex-col space-y-3">
-        <PrimaryButton
-          onClick={() => setIsShareModalOpen(true)}
-          className="max-w-max"
-        >
-          Share this Playground
-        </PrimaryButton>
         <div className="flex flex-col ">
           <SystemMessage />
         </div>
