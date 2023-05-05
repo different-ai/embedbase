@@ -116,7 +116,7 @@ interface Message {
 interface SmartChatProps {
   datasetIds: string[]
 }
-export default function SmartChat({ datasetIds }: SmartChatProps) {
+export default function SmartChat() {
   const searchParams = useSearchParams()
 
   const inputRef = useRef(null)
@@ -259,59 +259,57 @@ export default function SmartChat({ datasetIds }: SmartChatProps) {
   const isSubmitDisabled = loading || streaming
 
   return (
-    <div className="flex grid-cols-4 flex-col gap-5  sm:grid">
-      <div className="col-span-3">
-        <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">
-          <div className="flex h-[400px] flex-col gap-3 space-y-2 overflow-y-auto p-2">
-            {messages.map((message, index) => {
-              if (message.content === lastMessage.content) return null
-              return (
-                <div key={index}>
-                  <ChatBox>
-                    <Markdown>{message.content}</Markdown>
-                  </ChatBox>
-                </div>
-              )
-            })}
-            {loading && <ChatSkeleton />}
-            <div ref={messageListRef}>
-              {!loading && (
+    <div className="w-full">
+      <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">
+        <div className="flex h-[400px] flex-col gap-3 space-y-2 overflow-y-auto p-2">
+          {messages.map((message, index) => {
+            if (message.content === lastMessage.content) return null
+            return (
+              <div key={index}>
                 <ChatBox>
-                  <Markdown>{lastMessage.content}</Markdown>
+                  <Markdown>{message.content}</Markdown>
                 </ChatBox>
-              )}
-            </div>
+              </div>
+            )
+          })}
+          {loading && <ChatSkeleton />}
+          <div ref={messageListRef}>
+            {!loading && (
+              <ChatBox>
+                <Markdown>{lastMessage.content}</Markdown>
+              </ChatBox>
+            )}
           </div>
         </div>
-        <div className="rounded-b-lg bg-gray-50 p-8 ">
-          <form onSubmit={handleSubmit} className="flex">
-            <Input
-              disabled={loading}
-              rows={4}
-              type="text"
-              id="userInput"
-              name="userInput"
-              placeholder={
-                loading ? 'Waiting for response...' : 'Type your question...'
-              }
-              ref={inputRef}
-              className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
-            />
-            <PrimaryButton
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="ml-3 rounded-md bg-black px-4 py-2"
-            >
-              {loading ? (
-                <Spinner />
-              ) : (
-                // make a component
-                <SubmitIcon />
-              )}
-            </PrimaryButton>
-          </form>
-          <Footer />
-        </div>
+      </div>
+      <div className="rounded-b-lg bg-gray-50 p-8 ">
+        <form onSubmit={handleSubmit} className="flex">
+          <Input
+            disabled={loading}
+            rows={4}
+            type="text"
+            id="userInput"
+            name="userInput"
+            placeholder={
+              loading ? 'Waiting for response...' : 'Type your question...'
+            }
+            ref={inputRef}
+            className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+          />
+          <PrimaryButton
+            type="submit"
+            disabled={isSubmitDisabled}
+            className="ml-3 rounded-md bg-black px-4 py-2"
+          >
+            {loading ? (
+              <Spinner />
+            ) : (
+              // make a component
+              <SubmitIcon />
+            )}
+          </PrimaryButton>
+        </form>
+        <Footer />
       </div>
     </div>
   )

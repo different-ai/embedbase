@@ -5,7 +5,7 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <div className="bg-yellow-500">{children}</div>
+  return <div className="flex w-full max-w-4xl m-auto">{children}</div>
 }
 
 export const metadata = {
