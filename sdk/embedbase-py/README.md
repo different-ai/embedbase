@@ -18,7 +18,7 @@ Embedbase-py - Python client for [Embedbase](https://github.com/different-ai/emb
 
 </div>
 
-This is not an officially launched product and currently lacks documentation. Please use at your own risk. If you are using this library, please let us know by opening an issue or contacting us on [discord](https://discord.gg/pMNeuGrDky).
+If you have any feedback or issues, please let us know by opening an issue or contacting us on [discord](https://discord.gg/pMNeuGrDky).
 
 Please refer to the [documentation](https://docs.embedbase.xyz/sdk).
 
