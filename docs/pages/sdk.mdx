@@ -56,12 +56,12 @@ People who want to
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
-```bash
+```bash copy
 npm install embedbase-js
 ```
   </Tab>
     <Tab>
-```bash
+```bash copy
 pip install embedbase-client
 ```
   </Tab>
@@ -72,7 +72,7 @@ pip install embedbase-client
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
-```ts
+```ts copy
 import { createClient } from 'embedbase-js'
 
 // you can find the api key at https://embedbase.xyz
@@ -86,7 +86,7 @@ const embedbase = createClient(url, apiKey)
     <Tab>
 To get started, import the `EmbedbaseClient` class and create a new instance:
 
-```python
+```python copy
 from embedbase_client.client import EmbedbaseClient
 
 embedbase_url = "https://api.embedbase.xyz"
@@ -96,7 +96,7 @@ client = EmbedbaseClient(embedbase_url, embedbase_key)
 
 In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
 This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
-```python
+```python copy
 from embedbase_client.client import EmbedbaseAsyncClient
 ```
 
@@ -111,7 +111,7 @@ Learn more about asynchronous Python [here](https://docs.python.org/3/library/as
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
 
-```ts
+```ts copy
 // fetching data
 const data = await embedbase
   .dataset('test-amazon-product-reviews')
@@ -143,7 +143,7 @@ console.log(data)
 
 You can also filter by metadata:
 
-```ts
+```ts copy
 const data = await embedbase
   .dataset('test-amazon-product-reviews')
   .search('best hot dogs accessories')
@@ -153,7 +153,7 @@ const data = await embedbase
     <Tab>
 To search a dataset, call the `search` method on a `Dataset` object:
 
-```python
+```python copy
 data = client.dataset("your_dataset_name").search("your_query", limit=5)
 print(data)
 # [
@@ -186,7 +186,7 @@ print(data)
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
-```js
+```js copy
 const data =
   await // embeddings are extremely good for retrieving unstructured data
   // in this example we store an unparsable html string
@@ -207,7 +207,7 @@ console.log(data)
 
 If you have many documents to add, you should use `batchAdd`:
 
-```ts
+```ts copy
 embedbase.dataset(datasetId).batchAdd([{
   data: 'some text',
 }])
@@ -216,7 +216,7 @@ embedbase.dataset(datasetId).batchAdd([{
 For better performance, you can run these add in parallel. For example,
 you can use batches with `Promise.all`:
 
-```ts
+```ts copy
 const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
     const batchSize = 100;
     return Promise.all(
@@ -235,7 +235,7 @@ batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
     <Tab>
 To add data to a dataset, call the `add` method on a `Dataset` object:
 
-```python
+```python copy
 data = embedbase.dataset(dataset_id).add("""
   <div>
     <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
@@ -252,7 +252,7 @@ print(data)
 
 If you have many documents to add, you should use `batch_add`:
 
-```python
+```python copy
 embedbase.dataset(dataset_id).batch_add([
   {
     "data": "some text",
@@ -266,7 +266,7 @@ embedbase.dataset(dataset_id).batch_add([
 For better performance, you can run these add in parallel. For example,
 you can use batches with `concurrent.futures`:
 
-```python
+```python copy
 from concurrent.futures import ThreadPoolExecutor
 
 def batch_add(chunk):
@@ -287,7 +287,7 @@ AI models are often limited in the amount of text they can process at once. Embe
 We highly recommend using this function.
 To split and chunk large texts, use the `splitText` function:
 
-```js
+```js copy
 import { splitText } from 'embedbase-js/dist/main/split';
 
 const text = 'some very long text...';
@@ -316,7 +316,7 @@ AI models are often limited in the amount of text they can process at once. Embe
 We highly recommend using this function.
 To split and chunk large texts, use the `split_text` function from the `split` module:
 
-```python
+```python copy
 from embedbase_client.split import split_text
 
 text = "your_long_text"
@@ -352,7 +352,7 @@ result = client.dataset("my-dataset").batch_add(documents)
   <Tab>
 `createContext` is very similar to `.search` but it returns strings instead of an object. This is useful if you want to easily feed it to GPT.
 
-```js
+```js copy
 // you can create a context to store data
 const data = await embedbase
   .dataset('my-documentation')
@@ -369,7 +369,7 @@ console.log(data)
     <Tab>
 `create_context` is very similar to `.search` but it returns strings instead of an object. This is useful if you want to easily feed it to GPT.
 
-```python
+```python copy
 data = embedbase.dataset(dataset_id).create_context("my-context")
 print(data)
 # [
@@ -390,7 +390,7 @@ For example an URL. Then you can ask the AI to add links or footnotes in it's ou
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
-```js
+```js copy
 const data =
   await
   embedbase.dataset('test-amazon-product-reviews').add(`
@@ -411,7 +411,7 @@ console.log(data)
 ```
   </Tab>
     <Tab>
-```python
+```python copy
 data = embedbase.dataset(dataset_id).add(
     "Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.",
     {"path": "https://www.amazon.com/dp/B00004OCNS"}
@@ -436,14 +436,14 @@ print(data)
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
-```js
+```js copy
 const data = await embedbase.datasets()
 console.log(data)
 // [{"datasetId": "test-amazon-product-reviews", "documentsCount": 2}]
 ```
   </Tab>
     <Tab>
-```python
+```python copy
 data = embedbase.datasets()
 print(data)
 # [{"dataset_id": "test-amazon-product-reviews", "documents_count": 2}]
