@@ -178,6 +178,7 @@ interface ChatState {
   selectedDatasetIds: string[]
   addToSetDatasetIds: (id: string) => void
   removeDatasetId: (id: string) => void
+  clearSelectedDatasetId: () => void
 }
 
 export const useSmartChatStore = create<ChatState>((set) => ({
@@ -206,6 +207,11 @@ export const useSmartChatStore = create<ChatState>((set) => ({
   removeDatasetId: (id) => {
     set((state) => ({
       selectedDatasetIds: state.selectedDatasetIds.filter((i) => i !== id),
+    }))
+  },
+  clearSelectedDatasetId: () => {
+    set((state) => ({
+      selectedDatasetIds: [],
     }))
   },
 }))

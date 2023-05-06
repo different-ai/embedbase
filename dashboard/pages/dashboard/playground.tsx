@@ -17,10 +17,14 @@ export function Playground() {
   const addToSetDatasetIds = useSmartChatStore(
     (state) => state.addToSetDatasetIds
   )
+  const clearSelectedDatasetId = useSmartChatStore(
+    (state) => state.clearSelectedDatasetId
+  )
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   useEffect(() => {
     if (router.query.datasetId) {
+      clearSelectedDatasetId()
       addToSetDatasetIds(router.query.datasetId as string)
     }
   }, [router.query.datasetId])
