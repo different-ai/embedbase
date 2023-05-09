@@ -9,6 +9,7 @@ export const getApiKey = async (owner) => {
     .from('api-keys')
     .select('api_key')
     .eq('user_id', owner)
+    .limit(1)
     .single();
 
   return apiKey.api_key;
