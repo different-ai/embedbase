@@ -103,7 +103,7 @@ export default async function sync(req: any, res: any) {
           ({ chunk }) =>
             chunks.push({
               data: chunk,
-              metadata: metadata,
+              // metadata: metadata,
             })
         )
         await batch(chunks, (chunk) =>
