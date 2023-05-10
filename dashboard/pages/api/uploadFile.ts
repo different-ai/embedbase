@@ -18,6 +18,13 @@ export const config = {
   // runtime: 'edge'
 }
 
+const toUTF8 = string =>
+    string.split('').map(
+        ch => !ch.match(/^[^a-z0-9\s\t\r\n_|\\+()!@#$%^&*=?/~`:;'"\[\]\-]+$/i)
+            ? ch
+            : '\\' + 'u' + '000' + ch.charCodeAt(0).toString(16)
+    ).join('');
+
 const getApiKey = async (req, res) => {
   // Create authenticated Supabase Client
   const supabase = createServerSupabaseClient({ req, res })
@@ -93,12 +100,13 @@ export default async function sync(req: any, res: any) {
           size: file.size,
         }
         const pdfText = await pdfParse(pdfData)
+        const fixedPdf = toUTF8(pdfText.text)
 
-        console.log('PDF Content:', pdfText.text)
+        console.log('PDF Content:', fixedPdf)
 
         const chunks: BatchAddDocument[] = []
         splitText(
-          pdfText.text,
+          fixedPdf,
           { maxTokens: 500, chunkOverlap: 200 },
           ({ chunk }) =>
             chunks.push({
