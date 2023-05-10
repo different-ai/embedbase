@@ -142,7 +142,7 @@ class InMemoryDatabase(VectorDatabase):
         return None
 
 
-app = (get_app().use_embedder(OpenAI("<your-openai-api-key>)).use_db(InMemoryDatabase())).run()
+app = (get_app().use_embedder(OpenAI("<your-openai-api-key>")).use_db(InMemoryDatabase())).run()
 
 if __name__ == "__main__":
     uvicorn.run("main:app")
