@@ -6,7 +6,7 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">Seamless data connections to LLMs</h3>
+<h3 align="center">Seamless data integration for LLMs</h3>
 
   <p align="center">
     <br />
@@ -17,17 +17,13 @@
       <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
     </a>
     <br />
-    <a href="https://replit.com/@benjaminshafii/Embedbase-Quickstart-JS?v=1">
-      <img src="https://replit.com/badge?caption=Try%20with%20Replit" alt="Try with Replit Badge">
-    </a>
-    <br />
     <a target="_blank" href="https://colab.research.google.com/github/different-ai/embedbase/blob/main/notebooks/Embedbase_Getting_started.ipynb">
       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
     </a>
-    <p align="center">Open-source API & SDK to sync your data and easily hook them up to LLMs</p>
+    <p align="center">Open-source API & SDK to integrate your data and easily hook them up to LLMs</p>
     <p align="center">Used by <a href="https://github.com/louis030195/obsidian-ava">AVA</a> and serving 100k request a day</p>
     <div align="center">
-      <a href="https://app.embedbase.xyz/signup">Try Embedbase Cloud now</a>
+      <a href="https://app.embedbase.xyz/signup">Try the Hosted Version</a>
       ·
       <a href="https://github.com/different-ai/embedbase/issues/new?assignees=&labels=enhancement">Request Feature</a>
       ·
@@ -39,13 +35,21 @@
 
 Check out the [docs](https://docs.embedbase.xyz) for more info.
 
+## What is it
+
+Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Word_embedding). 
+
+
 
 ## Table of Contents
 
 - [Getting started](#getting-started)
 - [Javascript SDK](#sdk)
 - [Docs and support](#docs-and-support)
+- [Integrations](#our-integrations)
 - [Contributing](#contributing)
+
+
 
 ## The 3 ways to use Embedbase
 
@@ -120,7 +124,13 @@ openai.createCompletion(
 // answer:
 // You can use the Embedbase API to store unstructured data and then use the data to connect it to LLMs
 ```
+## Our Integrations
+### Vector DBs
+- Supabase
+- Postgres
+- Qdrant
 
+###
 
 
 ### Inserting data
