@@ -30,6 +30,7 @@ serve(async (req: any) => {
       .from('api-keys')
       .select('*')
       .eq('api_key', apiKey)
+      .limit(1)
       .single()
 
     if (!apiKeyRow || errorApiKey) {
@@ -60,6 +61,7 @@ serve(async (req: any) => {
     .select('*')
     .eq('user_id', userId)
     .in('status', ['trialing', 'active'])
+    .limit(1)
     .single()
 
   // now read the view "current_plan_period_usage" to check
@@ -68,6 +70,7 @@ serve(async (req: any) => {
     .from('current_plan_period_usage')
     .select('*')
     .eq('user_id', userId)
+    .limit(1)
     .single()
 
   if (errorCurrentPlanPeriodUsage) {
