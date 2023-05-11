@@ -10,11 +10,11 @@ export const tiers = [
       "",
     features: [
       '50k Requests per month',
-      "150 Monthly Messages on the playground",
+      "50 Monthly Messages on the playground",
       'Limited to 5 datasets',
       'Community support',
     ],
-    playgroundLimit: 150,
+    playgroundLimit: 50,
   },
   {
     id: 'price_1N6ZY1FX2CGyoHQvNtMwlUlY',

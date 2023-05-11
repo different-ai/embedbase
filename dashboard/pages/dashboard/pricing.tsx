@@ -189,7 +189,7 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
   const limit =
     (subscription?.price_id &&
       tiers.find((t) => t.id == subscription?.price_id)?.playgroundLimit) ||
-    150
+    50
 
   return (
     <Dashboard>
