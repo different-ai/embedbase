@@ -39,30 +39,8 @@ You can use embedbase to customize LLM (like ChatGPT!) and automatically feed th
 ## Installation
 `npm i embedbase-js`
 
-
-## Table of Contents
-
-- [Getting started](#getting-started)
-- [Javascript SDK](#sdk)
-- [Docs and support](#docs-and-support)
-- [Integrations](#our-integrations)
-- [Contributing](#contributing)
-
-
-## What are people building
-
-- [Recommendation Engines: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
-- [Chat with your data: Solpilot uses Embedbase to put smart contract integration on autopilot](https://app.solpilot.xyz/chat)
-- [Talk to your docs: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
-
-
-
-The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
-
-![Dashboard Screenshot](https://user-images.githubusercontent.com/11430621/227351386-f540fac0-c5fa-485a-bcc9-f23368fe3f63.png)
-
-
 ```js
+// this examples shows how you can use embedbase to automatically add context in a ChatGPT prompt
 import { createClient } from 'embedbase-js'
 
 const question = 'What can I do with Embedbase API?'
@@ -90,6 +68,30 @@ openai.createCompletion(
 // answer:
 // You can use the Embedbase API to store unstructured data and then use the data to connect it to LLMs
 ```
+
+## Table of Contents
+
+- [Getting started](#getting-started)
+- [Javascript SDK](#sdk)
+- [Docs and support](#docs-and-support)
+- [Integrations](#our-integrations)
+- [Contributing](#contributing)
+
+
+## What are people building
+
+- [Recommendation Engines: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
+- [Chat with your data: Solpilot uses Embedbase to put smart contract integration on autopilot](https://app.solpilot.xyz/chat)
+- [Talk to your docs: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
+
+
+
+The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
+
+![Dashboard Screenshot](https://user-images.githubusercontent.com/11430621/227351386-f540fac0-c5fa-485a-bcc9-f23368fe3f63.png)
+
+
+
 ## Supported Integrations
 
 ### Connections
