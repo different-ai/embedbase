@@ -146,7 +146,7 @@ const ProPlan = () => {
   return (
     <Plan tier={tiers[2]}>
       <PrimaryButton
-        onClick={() => handleCheckout(tiers[1])}
+        onClick={() => handleCheckout(tiers[2])}
         className="flex w-full items-center justify-center gap-3 py-3 font-semibold"
       >
         {priceIdLoading && (
