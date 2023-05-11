@@ -13,10 +13,6 @@
     <a href="https://discord.gg/pMNeuGrDky"><img alt="Discord" src="https://img.shields.io/discord/1066022656845025310?color=black&style=for-the-badge"></a>
     <a href="https://badge.fury.io/py/embedbase"><img alt="PyPI" src="https://img.shields.io/pypi/v/embedbase?color=black&style=for-the-badge"></a>
     <br />
-    <a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase-render">
-      <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
-    </a>
-    <br />
     <a target="_blank" href="https://colab.research.google.com/github/different-ai/embedbase/blob/main/notebooks/Embedbase_Getting_started.ipynb">
       <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
     </a>
@@ -37,9 +33,11 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## What is it
 
-Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Word_embedding) without needing to host them!
+Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Sentence_embedding#:~:text=Sentence%20embedding%20is%20the%20collective,to%20vectors%20of%20real%20numbers.) without needing to host them!
 You can use embedbase to customize LLM (like ChatGPT!) and automatically feed them the right information.
 
+## Installation
+`npm i embedbase-js`
 
 
 ## Table of Contents
@@ -51,51 +49,18 @@ You can use embedbase to customize LLM (like ChatGPT!) and automatically feed th
 - [Contributing](#contributing)
 
 
-
-## The 3 ways to use Embedbase
-
-- [Embedbase Cloud](#managed-instance): **Build embeddings-powered apps in minutes** | `npm i embedbase-js` | ⏱️ 3min
-- [Embedbase.py](#getting-started): **Choose your own db, embeddings models, and get started with a simple** | `pip install embedbase` | ⏱️ 5 min
-- [Embedbase self-hosted](https://docs.embedbase.xyz/tutorials/self-host-on-render): **Get Embedbase Cloud on your infra** | `docker-compose up` | ⏱️ 15 min
-
-
 ## What are people building
 
 - [Recommendation Engines: AVA uses Embedbase to help their users find related notes](https://github.com/louis030195/obsidian-ava)
 - [Chat with your data: Solpilot uses Embedbase to put smart contract integration on autopilot](https://app.solpilot.xyz/chat)
 - [Talk to your docs: ChatGPT-powered search for markdown documentation](https://github.com/different-ai/chat-gpt-powered-nextra)
 
-## Getting started
 
-Let's install Python dependencies:
-
-```bash
-pip install embedbase sentence-transformers
-```
-
-Run a local-first instance of Embedbase:
-
-```bash
-embedbase run
-```
-
-![pika-1681921124330-1x](https://user-images.githubusercontent.com/25003283/233138132-cf42ec0f-3821-495f-8e29-2067e643d6db.png)
-
-🔥 Embedbase now runs! [Look here to see how to use the sdk](#sdk)
-
-ℹ️ Look at the code you just ran [here](./embedbase/__main__.py), feel free to modify it to your needs.
-
-### Managed Instance
 
 The fastest way to get started with Embedbase is signing up for free to [Embedbase Cloud](https://app.embedbase.xyz/).
 
 ![Dashboard Screenshot](https://user-images.githubusercontent.com/11430621/227351386-f540fac0-c5fa-485a-bcc9-f23368fe3f63.png)
 
-
-## How to use 
-### SDK
-
-`npm i embedbase-js`
 
 ```js
 import { createClient } from 'embedbase-js'
@@ -125,66 +90,27 @@ openai.createCompletion(
 // answer:
 // You can use the Embedbase API to store unstructured data and then use the data to connect it to LLMs
 ```
-## Our Integrations
+## Supported Integrations
+
+### Connections
+- [x] Any data with the sdk or api
+- [x] PDF
+- [ ] Github
+
 ### Vector DBs
-- Supabase
-- Postgres
-- Qdrant
+- [x] Supabase
+- [x] Postgres
+- [x] Qdrant
+- [ ] Weaviate
+- [ ] Redix
 
-###
+### Embedding Models
+- [x] OpenAI Embeddings
+- [x] sentence-transformers
+- [ ] T5
 
 
-### Inserting data
 
-```ts
-const URL = 'http://localhost:8000'
-const VAULT_ID = 'people'
-// if using the hosted version
-const API_KEY = '<https://app.embedbase.xyz/signup>'
-fetch(`${URL}/v1/${VAULT_ID}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // if using the hosted version, uncomment
-      // 'Authorization': `Bearer ${API_KEY}`
-    },
-    body: JSON.stringify({
-      documents: [{
-        data: 'Elon is sipping a tea on Mars',
-      }],
-    }),
-  });
-```
-
-### Searching
-
-```ts
-fetch(`${URL}/v1/${VAULT_ID}/search`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${API_KEY}`
-    },
-    body: JSON.stringify({
-      query: 'Something about a red planet',
-    }),
-  });
-```
-
-Result:
-
-```json
-{
-  "query": "Something about a red planet",
-  "similarities": [
-    {
-      "score": 0.828773,
-      "id": "ABCU75FEBE",
-      "data": "Elon is sipping a tea on Mars",
-    }
-  ]
-}
-```
 
 ## Docs and support
 
@@ -195,3 +121,11 @@ Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get 
 ## Contributing
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Self-hosting
+
+> Note: this render configuration works well for experimentation. 
+
+<a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase-render">
+      <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
+</a>
