@@ -97,13 +97,11 @@ const HobbyPlan = () => {
         onClick={() => handleCheckout(tiers[1])}
         className="flex w-full items-center justify-center gap-3 py-3 font-semibold"
       >
-        {priceIdLoading && (
+        {priceIdLoading ?
           <>
             Upgrading...
             <Spinner />
-          </>
-        )}
-        {
+          </> :
           // plan is pro
           (!priceIdLoading && subscription?.status === 'active' &&
             subscription?.price_id === tiers.find((t) => t.name == "Hobby").id) ?
@@ -149,13 +147,11 @@ const ProPlan = () => {
         onClick={() => handleCheckout(tiers[2])}
         className="flex w-full items-center justify-center gap-3 py-3 font-semibold"
       >
-        {priceIdLoading && (
+        {priceIdLoading ?
           <>
             Upgrading...
             <Spinner />
-          </>
-        )}
-        {
+          </> :
           // plan is pro
           (!priceIdLoading && subscription?.status === 'active' &&
             subscription?.price_id === tiers.find((t) => t.name == "Pro").id) ?
