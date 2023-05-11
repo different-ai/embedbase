@@ -161,9 +161,7 @@ const ProPlan = () => {
             subscription?.price_id === tiers.find((t) => t.name == "Pro").id) ?
             'Manage plan' :
             // plan is free or hobby
-            (!priceIdLoading && subscription?.status !== 'active' &&
-              subscription?.price_id === tiers.find((t) => t.name == "Hobby").id) ?
-              'Upgrade' : ""
+            'Upgrade'
         }
       </PrimaryButton>
     </Plan>
