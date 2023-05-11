@@ -37,7 +37,7 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## What is it
 
-Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Word_embedding). 
+Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Word_embedding) without needing to host them!
 
 
 
