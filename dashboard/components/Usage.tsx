@@ -30,29 +30,32 @@ export interface UsageItem {
 // ]
 
 const convertUsageToStats = (usage: UsageItem[]) => {
-  // sum over daily usage by creating a map of
-  // date -> usage
-  const dailyPlaygroundUsage = usage.reduce((acc, item) => {
-    const date = new Date(item.createdAt).toLocaleDateString()
-    if (acc[date]) {
-      acc[date] += item.usage
+  // sum over monthly usage by creating a map of
+  // month -> usage
+  const monthlyPlaygroundUsage = usage.reduce((acc, item) => {
+    const month = new Date(item.createdAt).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    })
+    if (acc[month]) {
+      acc[month] += item.usage
     } else {
-      acc[date] = item.usage
+      acc[month] = item.usage
     }
     return acc
   }, {})
   // get the total usage
   // const totalPlaygroundUsage = Object.values(dailyPlaygroundUsage).reduce((acc, item) => acc + item, 0)
-  const keys = Object.keys(dailyPlaygroundUsage)
-  // get today's usage or 0 if no usage
-  const today = dailyPlaygroundUsage[new Date().toLocaleDateString()] || 0
-  const yesterday =
-    keys.length > 1 ? dailyPlaygroundUsage[keys[keys.length - 2]] : 0
-  const changeInPercentage = ((today - yesterday) / (yesterday || 1)) * 100
+  const keys = Object.keys(monthlyPlaygroundUsage)
+  // get current month usage or 0 if no usage
+  const currentMonth = keys.length > 0 ? monthlyPlaygroundUsage[keys[keys.length - 1]] : 0
+  // const lastMonth =
+  // keys.length > 1 ? dailyPlaygroundUsage[keys[keys.length - 2]] : 0
+  // const changeInPercentage = ((today - yesterday) / (yesterday || 1)) * 100
   return [
     {
-      name: 'Daily Playground Usage',
-      stat: today,
+      name: 'Monthly Playground Usage',
+      stat: currentMonth,
       // previousStat: yesterday,
       // change: `${changeInPercentage}%`,
       // changeType: changeInPercentage > 0 ? 'increase' : 'decrease'
@@ -68,6 +71,7 @@ interface UsageProps {
 
 export default function Usage({ usage, limit }: UsageProps) {
   const stats = convertUsageToStats(usage)
+  console.log(stats)
   return (
     // just wrap text not more width
     <div className="w-1/3">
@@ -110,11 +114,12 @@ export default function Usage({ usage, limit }: UsageProps) {
                                 <span> {item.changeType === 'increase' ? 'Increased' : 'Decreased'} by </span>
                                 {item.change}
                             </div> */}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </Card>
-    </div>
+                </dd>
+              </div>
+            ))
+          }
+      </dl>
+    </Card>
+    </div >
   )
 }

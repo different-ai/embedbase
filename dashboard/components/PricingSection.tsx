@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { CheckIcon } from '@heroicons/react/24/outline'
+import * as React from 'react'
 
 export const tiers = [
   {
@@ -7,14 +7,28 @@ export const tiers = [
     name: 'Free',
     priceMonthly: 0,
     description:
-      "For those who are just experiencing what it's like to connect your data to ChatGPT.",
+      "",
     features: [
-      'Unlimited requests per month',
-      "5 daily messages in Embedbase Playground",
+      '50k Requests per month',
+      "150 Monthly Messages on the playground",
       'Limited to 5 datasets',
       'Community support',
     ],
-    playgroundLimit: 5,
+    playgroundLimit: 150,
+  },
+  {
+    id: 'price_1N6ZY1FX2CGyoHQvNtMwlUlY',
+    name: 'Hobby',
+    priceMonthly: 12.99,
+    description:
+      "Perfect for passion projects & simple AI apps.",
+    features: [
+      '500k Requests per month',
+      '500k Monthly Messages on the playground',
+      'Limited to 100 datasets',
+      'Email support',
+    ],
+    playgroundLimit: 500000,
   },
   {
     id:
@@ -22,15 +36,14 @@ export const tiers = [
     name: 'Pro',
     priceMonthly: 50,
     description:
-      'The perfect plan to get your ChatGPT-powered app off localhost.',
+      'Our best plans for startups. Scalable infrastructure for your AI applications.',
     features: [
-      'Unlimited requests per month',
-      '50 daily messages in Embedbase Playground',
-      'Limited to 100 datasets',
-      'Email support',
-      'Daily backups',
+      '10M Search Requests',
+      '10M Monthly Messages on the Playground',
+      'Unlimited Datasets, Email support, Daily backups',
+      'Teams - Multiple Seat Support (coming mid-May)'
     ],
-    playgroundLimit: 50,
+    playgroundLimit: 10000000,
   },
   {
     id: 'tier-enterprise',
