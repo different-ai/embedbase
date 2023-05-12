@@ -9,7 +9,7 @@ import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 
 import ShareModal from '@/components/ShareModal'
-import { PrimaryButton, SecondaryButton } from '@/components/Button'
+import { SecondaryButton } from '@/components/Button'
 import { ShareIcon } from '@heroicons/react/24/outline'
 
 export function Playground() {
