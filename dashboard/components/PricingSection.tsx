@@ -17,7 +17,7 @@ export const tiers = [
     playgroundLimit: 50,
   },
   {
-    id: 'price_1N6ZY1FX2CGyoHQvNtMwlUlY',
+    id: process.env.NEXT_PUBLIC_HOBBY_PRICE_ID || 'price_1N6ZY1FX2CGyoHQvNtMwlUlY',
     name: 'Hobby',
     priceMonthly: 12.99,
     description:
@@ -32,7 +32,7 @@ export const tiers = [
   },
   {
     id:
-      process.env.NEXT_PUBLIC_PRO_PRICE_ID || 'price_1MtYAmFX2CGyoHQvSxdD0j8h',
+      process.env.NEXT_PUBLIC_PRO_PRICE_ID || 'price_1MtZEaFX2CGyoHQv54EefwEk',
     name: 'Pro',
     priceMonthly: 50,
     description:
