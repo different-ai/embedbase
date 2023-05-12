@@ -18,12 +18,6 @@ export const config = {
   // runtime: 'edge'
 }
 
-const toUTF8 = string =>
-    string.split('').map(
-        ch => !ch.match(/^[^a-z0-9\s\t\r\n_|\\+()!@#$%^&*=?/~`:;'"\[\]\-]+$/i)
-            ? ch
-            : '\\' + 'u' + '000' + ch.charCodeAt(0).toString(16)
-    ).join('');
 
 const getApiKey = async (req, res) => {
   // Create authenticated Supabase Client
@@ -100,7 +94,8 @@ export default async function sync(req: any, res: any) {
           size: file.size,
         }
         const pdfText = await pdfParse(pdfData)
-        const fixedPdf = toUTF8(pdfText.text)
+        // remove \\u0000 -> cannot be converted to text
+        const fixedPdf = pdfText.text.replace(/\u0000/g, '')
 
         console.log('PDF Content:', fixedPdf)
 
@@ -111,7 +106,7 @@ export default async function sync(req: any, res: any) {
           ({ chunk }) =>
             chunks.push({
               data: chunk,
-              // metadata: metadata,
+              metadata: metadata,
             })
         )
         await batch(chunks, (chunk) =>
