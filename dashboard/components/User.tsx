@@ -1,15 +1,17 @@
-'use client'
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useSession, useSupabaseClient, } from '@supabase/auth-helpers-react'
+import { useRouter } from 'next/router'
 import { Fragment } from 'react'
 import { classNames } from '../lib/utils'
 import { useSubscription } from '../pages/dashboard/pricing'
 import { tiers } from './PricingSection'
 
+
 export function User() {
   const session = useSession()
   const user = session?.user
+  const router = useRouter()
   const supabase = useSupabaseClient()
   const { subscription } = useSubscription()
 
@@ -17,17 +19,18 @@ export function User() {
     // price id matches pro "pro"
     // price id matches hobby "hobby"
     // else nothing
-    subscription?.price_id === tiers.find((tier) => tier.name === 'Pro')?.id
-      ? 'Pro'
-      : subscription?.price_id ===
-        tiers.find((tier) => tier.name === 'Hobby')?.id
-      ? 'Hobby'
-      : ''
+    subscription?.price_id ===
+      tiers.find((tier) => tier.name === 'Pro')?.id ?
+      "Pro" :
+      subscription?.price_id ===
+        tiers.find((tier) => tier.name === 'Hobby')?.id ?
+        "Hobby" :
+        ""
   console.log(subscription, subscriptionBadgeText)
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    // router.push('/login')
+    router.push('/login')
   }
 
   return (
@@ -37,15 +40,18 @@ export function User() {
           <span className="flex w-full items-center justify-between">
             <span className="flex min-w-0 items-center justify-between space-x-3">
               <span className="flex min-w-0 flex-1">
+
                 <span className="truncate text-sm text-gray-700">
                   {user?.email}
                 </span>
+
+
               </span>
-              {subscriptionBadgeText && (
+              {subscriptionBadgeText &&
                 <span className="inline-flex items-center rounded-full bg-gray-900 px-1.5 py-0.5 text-xs font-medium text-gray-100">
                   {subscriptionBadgeText}
                 </span>
-              )}
+              }
             </span>
             <ChevronUpDownIcon
               className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
@@ -86,7 +92,7 @@ export function User() {
                   onClick={signOut}
                   className={classNames(
                     active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                    'block w-full px-4 py-2 text-left text-sm'
+                    'block px-4 py-2 text-sm w-full text-left'
                   )}
                 >
                   Logout
