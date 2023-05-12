@@ -11,65 +11,15 @@ import { PrimaryButton } from '@/components/Button'
 import { create } from 'zustand'
 import Spinner from '@/components/Spinner'
 import { useSearchParams } from 'next/navigation'
+import { Footer } from '@/components/Footer'
+import { ChatSkeleton } from '@/components/ChatSkeleton'
+import { ChatBox } from '@/components/ChatBox'
+import { SubmitIcon } from '@/components/SubmitIcon'
 
 export interface SearchResponse {
   chunkedContext: string
   contexts: SearchSimilarity[]
   systemMessage: string
-}
-
-const Footer = () => (
-  <div className={`mt-2 text-xs text-gray-500 `}>
-    <p>
-      Powered by{' '}
-      <a
-        href="https://github.com/different-ai/embedbase"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Embedbase
-      </a>
-      .
-    </p>
-  </div>
-)
-
-const SubmitIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 fill-current text-white"
-  >
-    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-  </svg>
-)
-
-function ChatSkeleton() {
-  return (
-    <div className="h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
-      <div className="flex animate-pulse space-x-4">
-        {/* <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700"></div> */}
-        <div className="flex-1 space-y-6 py-1">
-          <div className="h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-              <div className="col-span-1 h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-            </div>
-            <div className="h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ChatBox({ children }) {
-  return (
-    <div className="min-h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
-      <div className="flex space-x-4">{children}</div>
-    </div>
-  )
 }
 
 interface ChatState {
@@ -80,7 +30,7 @@ interface ChatState {
   setSystemMessage: (message: string) => void
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+const useChatStore = create<ChatState>((set) => ({
   messages: [],
   history: [],
   setSystemMessage: (message) => {
@@ -113,9 +63,7 @@ interface Message {
     [key: string]: unknown
   }
 }
-interface SmartChatProps {
-  datasetIds: string[]
-}
+
 export default function SmartChat() {
   const searchParams = useSearchParams()
 
@@ -145,6 +93,7 @@ export default function SmartChat() {
     inputRef.current.focus()
   }, [])
   const onError = (error: Error | Response) => {
+    setStreaming(false)
     console.error(error)
     const userFacingMessage =
       // is type Response

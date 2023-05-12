@@ -9,49 +9,12 @@ import { defaultChatSystem } from '../utils/constants'
 import { CreateContextResponse } from '../utils/types'
 import { PrimaryButton } from './Button'
 import Markdown from './Markdown'
-const Footer = () => (
-  <div className={`mt-2 text-xs text-gray-500 `}>
-    <p>
-      Powered by{' '}
-      <a
-        href="https://github.com/different-ai/embedbase"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Embedbase
-      </a>
-      .
-    </p>
-  </div>
-)
-function ChatSkeleton() {
-  return (
-    <div className="h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
-      <div className="flex animate-pulse space-x-4">
-        {/* <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700"></div> */}
-        <div className="flex-1 space-y-6 py-1">
-          <div className="h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-              <div className="col-span-1 h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-            </div>
-            <div className="h-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ChatBox({ children }) {
-  return (
-    <div className="min-h-28 w-full rounded-lg bg-white p-4 ring-1 ring-slate-900/5 dark:bg-slate-800">
-      <div className="flex space-x-4">{children}</div>
-    </div>
-  )
-}
-
+import Spinner from './Spinner'
+import { SubmitIcon } from './SubmitIcon'
+import { SystemMessage } from './SystemMessage'
+import { ChatBox } from './ChatBox'
+import { ChatSkeleton } from './ChatSkeleton'
+import { Footer } from './Footer'
 const DatasetCheckboxes = ({ datasets, isLoading }) => {
   const selectedDatasetIds = useSmartChatStore(
     (state) => state.selectedDatasetIds
@@ -144,28 +107,6 @@ const DatasetCheckboxes = ({ datasets, isLoading }) => {
           ))}
       </div>
     </div>
-  )
-}
-
-const SystemMessage = () => {
-  const setSystemMessage = useSmartChatStore((state) => state.setSystemMessage)
-  return (
-    <>
-      <div className="flex items-center ">
-        <Label>System message</Label>
-      </div>
-
-      <TextArea
-        row={3}
-        placeholder="You are a powerful AI that answer questions about a dataset..."
-        onChange={(e) => setSystemMessage(e.target.value)}
-        defaultValue={defaultChatSystem}
-      />
-      <div className="mt-3 text-xs italic text-gray-500">
-        This system message provide general guidance to GPT-4 on how to behave.
-        You can leave this blank.
-      </div>
-    </>
   )
 }
 
@@ -419,7 +360,7 @@ export default function SmartChat() {
         </div>
         <div className="rounded-b-lg bg-gray-50 p-8 ">
           <form onSubmit={handleSubmit} className="flex">
-            <Input
+            <TextArea
               disabled={loading}
               rows={4}
               type="text"
@@ -428,26 +369,28 @@ export default function SmartChat() {
               placeholder={
                 loading ? 'Waiting for response...' : 'Type your question...'
               }
+              onKeyDown={(event) => {
+                if (event.metaKey && event.key === 'Enter') {
+                  handleSubmit(event)
+                }
+              }}
               ref={inputRef}
               className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
             />
-            <PrimaryButton
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="ml-3 rounded-md bg-black px-4 py-2"
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white" />
-              ) : (
-                <svg
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 fill-current text-white"
-                >
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                </svg>
-              )}
-            </PrimaryButton>
+            <div>
+              <PrimaryButton
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="ml-3 rounded-md bg-black px-4 py-2 "
+              >
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  // make a component
+                  <SubmitIcon />
+                )}
+              </PrimaryButton>
+            </div>
           </form>
           <Footer />
         </div>

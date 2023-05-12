@@ -1,4 +1,4 @@
-import { useSmartChatStore } from '@/components/SmartChat'
+import { useSmartChatStore } from '@/components/PrivateChat'
 import { Dialog, Transition } from '@headlessui/react'
 import {
   ClipboardDocumentCheckIcon,
@@ -8,7 +8,6 @@ import { Fragment, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { PrimaryButton } from './Button'
 import { Input, Label } from './Input'
-import TextField from './TextField'
 interface CopyToClipboardProps {
   textToCopy: string
   className?: string

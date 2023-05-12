@@ -1,10 +1,9 @@
 import {
   createServerComponentSupabaseClient,
-  createServerSupabaseClient,
 } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
 
-import Chat from './Chat'
+import Chat from './PublicChat'
 // just an example to test app dir
 async function getAppName(appId) {
 
