@@ -1,42 +1,39 @@
----
-name: 🐛 Bug report
-about: If something isn't working 🔧
-title: ''
-labels: bug
-assignees:
----
+name: "\U0001F41B Bug Report"
+description: Submit a bug report to help us improve embedbase
+body:
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System Info
+      description: Please share your system info with us.
+      placeholder: embedbase version, platform, ...
+    validations:
+      required: true
 
-## 🐛 Bug Report
+  - type: textarea
+    id: reproduction
+    validations:
+      required: true
+    attributes:
+      label: Reproduction
+      description: |
+        Please provide a code sample that reproduces the problem you ran into. It can be a Colab link or just a code snippet.
+        If you have code snippets, error messages, stack traces please provide them here as well.
+        Important! Use code tags to correctly format your code. See https://help.github.com/en/github/writing-on-github/creating-and-highlighting-code-blocks#syntax-highlighting
+        Do not use screenshots, as they are hard to read and (more importantly) don't allow others to copy-and-paste your code.
 
-<!-- A clear and concise description of what the bug is. -->
+      placeholder: |
+        Steps to reproduce the behavior:
+          
+          1.
+          2.
+          3.
+          
 
-## 🔬 How To Reproduce
-
-Steps to reproduce the behavior:
-
-1. ...
-
-### Code sample
-
-<!-- If applicable, attach a minimal code sample to reproduce the decried issue. -->
-
-### Environment
-
-* OS: [e.g. Linux / Windows / macOS]
-* Python version, get it with:
-
-```bash
-python --version
-```
-
-### Screenshots
-
-<!-- If applicable, add screenshots to help explain your problem. -->
-
-## 📈 Expected behavior
-
-<!-- A clear and concise description of what you expected to happen. -->
-
-## 📎 Additional context
-
-<!-- Add any other context about the problem here. -->
+  - type: textarea
+    id: expected-behavior
+    validations:
+      required: true
+    attributes:
+      label: Expected behavior
+      description: "A clear and concise description of what you would expect to happen."

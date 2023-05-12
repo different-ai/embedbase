@@ -1,23 +1,31 @@
----
-name: 🚀 Feature request
-about: Suggest an idea for this project 🏖
-title: ''
-labels: enhancement
-assignees:
----
+name: "\U0001F680 Feature request"
+description: Submit a proposal/request for a new embedbase feature
+labels: [ "feature" ]
+body:
+  - type: textarea
+    id: feature-request
+    validations:
+      required: true
+    attributes:
+      label: Feature request
+      description: |
+        A clear and concise description of the feature proposal. Please provide a link to the paper and code in case they exist.
 
-## 🚀 Feature Request
+  - type: textarea
+    id: motivation
+    validations:
+      required: true
+    attributes:
+      label: Motivation
+      description: |
+        Please outline the motivation for the proposal. Is your feature request related to a problem? e.g., I'm always frustrated when [...]. If this is related to another GitHub issue, please link here too.
+        
 
-<!-- A clear and concise description of the feature proposal. -->
-
-## 🔈 Motivation
-
-<!-- Please describe the motivation for this proposal. -->
-
-## 🛰 Alternatives
-
-<!-- A clear and concise description of any alternative solutions or features you've considered. -->
-
-## 📎 Additional context
-
-<!-- Add any other context or screenshots about the feature request here. -->
+  - type: textarea
+    id: contribution
+    validations:
+      required: true
+    attributes:
+      label: Your contribution
+      description: |
+        Is there any way that you could help, e.g. by submitting a PR? Make sure to read the CONTRIBUTING.MD [readme](https://github.com/different-ai/embedbase/blob/main/CONTRIBUTING.md)
