@@ -11,7 +11,7 @@ release: ## [Local development] Release a new version of the API.
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${PYTHON_SDK_VERSION}: $$COMMIT'"; \
-	git commit -m "Release sdk-py ${PYTHON_SDK_VERSION}: $$COMMIT"; \
+	git commit -m "Release sdk-py ${PYTHON_SDK_VERSION} $$COMMIT"; \
 	git push origin main
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
