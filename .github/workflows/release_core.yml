@@ -27,7 +27,7 @@ jobs:
         id: regex-match
         with:
           text: ${{ github.event.head_commit.message }}
-          regex: "^Release ([^ ]+)"
+          regex: "^Release core ([^ ]+)"
 
       - name: Install Poetry
         run: |

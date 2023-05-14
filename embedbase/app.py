@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Awaitable, Callable, Optional, Tuple, Union
+from typing import Awaitable, Callable, Optional, Tuple, Union, Any
 from fastapi import FastAPI, Request, status
 from fastapi.middleware import Middleware
 from starlette.types import Scope
@@ -66,7 +66,7 @@ class Embedbase:
         self,
         plugin: Union[
             Middleware,
-            Callable[[Scope], Awaitable[Tuple[str, str]]],
+            Callable[[Scope, Any, VectorDatabase, Embedder], Awaitable[Tuple[str, str]]],
         ],
         **kwargs,
     ) -> "Embedbase":
@@ -78,10 +78,10 @@ class Embedbase:
 
             @self.fastapi_app.middleware("http")
             async def middleware(request: Request, call_next):
-                return await plugin(request, call_next)
+                return await plugin(request, call_next, self.db, self.embedder)
 
         elif "CORSMiddleware" in str(plugin):
-            self.logger.info(f"Enabling CORSMiddleware")
+            self.logger.info("Enabling CORSMiddleware")
             self.fastapi_app.add_middleware(plugin, **kwargs)
         # check if has "dispatch" function
         elif "dispatch" in dir(plugin):

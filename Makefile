@@ -2,7 +2,7 @@
 LOCAL_PORT="8000"
 
 #* read version from pyproject.toml
-VERSION="$(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+VERSION="$(shell env/bin/python3 -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
 
 #* Docker variables
 LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
@@ -40,7 +40,7 @@ release: ## [Local development] Release a new version of the API.
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${VERSION}: $$COMMIT'"; \
-	git commit -m "Release ${VERSION}: $$COMMIT"; \
+	git commit -m "Release core ${VERSION}: $$COMMIT"; \
 	git push origin main
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
