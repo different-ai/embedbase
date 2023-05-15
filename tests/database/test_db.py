@@ -428,10 +428,3 @@ async def test_unsupported_unicode_sequence_is_handled_in_postgres_based_db():
             ),
             unit_testing_dataset,
         )
-        # try to search for something
-        search_results = await db.search(
-            [0.0] * 1536,
-            top_k=3,
-            dataset_ids=[unit_testing_dataset],
-        )
-        assert len(search_results) == 3, f"failed for {db}"

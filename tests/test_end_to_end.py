@@ -378,7 +378,7 @@ async def test_get_datasets_with_auth():
         """
         settings = get_settings_from_file()
 
-        async def add_uid(request, call_next):
+        async def add_uid(request, call_next, db, embedder):
             request.scope["uid"] = "test"
             response = await call_next(request)
             return response
