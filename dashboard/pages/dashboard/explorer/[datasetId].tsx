@@ -33,6 +33,7 @@ interface SearchResponse {
   similarities: Similarity[]
 }
 
+const pageSize = 25;
 const DataTable = ({ documents, page, count, datasetId }) => {
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
@@ -49,6 +50,7 @@ const DataTable = ({ documents, page, count, datasetId }) => {
           onClick={() =>
             router.push(`/dashboard/explorer/${datasetId}/?page=${page - 1}`)
           }
+          disabled={page === 0}
         >
           <ArrowLeftCircleIcon className="h-5 w-5" />
           Previous
@@ -59,13 +61,14 @@ const DataTable = ({ documents, page, count, datasetId }) => {
           onClick={() =>
             router.push(`/dashboard/explorer/${datasetId}/?page=${page + 1}`)
           }
+          disabled={page * pageSize + pageSize >= count}
         >
           Next
           <ArrowRightCircleIcon className="h-5 w-5" />
         </SecondaryButton>
         {/* dispaly count */}
         <div className="text-gray-500">
-          {page * 10} - {page * 10 + 10} of {count}
+          {page * pageSize} - {page * pageSize + pageSize} of {count}
         </div>
       </div>
 
@@ -299,7 +302,7 @@ export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
   const supabase = createServerSupabaseClient(ctx)
   const { page = 0, size } = ctx.query
-  const { from, to } = getPagination(page, 25)
+  const { from, to } = getPagination(page, pageSize)
   const datasetId = ctx?.query?.datasetId
 
   // Check if we have a session
