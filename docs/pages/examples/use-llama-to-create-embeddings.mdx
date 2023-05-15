@@ -110,8 +110,7 @@ python3 main.py
  
 <Tabs items={['TypeScript', 'Python', 'Bash']}>
   <Tab>
-    **TypeScript**
-```js
+```js copy
 import { createClient } from 'embedbase-js'
 const embedbase = createClient("http://localhost:8000")
 const SENTENCES = [
@@ -130,8 +129,7 @@ add()
 ```
   </Tab>
     <Tab>
-        **Python**
-```python
+```python copy
 from embedbase_client.client import EmbedbaseClient
  
 client = EmbedbaseClient("http://localhost:8000")
@@ -146,8 +144,7 @@ print(data)
 ```
   </Tab>
   <Tab>
-    **Bash**
-```bash
+```bash copy
 SENTENCES=(
     "The lion is the king of the savannah."
     "The chimpanzee is a great ape."
@@ -196,8 +193,7 @@ Let's try to search now
 
 <Tabs items={['TypeScript', 'Python', 'Bash']}>
   <Tab>
-    **TypeScript**
-```js
+```js copy
 const search = async () => {
     const data = await embedbase
         .dataset(DATASET_ID)
@@ -208,15 +204,13 @@ search()
 ```
   </Tab>
   <Tab>
-    **Python**
-```python
+```python copy
 data = client.dataset(DATASET_ID).search("Animal that lives in the savannah", limit=1)
 print(data)
 ```
   </Tab>
   <Tab>
-    **Bash**
-```bash
+```bash copy
 curl -X POST \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"Animal that lives in the savannah\", \"top_k\": 1}" \

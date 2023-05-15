@@ -36,7 +36,7 @@ pip install embedbase sentence-transformers
 
 Create a new file `main.py` with the following code:
 
-```python filename="main.py"
+```python filename="main.py copy
 import typing
 from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
@@ -72,7 +72,7 @@ class LocalEmbedder(Embedder):
         """
         return len(text) > self.model.get_max_seq_length()
 
-    async def embed(self, data: Union[List[str], str]) -> List[List[float]]:
+    async def embed(self, data: typing.Union[typing.List[str], str]) ->typing.List[typing.List[float]]:
         """
         Embed a list of strings or a single string
         :param data: list of strings or a single string
