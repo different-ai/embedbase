@@ -61,7 +61,6 @@ export const useSubscription = (): {
         setSubscription(data)
       })
   }, [user])
-  console.log(subscription)
 
   return { user, subscription }
 }

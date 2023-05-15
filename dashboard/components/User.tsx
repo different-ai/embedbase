@@ -26,7 +26,6 @@ export function User() {
         tiers.find((tier) => tier.name === 'Hobby')?.id ?
         "Hobby" :
         ""
-  console.log(subscription, subscriptionBadgeText)
 
   const signOut = async () => {
     await supabase.auth.signOut()
