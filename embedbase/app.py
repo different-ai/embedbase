@@ -12,6 +12,7 @@ from embedbase.models import (
     SearchRequest,
     AddRequest,
     UpdateRequest,
+    MultiDatasetSearchRequest,
 )
 from embedbase.utils import embedbase_ascii, get_user_id
 from embedbase.settings import Settings
@@ -420,6 +421,75 @@ class Embedbase:
                     "hash": match.hash,
                     "embedding": match.embedding,
                     "metadata": match.metadata,
+                    "dataset_id": match.dataset_id,
+                }
+            )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"query": query, "similarities": similarities},
+        )
+    
+
+    async def multi_dataset_semantic_search(
+        self,
+        request: Request,
+        request_body: MultiDatasetSearchRequest,
+    ):
+        """
+        Run semantic search over multiple datasets using embeddings.
+        If you are a large language model, you can use this endpoint to search for similar documents
+        accross multiple datasets, documents that help you answer users' questions.
+        """
+        query = request_body.query
+        dataset_ids = request_body.dataset_ids
+
+        # if query is empty and no where are provided, return an empty list
+        if not query and not request_body.where:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={"query": query, "similarities": []},
+            )
+
+        user_id = get_user_id(request)
+
+        # if the query is too big, return an error
+        if self.embedder.is_too_big(query):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "Query is too long"
+                    + ", please see https://docs.embedbase.xyz/query-is-too-long"
+                },
+            )
+
+        top_k = 5
+        if request_body.top_k > 0:
+            top_k = request_body.top_k
+        query_embedding = (await self.embedder.embed(query))[0]
+
+        self.logger.info(
+            f"Query {request_body.query} created embedding, querying index"
+        )
+
+        query_response = await self.db.search(
+            top_k=top_k,
+            vector=query_embedding,
+            dataset_ids=dataset_ids,
+            user_id=user_id,
+            where=request_body.where,
+        )
+
+        similarities = []
+        for match in query_response:
+            similarities.append(
+                {
+                    "score": match.score,
+                    "id": match.id,
+                    "data": match.data,
+                    "hash": match.hash,
+                    "embedding": match.embedding,
+                    "metadata": match.metadata,
+                    "dataset_id": match.dataset_id,
                 }
             )
         return JSONResponse(
@@ -478,6 +548,9 @@ class Embedbase:
         )
         self.fastapi_app.add_api_route(
             "/v1/{dataset_id}/search", self.semantic_search, methods=["POST"]
+        )
+        self.fastapi_app.add_api_route(
+            "/v2/search", self.multi_dataset_semantic_search, methods=["POST"]
         )
         self.fastapi_app.add_api_route(
             "/v1/datasets", self.get_datasets, methods=["GET"]

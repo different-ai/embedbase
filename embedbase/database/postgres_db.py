@@ -1,7 +1,9 @@
-import asyncio
-import json
 from typing import List, Optional
+
+import asyncio
 import itertools
+import json
+
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
@@ -62,6 +64,7 @@ returns table (
   hash text,
   embedding vector({self._dimensions}),
   metadata json
+  dataset_id text
 )
 language plpgsql
 as $$
@@ -73,7 +76,8 @@ begin
     (1 - (documents.embedding <=> query_embedding)) as similarity,
     documents.hash,
     documents.embedding,
-    documents.metadata
+    documents.metadata,
+    documents.dataset_id
   from documents
   where 1 - (documents.embedding <=> query_embedding) > similarity_threshold
     and documents.dataset_id = any(query_dataset_ids)
@@ -149,9 +153,13 @@ where
                     conditions.append(
                         sql.SQL("user_id = {}").format(sql.Literal(user_id))
                     )
-                return list(self.conn.execute(
-                    sql.SQL(query).format(conditions=sql.SQL(" and ").join(conditions))
-                ))
+                return list(
+                    self.conn.execute(
+                        sql.SQL(query).format(
+                            conditions=sql.SQL(" and ").join(conditions)
+                        )
+                    )
+                )
             except Exception as e:
                 raise e
 
@@ -160,14 +168,10 @@ where
         docs = []
         if ids:
             elements = [ids[i : i + n] for i in range(0, len(ids), n)]
-            docs = await asyncio.gather(
-                *[_fetch(e, []) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch(e, []) for e in elements])
         else:
             elements = [hashes[i : i + n] for i in range(0, len(hashes), n)]
-            docs = await asyncio.gather(
-                *[_fetch([], e) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch([], e) for e in elements])
         return [
             SelectResponse(
                 id=row[0],
@@ -247,7 +251,6 @@ where
         user_id: Optional[str] = None,
         where=None,
     ):
-
         d = {
             "query_embedding": str(vector),
             "similarity_threshold": 0.0,  # TODO: make this configurable
@@ -282,6 +285,7 @@ where
                     hash=row[3],
                     embedding=row[4].tolist(),
                     metadata=row[5],
+                    dataset_id=row[6],
                 )
             )
         return data

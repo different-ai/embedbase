@@ -98,7 +98,14 @@ class MemoryDatabase(VectorDatabase):
         else:
             return []
 
-    async def search(self, vector, top_k, dataset_ids, user_id=None, where=None):
+    async def search(
+        self,
+        vector,
+        top_k,
+        dataset_ids,
+        user_id=None,
+        where=None,
+    ):
         storage = self.storage
         # make a copy of storage filtered by where
         if where:
@@ -134,6 +141,7 @@ class MemoryDatabase(VectorDatabase):
                 metadata=storage[doc_id]["metadata"],
                 embedding=storage[doc_id]["embedding"].tolist(),
                 hash=storage[doc_id]["hash"],
+                dataset_id=storage[doc_id]["dataset_id"],
             )
             for idx, doc_id, sim in similarities
         ]

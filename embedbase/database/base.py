@@ -21,6 +21,7 @@ class SearchResponse(BaseModel):
     # any inconvenience for now. Let's see if we can fix this later
     embedding: Union[List[float], str]
     metadata: Optional[dict]
+    dataset_id: str
 
 
 class SelectResponse(BaseModel):

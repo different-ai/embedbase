@@ -2,9 +2,10 @@
 Tests at the end-to-end abstraction level.
 """
 
+from typing import List
+
 import math
 from random import randint
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -13,8 +14,8 @@ from httpx import AsyncClient
 
 from embedbase import get_app
 from embedbase.database.base import VectorDatabase
-from embedbase.database.postgres_db import Postgres
 from embedbase.database.memory_db import MemoryDatabase
+from embedbase.database.postgres_db import Postgres
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
 from embedbase.settings import get_settings_from_file
@@ -30,7 +31,7 @@ def init_databases():
 
     try:
         vector_databases.append(Postgres())
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         print("Postgres dependency not installed, skipping")
     vector_databases.append(MemoryDatabase())
     try:
@@ -40,11 +41,11 @@ def init_databases():
                 key=settings.supabase_key,
             )
         )
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         print("Supabase dependency not installed, skipping")
 
 
-async def run_around_tests(skip_db = None):
+async def run_around_tests(skip_db=None):
     for vector_database in vector_databases:
         if skip_db is not None and isinstance(vector_database, skip_db):
             continue
@@ -456,42 +457,45 @@ async def test_update_documents():
                 assert similarity["data"].startswith("Updated document")
                 assert similarity["metadata"]["updated"] is True
 
+
+d = [
+    {
+        "data": "Alice invited Bob at 6 PM",
+        "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+    },
+    {
+        "data": "Lee woke up at 4 AM",
+        "metadata": {
+            "source": "ouraring.com",
+            "path": "https://ouraring.com/lee",
+        },
+    },
+    {
+        "data": "John pushed code at 8 AM",
+        "metadata": {
+            "source": "github.com",
+            "path": "https://github.com/john/john",
+        },
+    },
+    {
+        "data": "John pushed code at 8 AM",
+        "metadata": {
+            "source": "google.com",
+            "path": "https://google.com/john",
+        },
+    },
+    {
+        "data": "The lion is the king of the savannah",
+        "metadata": {
+            "source": "wikipedia.org",
+            "path": "https://en.wikipedia.org/wiki/Lion",
+        },
+    },
+]
+
+
 @pytest.mark.asyncio
 async def test_search_with_where():
-    d = [
-        {
-            "data": "Alice invited Bob at 6 PM",
-            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
-        },
-        {
-            "data": "Lee woke up at 4 AM",
-            "metadata": {
-                "source": "ouraring.com",
-                "path": "https://ouraring.com/lee",
-            },
-        },
-        {
-            "data": "John pushed code at 8 AM",
-            "metadata": {
-                "source": "github.com",
-                "path": "https://github.com/john/john",
-            },
-        },
-        {
-            "data": "John pushed code at 8 AM",
-            "metadata": {
-                "source": "google.com",
-                "path": "https://google.com/john",
-            },
-        },
-        {
-            "data": "The lion is the king of the savannah",
-            "metadata": {
-                "source": "wikipedia.org",
-                "path": "https://en.wikipedia.org/wiki/Lion",
-            },
-        },
-    ]
     async for app in run_around_tests(skip_db=Postgres):
         # First, insert some documents
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -519,4 +523,57 @@ async def test_search_with_where():
             assert response.status_code == 200
             json_response = response.json()
             assert len(json_response.get("similarities")) == 1
-            assert json_response.get("similarities")[0]["data"] == "John pushed code at 8 AM"
+            assert (
+                json_response.get("similarities")[0]["data"]
+                == "John pushed code at 8 AM"
+            )
+
+
+@pytest.mark.asyncio
+async def test_multi_dataset_semantic_search():
+    datasets = [
+        "unit_test1",
+        "unit_test2",
+        "unit_test3",
+    ]
+    async for app in run_around_tests():
+        # First, clear and insert some documents in multiple datasets
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            for dataset in datasets:
+                response = await client.get(
+                    f"/v1/{dataset}/clear",
+                )
+                assert response.status_code == 200
+                # now insert
+                response = await client.post(
+                    f"/v1/{dataset}",
+                    json={"documents": d},
+                )
+                assert response.status_code == 200
+
+        # Now, search the inserted documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                "/v2/search",
+                json={"query": "time related", "dataset_ids": datasets, "top_k": 3},
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("similarities")) == 3
+            # all results will be Alice invited Bob at 6 PM and thus same hash but from different datasets
+            assert (
+                json_response.get("similarities")[0]["data"]
+                == "Alice invited Bob at 6 PM"
+            )
+            assert (
+                json_response.get("similarities")[1]["data"]
+                == "Alice invited Bob at 6 PM"
+            )
+            assert (
+                json_response.get("similarities")[2]["data"]
+                == "Alice invited Bob at 6 PM"
+            )
+            dataset_ids = sorted([
+                sim["dataset_id"] for sim in json_response.get("similarities")
+            ])
+            assert dataset_ids == ["unit_test1", "unit_test2", "unit_test3"]

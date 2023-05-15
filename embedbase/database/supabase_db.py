@@ -1,11 +1,15 @@
+from typing import List, Optional
+
+import ast
 import asyncio
 import itertools
-from typing import List, Optional
+
 from pandas import DataFrame, Series
+
 from embedbase.database import VectorDatabase
 from embedbase.database.base import Dataset, SearchResponse, SelectResponse
 from embedbase.utils import BatchGenerator
-import ast
+
 
 class Supabase(VectorDatabase):
     """
@@ -20,7 +24,7 @@ class Supabase(VectorDatabase):
         """
         super().__init__(**kwargs)
         try:
-            from supabase import create_client, Client
+            from supabase import Client, create_client
 
             self.supabase: Client = create_client(url, key)
             self.functions = self.supabase.functions()
@@ -40,7 +44,9 @@ class Supabase(VectorDatabase):
         assert ids or hashes, "ids or hashes must be provided"
 
         # raise if both ids and hashes are provided
-        assert not (ids and hashes), "ids and hashes cannot be provided at the same time"
+        assert not (
+            ids and hashes
+        ), "ids and hashes cannot be provided at the same time"
         # TODO not supported yet
 
         async def _fetch(ids, hashes) -> List[dict]:
@@ -72,14 +78,10 @@ class Supabase(VectorDatabase):
         docs = []
         if ids:
             elements = [ids[i : i + n] for i in range(0, len(ids), n)]
-            docs = await asyncio.gather(
-                *[_fetch(e, []) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch(e, []) for e in elements])
         else:
             elements = [hashes[i : i + n] for i in range(0, len(hashes), n)]
-            docs = await asyncio.gather(
-                *[_fetch([], e) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch([], e) for e in elements])
         return [
             SelectResponse(
                 id=row["id"],
@@ -144,6 +146,7 @@ class Supabase(VectorDatabase):
         dataset_ids: List[str],
         user_id: Optional[str] = None,
         where=None,
+        distinct: bool = True,
     ):
         d = {
             "query_embedding": vector,
@@ -157,7 +160,7 @@ class Supabase(VectorDatabase):
             "match_documents",
             d,
         )
-        
+
         if where:
             # raise if where is not a dict
             if not isinstance(where, dict):
@@ -166,11 +169,7 @@ class Supabase(VectorDatabase):
             metadata_value = where[metadata_field]
             d["metadata_field"] = metadata_field
             d["metadata_value"] = metadata_value
-        response = (
-            query
-            .execute()
-            .data
-        )
+        response = query.execute().data
         return [
             SearchResponse(
                 id=row["id"],
@@ -179,6 +178,7 @@ class Supabase(VectorDatabase):
                 hash=row["hash"],
                 metadata=row["metadata"],
                 score=row["score"],
+                dataset_id=row["dataset_id"],
             )
             for row in response
         ]

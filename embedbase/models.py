@@ -1,7 +1,9 @@
 from typing import List, Optional, Union
+
 from pydantic import BaseModel
 
 # TODO: response models once stable
+
 
 class Document(BaseModel):
     # data can be
@@ -16,13 +18,16 @@ class AddRequest(BaseModel):
     documents: List[Document]
     store_data: bool = True
 
+
 class UpdateDocument(BaseModel):
     id: str
     data: Optional[str] = None
     metadata: Optional[dict] = None
 
+
 class UpdateRequest(BaseModel):
     documents: List[UpdateDocument]
+
 
 class DeleteRequest(BaseModel):
     ids: List[str]
@@ -32,3 +37,7 @@ class SearchRequest(BaseModel):
     query: str
     top_k: int = 6
     where: Optional[Union[dict, List[dict]]] = None
+
+
+class MultiDatasetSearchRequest(SearchRequest):
+    dataset_ids: List[str]
