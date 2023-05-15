@@ -63,7 +63,7 @@ returns table (
   score float,
   hash text,
   embedding vector({self._dimensions}),
-  metadata json
+  metadata json,
   dataset_id text
 )
 language plpgsql
