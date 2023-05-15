@@ -250,7 +250,7 @@ where
 
         d = {
             "query_embedding": str(vector),
-            "similarity_threshold": 0,  # TODO: make this configurable
+            "similarity_threshold": 0.0,  # TODO: make this configurable
             "match_count": top_k,
             "query_dataset_ids": dataset_ids,
         }

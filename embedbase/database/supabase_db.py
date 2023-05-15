@@ -5,7 +5,7 @@ from pandas import DataFrame, Series
 from embedbase.database import VectorDatabase
 from embedbase.database.base import Dataset, SearchResponse, SelectResponse
 from embedbase.utils import BatchGenerator
-
+import ast
 
 class Supabase(VectorDatabase):
     """
@@ -84,7 +84,7 @@ class Supabase(VectorDatabase):
             SelectResponse(
                 id=row["id"],
                 data=row["data"],
-                embedding=row["embedding"],
+                embedding=ast.literal_eval(row["embedding"]),
                 hash=row["hash"],
                 metadata=row["metadata"],
             )
@@ -175,7 +175,7 @@ class Supabase(VectorDatabase):
             SearchResponse(
                 id=row["id"],
                 data=row["data"],
-                embedding=row["embedding"],
+                embedding=ast.literal_eval(row["embedding"]),
                 hash=row["hash"],
                 metadata=row["metadata"],
                 score=row["score"],
