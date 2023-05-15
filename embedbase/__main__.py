@@ -1,3 +1,7 @@
+"""
+A simple example to try a local and privacy-first embedbase.
+"""
+
 from typing import List, Union
 import uvicorn
 from embedbase import get_app
