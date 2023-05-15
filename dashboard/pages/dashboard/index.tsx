@@ -22,6 +22,16 @@ function DataImporter() {
       <p className="mb-3 text-sm text-gray-500">
         The fastest way to import your data into Embedbase.{' '}
       </p>
+      <FileDataLoader />
+      {/* add a separator */}
+      <div className="flex items-center justify-center my-3">
+        <div className="border-t border-gray-200 w-full"></div>
+      </div>
+      <p className="text-gray-500 text-sm sm:col-span-2 sm:mt-0">
+        Or import data using a public GitHub repository.
+        Drop an URL to a public GitHub repository below to import data from it.
+      </p>
+      <GithubDataLoader />
       <p className="mb-3 text-sm text-gray-500">
         For more complex use cases, check out our{' '}
         <a
@@ -32,8 +42,6 @@ function DataImporter() {
         </a>{' '}
         to learn how to import data programmatically.
       </p>
-      {/* <h3 className="">PDF Importer</h3> */}
-      <FileDataLoader />
     </div>
   )
 }
