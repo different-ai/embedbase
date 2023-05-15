@@ -382,3 +382,56 @@ async def test_update_with_where():
 @pytest.mark.asyncio
 async def test_select_with_where():
     pass
+
+
+@pytest.mark.asyncio
+async def test_unsupported_unicode_sequence_is_handled_in_postgres_based_db():
+    settings = get_settings_from_file()
+
+    # {'code': '22P05', 'details': '\\u0000 cannot be converted to text.', 'hint': None, 'message': 'unsupported Unicode escape sequence'}
+    # try to add some data with unicode, shoudlnt crash
+    d = [
+        {
+            "data": "Alice invited Bob at 6 PM 🙏",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        },
+        {
+            "data": "John pushed code at 8 AM \U0001F600",
+            "metadata": {
+                "source": "github.com",
+                "path": "https://github.com/john/john",
+            },
+        },
+        {
+            "data": "The lion is the king of the savannah \\u0000",
+            "metadata": {
+                "source": "wikipedia.org",
+                "path": "https://en.wikipedia.org/wiki/Lion",
+            },
+        },
+    ]
+    for db in [Supabase(url=settings.supabase_url, key=settings.supabase_key,), Postgres()]:
+        await db.clear(unit_testing_dataset)
+        await db.update(
+            pd.DataFrame(
+                [
+                    {
+                        "data": x["data"],
+                        "embedding": [0.0] * 1536,
+                        "id": str(uuid.uuid4()),
+                        "metadata": x["metadata"],
+                        "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        # try to search for something
+        search_results = await db.search(
+            [0.0] * 1536,
+            top_k=3,
+            dataset_ids=[unit_testing_dataset],
+        )
+        assert len(search_results) == 3, f"failed for {db}"

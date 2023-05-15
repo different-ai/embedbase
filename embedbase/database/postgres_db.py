@@ -200,6 +200,8 @@ where
                 user_id,
                 json.dumps(row.metadata),
             ]
+            # {'code': '22P05', 'details': '\\u0000 cannot be converted to text.', 'hint': None, 'message': 'unsupported Unicode escape sequence'}
+            row.data = row.data.replace("\x00", "")
             return data
 
         values = [tuple(_d(row)) for _, row in df.iterrows()]

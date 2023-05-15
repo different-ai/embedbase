@@ -112,6 +112,8 @@ class Supabase(VectorDatabase):
                     "user_id": user_id,
                     "metadata": row.metadata,
                 }
+                # {'code': '22P05', 'details': '\\u0000 cannot be converted to text.', 'hint': None, 'message': 'unsupported Unicode escape sequence'}
+                row.data = row.data.replace("\x00", "")
                 if store_data:
                     data["data"] = row.data
                 return data
