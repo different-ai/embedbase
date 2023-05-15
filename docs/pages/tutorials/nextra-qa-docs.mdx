@@ -134,7 +134,7 @@ const sync = async () => {
   // ...
   // 3. we then insert the data in Embedbase
   const response = await fetch(
-    'https://embedbase-hosted-usx5gpslaq-uc.a.run.app/v1/documentation',
+    'https://api.embedbase.xyz/v1/documentation',
     {
       // "documentation" is your dataset ID
       method: 'POST',
@@ -289,7 +289,7 @@ const apiKey = process.env.EMBEDBASE_API_KEY
 // this is how you search Embedbase with a string query
 const search = async (query: string) => {
   return fetch(
-    'https://embedbase-hosted-usx5gpslaq-uc.a.run.app/v1/documentation/search',
+    'https://api.embedbase.xyz/v1/documentation/search',
     {
       method: 'POST',
       headers: {
