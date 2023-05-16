@@ -456,42 +456,43 @@ async def test_update_documents():
                 assert similarity["data"].startswith("Updated document")
                 assert similarity["metadata"]["updated"] is True
 
+
+d = [
+    {
+        "data": "Alice invited Bob at 6 PM",
+        "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+    },
+    {
+        "data": "Lee woke up at 4 AM",
+        "metadata": {
+            "source": "ouraring.com",
+            "path": "https://ouraring.com/lee",
+        },
+    },
+    {
+        "data": "John pushed code at 8 AM",
+        "metadata": {
+            "source": "github.com",
+            "path": "https://github.com/john/john",
+        },
+    },
+    {
+        "data": "John pushed code at 8 AM",
+        "metadata": {
+            "source": "google.com",
+            "path": "https://google.com/john",
+        },
+    },
+    {
+        "data": "The lion is the king of the savannah",
+        "metadata": {
+            "source": "wikipedia.org",
+            "path": "https://en.wikipedia.org/wiki/Lion",
+        },
+    },
+]
 @pytest.mark.asyncio
 async def test_search_with_where():
-    d = [
-        {
-            "data": "Alice invited Bob at 6 PM",
-            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
-        },
-        {
-            "data": "Lee woke up at 4 AM",
-            "metadata": {
-                "source": "ouraring.com",
-                "path": "https://ouraring.com/lee",
-            },
-        },
-        {
-            "data": "John pushed code at 8 AM",
-            "metadata": {
-                "source": "github.com",
-                "path": "https://github.com/john/john",
-            },
-        },
-        {
-            "data": "John pushed code at 8 AM",
-            "metadata": {
-                "source": "google.com",
-                "path": "https://google.com/john",
-            },
-        },
-        {
-            "data": "The lion is the king of the savannah",
-            "metadata": {
-                "source": "wikipedia.org",
-                "path": "https://en.wikipedia.org/wiki/Lion",
-            },
-        },
-    ]
     async for app in run_around_tests(skip_db=Postgres):
         # First, insert some documents
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -504,7 +505,6 @@ async def test_search_with_where():
             assert len(json_response.get("results")) == 5
 
         # Now, search the inserted documents
-        # Search for updated documents
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.post(
                 f"/v1/{unit_testing_dataset}/search",
@@ -520,3 +520,35 @@ async def test_search_with_where():
             json_response = response.json()
             assert len(json_response.get("similarities")) == 1
             assert json_response.get("similarities")[0]["data"] == "John pushed code at 8 AM"
+
+@pytest.mark.asyncio
+async def test_search_should_return_everything_necessary():
+    async for app in run_around_tests():
+        # First, insert some documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": d},
+            )
+            assert response.status_code == 200
+
+        # Now, search the inserted documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search",
+                json={
+                    "query": "Time related",
+                    "where": {
+                        "source": "github.com",
+                    },
+                    "top_k": 3,
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            # should return created, id, dataset_id, query, similarities
+            assert "similarities" in json_response
+            assert "query" in json_response
+            assert "dataset_id" in json_response
+            assert "id" in json_response
+            assert "created" in json_response

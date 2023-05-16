@@ -4,12 +4,13 @@ from typing import List, Union
 
 import numpy as np
 import pytest
+from embedbase_client.client import EmbedbaseClient
+from embedbase_client.types import ClientSearchData, SearchSimilarity
+
 from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.base import Embedder
 
-from embedbase_client.client import EmbedbaseClient
-from embedbase_client.types import ClientSearchData
 
 # pylint: disable=missing-docstring
 class FakeEmbedder(Embedder):
@@ -107,7 +108,7 @@ def test_search_documents():
     # Check that the results are SearchResult instances
     assert len(results) > 0
     for result in results:
-        assert isinstance(result, ClientSearchData)
+        assert isinstance(result, SearchSimilarity)
 
     # Check that the results contain the expected documents
     document_datas = [result.data for result in results]

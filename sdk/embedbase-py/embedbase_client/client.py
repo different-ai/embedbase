@@ -1,18 +1,16 @@
 from typing import Any, Dict, List, Optional
 
 import asyncio
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import httpx
-from abc import ABC, abstractmethod
-
-
 from embedbase_client.types import (
     BatchAddDocument,
-    ClientContextData,
-    ClientSearchData,
     ClientAddData,
+    ClientContextData,
     ClientDatasets,
+    ClientSearchData,
     SearchSimilarity,
 )
 
@@ -220,9 +218,7 @@ class AsyncDataset:
     client: "EmbedbaseAsyncClient"
     dataset: str
 
-    async def search(
-        self, query: str, limit: Optional[int] = None
-    ) -> ClientSearchData:
+    async def search(self, query: str, limit: Optional[int] = None) -> ClientSearchData:
         return await self.client.search(self.dataset, query, limit)
 
     async def add(
@@ -259,7 +255,16 @@ class EmbedbaseAsyncClient(BaseClient):
             )
         res.raise_for_status()
         data = res.json()
-        return [SearchSimilarity(**similarity) for similarity in data["similarities"]]
+        return [
+            SearchSimilarity(
+                similarity=similarity["score"],
+                data=similarity["data"],
+                embedding=similarity["embedding"],
+                hash=similarity["hash"],
+                metadata=similarity["metadata"],
+            )
+            for similarity in data["similarities"]
+        ]
 
     async def add(
         self, dataset: str, document: str, metadata: Optional[Dict[str, Any]] = None

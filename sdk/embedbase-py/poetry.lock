@@ -1354,7 +1354,7 @@ files = [
 name = "pydantic"
 version = "1.10.7"
 description = "Data validation and settings management using python type hints"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2057,7 +2057,7 @@ files = [
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2446,4 +2446,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "7cb3d79f2a55ec75eebe80b3de37430b03e7eb9dceb5f1452b1140ff6d566183"
+content-hash = "4a274bb22aac1062ed9ccdd2f6e57fc069aa6109a4d597f4991874af6b3c528f"

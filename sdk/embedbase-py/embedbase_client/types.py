@@ -1,12 +1,12 @@
 from typing import Any, Dict, List, Optional, Union
-
+from pydantic import BaseModel
 Fetch = Any
 
 class BatchAddDocument:
     data: str
     metadata: Optional[Dict[str, Any]]
 
-class Metadata:
+class Metadata(BaseModel):
     path: Optional[str]
 
     def __getitem__(self, key: str) -> Any:
@@ -15,7 +15,7 @@ class Metadata:
     def __setitem__(self, key: str, value: Any) -> None:
         setattr(self, key, value)
 
-class SearchSimilarity:
+class SearchSimilarity(BaseModel):
     similarity: float
     data: str
     embedding: List[float]
