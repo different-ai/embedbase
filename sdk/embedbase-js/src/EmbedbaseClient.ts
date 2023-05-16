@@ -11,7 +11,7 @@ import type {
   ClientDatasets,
   Metadata,
 } from './types'
-import { camelize } from './utils'
+import { camelize, stream } from './utils'
 
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
@@ -173,5 +173,17 @@ export default class EmbedbaseClient {
     })
     const data: ClientDatasets[] = camelize((await res.json()).datasets)
     return data
+  }
+
+  public async * chat(prompt: string): AsyncGenerator<string> {
+    const url = 'https://app.embedbase.xyz/api/chat'
+    // const url = 'http://localhost:3000/api/chat'
+    for await (const res of stream(
+      url,
+      JSON.stringify({ prompt }),
+      this.headers,
+    )) {
+      yield res
+    }
   }
 }

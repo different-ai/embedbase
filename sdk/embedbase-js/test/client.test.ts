@@ -200,3 +200,9 @@ describe('Check if the client is able to fetch data', () => {
     expect(data[0].metadata).toHaveProperty('source', 'github.com')
   }, 10000)
 })
+
+test('should be able to chat', async () => {
+  for await (const res of embedbase.chat('hello')) {
+    console.log(res)
+  }
+})
