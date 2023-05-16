@@ -1,10 +1,14 @@
 from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel
+
 Fetch = Any
+
 
 class BatchAddDocument:
     data: str
     metadata: Optional[Dict[str, Any]]
+
 
 class Metadata(BaseModel):
     path: Optional[str]
@@ -15,6 +19,7 @@ class Metadata(BaseModel):
     def __setitem__(self, key: str, value: Any) -> None:
         setattr(self, key, value)
 
+
 class SearchSimilarity(BaseModel):
     similarity: float
     data: str
@@ -22,12 +27,15 @@ class SearchSimilarity(BaseModel):
     hash: str
     metadata: Optional[Metadata]
 
+
 class SearchData:
     query: str
     similarities: List[SearchSimilarity]
 
+
 class SearchOptions:
     limit: Optional[int]
+
 
 class AddDataResult:
     id: str
@@ -36,9 +44,11 @@ class AddDataResult:
     hash: str
     metadata: Optional[Metadata]
 
+
 class AddData:
     results: Optional[List[AddDataResult]]
     error: Optional[str]
+
 
 ClientContextData = List[str]
 ClientSearchData = List[SearchSimilarity]

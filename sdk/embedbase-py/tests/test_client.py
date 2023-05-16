@@ -4,12 +4,12 @@ from typing import List, Union
 
 import numpy as np
 import pytest
-from embedbase_client.client import EmbedbaseClient
-from embedbase_client.types import ClientSearchData, SearchSimilarity
-
 from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.base import Embedder
+
+from embedbase_client.client import EmbedbaseClient
+from embedbase_client.types import SearchSimilarity
 
 
 # pylint: disable=missing-docstring

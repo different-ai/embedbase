@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import httpx
+
 from embedbase_client.types import (
     BatchAddDocument,
     ClientAddData,
