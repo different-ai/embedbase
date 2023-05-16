@@ -4,10 +4,6 @@ LOCAL_PORT="8000"
 #* read version from pyproject.toml
 VERSION="$(shell env/bin/python3 -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
 
-#* Docker variables
-LATEST_IMAGE_URL="ghcr.io/different-ai/embedbase:latest"
-IMAGE_URL="ghcr.io/different-ai/embedbase:${VERSION}"
-
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
 
@@ -16,24 +12,6 @@ test: ## [Local development] Run all Python tests with pytest.
 	while ! docker exec -it pgvector pg_isready -U postgres; do sleep 1; done
 	poetry run pytest --ignore=sdk/embedbase-js --ignore=hosted; docker stop pgvector
 	@echo "Done testing"
-
-docker/build/prod: ## [Local development] Build the docker image.
-	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
-	docker buildx build . --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./docker/Dockerfile
-	docker buildx build . --platform linux/amd64 -t ${IMAGE_URL} -f ./docker/Dockerfile
-
-docker/run/dev: ## [Local development] Run the development docker image.
-	docker-compose --profile dev up --build
-
-docker/run/prod:
-# note we don't use buildx here to use local platform cpu
-	docker build . -t embedbase -f ./docker/Dockerfile
-	docker run -p 8000:8080 \
-		-v ${PWD}:/app embedbase
-
-docker/push: docker/build/prod ## [Local development] Push the docker image to registry.
-	docker push ${IMAGE_URL}
-	docker push ${LATEST_IMAGE_URL}
 
 release: ## [Local development] Release a new version of the API.
 	@echo "Releasing version ${VERSION}"; \
