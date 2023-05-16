@@ -13,6 +13,7 @@ from embedbase_client.types import (
     ClientSearchData,
     ClientAddData,
     ClientDatasets,
+    SearchSimilarity,
 )
 
 
@@ -149,7 +150,7 @@ class Dataset:
     client: "EmbedbaseClient"
     dataset: str
 
-    def search(self, query: str, limit: Optional[int] = None) -> List[ClientSearchData]:
+    def search(self, query: str, limit: Optional[int] = None) -> ClientSearchData:
         return self.client.search(self.dataset, query, limit)
 
     def add(
@@ -186,7 +187,7 @@ class EmbedbaseClient(BaseClient):
 
     def search(
         self, dataset: str, query: str, limit: Optional[int] = None
-    ) -> List[ClientSearchData]:
+    ) -> ClientSearchData:
         return self._run_async(self._async_client.search(dataset, query, limit))
 
     def add(
@@ -221,7 +222,7 @@ class AsyncDataset:
 
     async def search(
         self, query: str, limit: Optional[int] = None
-    ) -> List[ClientSearchData]:
+    ) -> ClientSearchData:
         return await self.client.search(self.dataset, query, limit)
 
     async def add(
@@ -247,7 +248,7 @@ class EmbedbaseAsyncClient(BaseClient):
 
     async def search(
         self, dataset: str, query: str, limit: Optional[int] = None
-    ) -> List[ClientSearchData]:
+    ) -> ClientSearchData:
         top_k = limit or 5
         search_url = f"/v1/{dataset}/search"
         async with httpx.AsyncClient(
@@ -258,7 +259,7 @@ class EmbedbaseAsyncClient(BaseClient):
             )
         res.raise_for_status()
         data = res.json()
-        return [SearchResult(**similarity) for similarity in data["similarities"]]
+        return [SearchSimilarity(**similarity) for similarity in data["similarities"]]
 
     async def add(
         self, dataset: str, document: str, metadata: Optional[Dict[str, Any]] = None
