@@ -538,9 +538,6 @@ async def test_search_should_return_everything_necessary():
                 f"/v1/{unit_testing_dataset}/search",
                 json={
                     "query": "Time related",
-                    "where": {
-                        "source": "github.com",
-                    },
                     "top_k": 3,
                 },
             )
