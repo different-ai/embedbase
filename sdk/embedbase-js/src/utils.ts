@@ -1,3 +1,6 @@
+import http, { IncomingMessage, ClientRequest } from "http";
+import https from "https";
+
 export const stringifyList = (list: any[]) => {
   return list.map((item) => JSON.stringify(item))
 }
@@ -27,6 +30,8 @@ const camelCase = (str: string) => {
   })
 }
 
+
+
 /**
  * Stream data from a URL
  * @param url 
@@ -34,33 +39,56 @@ const camelCase = (str: string) => {
  * @param headers 
  * @returns 
  */
-export async function* stream (url: string, body: string, headers: { [key: string]: string }) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: body,
-  })
 
-  if (!response.ok) {
+type Headers = {
+  [key: string]: string;
+};
+
+function getRequestModule(url: string) {
+  return url.startsWith("https") ? https : http;
+}
+
+export async function* stream(
+  url: string,
+  body: string,
+  headers: Headers
+): AsyncGenerator<string, void, undefined> {
+  const requestModule = getRequestModule(url);
+
+  async function* readStream(
+    stream: IncomingMessage
+  ): AsyncGenerator<string, void, undefined> {
+    const decoder = new TextDecoder();
+    for await (const chunk of stream) {
+      yield decoder.decode(chunk);
+    }
+  }
+
+  const response: IncomingMessage = await new Promise(
+    (resolve: (response: IncomingMessage) => void, reject: (error: Error) => void) => {
+      const requestOptions = {
+        method: "POST",
+        headers: headers,
+      };
+
+      const request: ClientRequest = requestModule.request(url, requestOptions, resolve);
+
+      request.on("error", reject);
+
+      request.write(body);
+      request.end();
+    }
+  );
+
+  if (response.statusCode && (response.statusCode < 200 || response.statusCode >= 300)) {
     // assuming the error is a JSON object
-    const message = await response.text()
-    throw new Error(message)
-  }
-
-  // This data is a ReadableStream
-  const data = response.body
-  if (!data) {
-    return
-  }
-
-  const reader = data.getReader()
-  const decoder = new TextDecoder()
-  let done = false
-
-  while (!done) {
-    const { value, done: doneReading } = await reader.read()
-    done = doneReading
-    const chunkValue = decoder.decode(value)
-    yield chunkValue
+    let rawData = "";
+    for await (const chunk of readStream(response)) {
+      rawData += chunk;
+    }
+    const message = JSON.parse(rawData);
+    throw new Error(message);
+  } else {
+    yield* readStream(response);
   }
 }
