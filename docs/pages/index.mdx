@@ -94,20 +94,13 @@ about your data:
 <Tabs items={['Javascript', 'Python']}>
   <Tab>
 ```ts copy {3}
-import { Configuration, OpenAIApi } from 'openai'
 const question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
 const context = await embedbase.dataset(datasetId).createContext(question)
 const prompt = 
     `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-const openai = new OpenAIApi(configuration);
-const completion = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
-    messages: [{ role: 'user', content: prompt }],
-})
-console.log(completion.data.choices[0].message?.content)
+for await (const res of embedbase.generate(prompt)) {
+    console.log(res)
+}
 ```
 ```
 You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
@@ -135,6 +128,12 @@ You might want to try our Harem Pants! They have a dropped crotch and loose legs
 and their unique bohemian style can elevate your wardrobe for work.
 However, please note that they may not be the most suitable for climbing.
 ```
+
+`.generate` is not yet available in the Python SDK, if you need it, [please reach out](https://discord.gg/3qXwZQ6Z)
+we are moving fast and can implement this in a few hours.
+
+You have to use OpenAI SDK in the meantime.
+
   </Tab>
 </Tabs>
 
