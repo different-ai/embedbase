@@ -10,8 +10,9 @@ import type {
   BatchAddDocument,
   ClientDatasets,
   Metadata,
+  GenerateOptions,
 } from './types'
-import { camelize } from './utils'
+import { camelize, stream } from './utils'
 
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
@@ -173,5 +174,36 @@ export default class EmbedbaseClient {
     })
     const data: ClientDatasets[] = camelize((await res.json()).datasets)
     return data
+  }
+
+  public async * generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string> {
+    const url = 'https://app.embedbase.xyz/api/chat'
+
+    options = options || {
+      history: [],
+    }
+
+    // hack to remove system from history because api is slightly different from openai
+    // and we want to go on-pair with openai api for now
+    let system = ''
+    if (options?.history) {
+      const systemIndex = options.history.findIndex((item) => item.role === 'system')
+      if (systemIndex > -1) {
+        system = options.history[systemIndex].content
+        options.history.splice(systemIndex, 1)
+      }
+    }
+
+    for await (const res of stream(
+      url,
+      JSON.stringify({ 
+        prompt,
+        system,
+        history: options?.history,
+      }),
+      this.headers,
+    )) {
+      yield res
+    }
   }
 }

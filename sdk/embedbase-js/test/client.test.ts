@@ -1,5 +1,6 @@
 import { createClient } from '../src/index'
 
+
 try {
   require('dotenv').config({ path: './.env' })
 } catch (e) {
@@ -167,22 +168,22 @@ describe('Check if the client is able to fetch data', () => {
 
     const d = [
       {
-          "data": "Alice invited Bob at 6 PM at the restaurant",
-          "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        "data": "Alice invited Bob at 6 PM at the restaurant",
+        "metadata": { "source": "notion.so", "path": "https://notion.so/alice" },
       },
       {
-          "data": "John pushed code on github at 8 AM",
-          "metadata": {
-              "source": "github.com",
-              "path": "https://github.com/john/john",
-          },
+        "data": "John pushed code on github at 8 AM",
+        "metadata": {
+          "source": "github.com",
+          "path": "https://github.com/john/john",
+        },
       },
       {
-          "data": "The lion is the king of the savannah.",
-          "metadata": {
-              "source": "wikipedia.org",
-              "path": "https://en.wikipedia.org/wiki/Lion",
-          },
+        "data": "The lion is the king of the savannah.",
+        "metadata": {
+          "source": "wikipedia.org",
+          "path": "https://en.wikipedia.org/wiki/Lion",
+        },
       },
     ]
 
@@ -200,3 +201,52 @@ describe('Check if the client is able to fetch data', () => {
     expect(data[0].metadata).toHaveProperty('source', 'github.com')
   }, 10000)
 })
+
+test('should be able to chat', async () => {
+  for await (const res of embedbase.generate('hello')) {
+    expect(res).toBeDefined()
+  }
+}, 10000)
+
+
+
+import { stream as originalStream } from '../src/utils'
+
+
+
+const errorStatusCodes = [500, 401, 402];
+
+
+describe('API error handling tests', () => {
+  test(`should handle API crashing with Response error`, async () => {
+    errorStatusCodes.forEach(async (statusCode) => {
+
+      // Manually mock the stream function for this test
+      const streamMock = jest.fn(() => {
+        return (async function* () {
+          throw new Error(JSON.stringify({ error: 'some error' }));
+        })();
+      });
+
+      // Replace the original stream function with the mock
+      jest.spyOn(require('../src/utils'), 'stream').mockImplementation(streamMock);
+
+
+      try {
+        for await (const res of embedbase.generate('hello')) {
+          // Execution should not reach here, so the test will fail if it does
+          expect(false).toBe(true);
+        }
+      } catch (error) {
+        // Check if the error is an instance of Response and has the desired status
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
+
+    // Restore the original stream function implementation after the test
+    jest.spyOn(require('../src/utils'), 'stream').mockImplementation(originalStream);
+  }, 10000);
+
+
+});
+

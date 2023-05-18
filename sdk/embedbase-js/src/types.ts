@@ -63,3 +63,13 @@ export interface ClientDatasets {
   datasetId: string
   documentsCount: number
 }
+
+
+export type Role = 'user' | 'system' | 'assistant'
+type Chat = {
+  role: Role
+  content: string
+}
+export interface GenerateOptions {
+  history: Chat[]
+}
