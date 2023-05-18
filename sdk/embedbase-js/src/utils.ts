@@ -1,5 +1,7 @@
 import http, { IncomingMessage, ClientRequest } from "http";
 import https from "https";
+import { getEnv } from "./env";
+import { Fetch } from "./types";
 
 export const stringifyList = (list: any[]) => {
   return list.map((item) => JSON.stringify(item))
@@ -32,13 +34,7 @@ const camelCase = (str: string) => {
 
 
 
-/**
- * Stream data from a URL
- * @param url 
- * @param body 
- * @param headers 
- * @returns 
- */
+
 
 type Headers = {
   [key: string]: string;
@@ -48,7 +44,7 @@ function getRequestModule(url: string) {
   return url.startsWith("https") ? https : http;
 }
 
-export async function* stream(
+async function* streamHttp(
   url: string,
   body: string,
   headers: Headers
@@ -91,4 +87,62 @@ export async function* stream(
   } else {
     yield* readStream(response);
   }
+}
+
+async function* streamFetch(
+  url: string,
+  body: string,
+  headers: Headers
+): AsyncGenerator<string, void, undefined> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: body,
+  })
+
+  if (!response.ok) {
+    // assuming the error is a JSON object
+    const message = await response.text()
+    throw new Error(message)
+  }
+
+  // This data is a ReadableStream
+  const data = response.body
+  if (!data) {
+    return
+  }
+
+  const reader = data.getReader()
+  const decoder = new TextDecoder()
+  let done = false
+
+  while (!done) {
+    const { value, done: doneReading } = await reader.read()
+    done = doneReading
+    const chunkValue = decoder.decode(value)
+    yield chunkValue
+  }
+}
+
+/**
+ * Stream data from a URL
+ * @param url 
+ * @param body 
+ * @param headers 
+ * @returns 
+ */
+export async function* stream (url: string, body: string, headers: { [key: string]: string }) {
+  if (getEnv() === "node") {
+    yield* streamHttp(url, body, headers)
+  } else {
+    yield* streamFetch(url, body, headers)
+  }
+}
+
+export const getFetch = (): Fetch => {
+  if (getEnv() === "node") {
+    // return import('cross-fetch').then((f) => f.default)
+    return require("cross-fetch").default
+  }
+  return fetch
 }

@@ -1,8 +1,7 @@
 import { getGithubContent, getRepoName } from "@/lib/github";
-import { createClient } from "embedbase-js";
-import { BatchAddDocument } from "embedbase-js/dist/module/types";
-import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { batch } from "@/utils/array";
+import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { BatchAddDocument, createClient, splitText } from "embedbase-js";
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
@@ -10,65 +9,6 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
 export const config = {
   runtime: 'edge'
 }
-
-// @ts-expect-error
-import wasm from "../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module";
-import model from "@dqbd/tiktoken/encoders/cl100k_base.json";
-import { init, Tiktoken } from "@dqbd/tiktoken/lite/init";
-
-interface SplitTextChunk {
-    chunk: string
-    start: number
-    end: number
-}
-const MAX_CHUNK_LENGTH = 8191
-const EMBEDDING_ENCODING = 'cl100k_base'
-const CHUNK_OVERLAP = 0
-
-
-async function splitText(
-    text: string,
-    {
-        maxTokens = MAX_CHUNK_LENGTH,
-        chunkOverlap = CHUNK_OVERLAP,
-        encodingName = EMBEDDING_ENCODING,
-    }: { maxTokens?: number; chunkOverlap?: number; encodingName?: any },
-    callback?: (chunk: SplitTextChunk) => void
-): Promise<SplitTextChunk[]> {
-    if (chunkOverlap >= maxTokens) {
-        throw new Error('Cannot have chunkOverlap >= chunkSize')
-    }
-    await init((imports) => WebAssembly.instantiate(wasm, imports));
-
-    const encoding = new Tiktoken(
-        model.bpe_ranks,
-        model.special_tokens,
-        model.pat_str
-    );
-
-    const input_ids = encoding.encode(text)
-    const chunkSize = maxTokens
-
-    let start_idx = 0
-    let cur_idx = Math.min(start_idx + chunkSize, input_ids.length)
-    let chunk_ids = input_ids.slice(start_idx, cur_idx)
-
-    const decoder = new TextDecoder()
-    const chunks = []
-
-    while (start_idx < input_ids.length) {
-        const chunk = decoder.decode(encoding.decode(chunk_ids))
-        const chunkItem = { chunk, start: start_idx, end: cur_idx }
-        chunks.push(chunkItem)
-        callback && callback(chunkItem)
-        start_idx += chunkSize - chunkOverlap
-        cur_idx = Math.min(start_idx + chunkSize, input_ids.length)
-        chunk_ids = input_ids.slice(start_idx, cur_idx)
-    }
-    encoding.free()
-    return chunks
-}
-
 
 const getApiKey = async (req: Request, res: Response) => {
   // Create authenticated Supabase Client
@@ -118,7 +58,8 @@ export default async function sync(req: Request, res: Response) {
       status: 400,
     })
   }
-  const embedbase = createClient(EMBEDBASE_URL, apiKey);
+  const embedbase = createClient(EMBEDBASE_URL, apiKey, { browser: true });
+
   console.log(`Syncing ${url}...`);
   const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
   const repo = getRepoName(url);
@@ -128,25 +69,22 @@ export default async function sync(req: Request, res: Response) {
   await embedbase.dataset(repo).add('.');
 
   const chunks: BatchAddDocument[] = [];
-  githubFiles.forEach((file) =>
+  // TODO this is quite ugly
+  await Promise.all(githubFiles
     // ignore chunks containing <|endoftext|>
     // because it crashes the tokenizer
-    !file.content.includes("<|endoftext|>") &&
-    splitText(
-      file.content,
-      { maxTokens: 500, chunkOverlap: 200 },
-      ({ chunk }) =>
-
-        chunks.push({
+    .filter((file) => !file.content.includes("<|endoftext|>"))
+    .map((file) =>
+      splitText(file.content).then((c) =>
+        c.map(({ chunk }) => chunks.push({
           data: chunk,
           metadata: file.metadata,
         })
-    ));
+        )
+      )));
   await batch(chunks, (chunk) => embedbase.dataset(repo).batchAdd(chunk))
   console.log(`Synced ${chunks.length} docs from ${repo} in ${Date.now() - startTime}ms`)
   return new Response(JSON.stringify({ message: 'Syncing' }), {
     status: 200,
   })
-  // .catch((error) => res.status(500).json({ error: error }))
-  // .then(() => res.status(200));
 }

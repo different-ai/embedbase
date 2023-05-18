@@ -1,18 +1,20 @@
-import fetch from 'cross-fetch'
 import type {
   AddData,
+  BatchAddDocument,
   ClientAddData,
   ClientContextData,
+  ClientDatasets,
   ClientSearchData,
+  EmbedbaseClientOptions,
   Fetch,
+  GenerateOptions,
+  Metadata,
   SearchData,
   SearchOptions,
-  BatchAddDocument,
-  ClientDatasets,
-  Metadata,
-  GenerateOptions,
-} from './types'
-import { camelize, stream } from './utils'
+} from './types';
+import { camelize, getFetch, stream } from './utils';
+
+let fetch = getFetch();
 
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
@@ -20,7 +22,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
     private dataset: string,
     private query: string,
     private options: SearchOptions = {}
-  ) {}
+  ) { }
 
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
@@ -48,7 +50,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
 
   where(field: string, operator: string, value: any): SearchBuilder {
     // this.options.where = { [field]: { [operator]: value } };
-    this.options.where = { };
+    this.options.where = {};
     this.options.where[field] = value;
     return this;
   }
@@ -67,7 +69,6 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
  * An typescript library to interact with Embedbase
  */
 export default class EmbedbaseClient {
-  protected fetch?: Fetch
   public embedbaseApiUrl: string
   protected embedbaseApiKey: string
 
@@ -80,7 +81,10 @@ export default class EmbedbaseClient {
    * @param embedbaseUrl The unique Embedbase URL which is supplied when you create a new project in your project dashboard.
    * @param embedbaseKey The unique Embedbase Key which is supplied when you create a new project in your project dashboard.
    */
-  constructor(protected embedbaseUrl: string, protected embedbaseKey?: string) {
+  constructor(
+    protected embedbaseUrl: string,
+    protected embedbaseKey?: string,
+  ) {
     if (!embedbaseUrl) throw new Error('embedbaseUrl is required.')
     // if url is embedbase cloud (https://api.embedbase.xyz) and no key is provided, throw error
     if (embedbaseUrl === 'https://api.embedbase.xyz' && !embedbaseKey) {
@@ -196,7 +200,7 @@ export default class EmbedbaseClient {
 
     for await (const res of stream(
       url,
-      JSON.stringify({ 
+      JSON.stringify({
         prompt,
         system,
         history: options?.history,

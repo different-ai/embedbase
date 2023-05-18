@@ -11,18 +11,23 @@
   "bugs": "https://github.com/different-ai/embedbase/issues",
   "license": "MIT",
   "author": "Different AI",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "./split": {
-    "types": "dist/module/split/index.d.ts",
-    "import": "dist/module/split/index.js",
-    "require": "dist/main/split/index.js"
-  },
   "main": "dist/main/index.js",
   "module": "dist/module/index.js",
   "types": "dist/module/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/module/index.js",
+      "require": "./dist/main/index.js"
+    },
+    "./split": {
+      "import": "./dist/module/split/index.js",
+      "require": "./dist/main/split/index.js"
+    }
+  },
   "sideEffects": false,
   "repository": "different-ai/embedbase",
   "scripts": {
@@ -38,11 +43,9 @@
     "docs": "typedoc --entryPoints src/index.ts --out docs/v1 --includes src/**/*.ts",
     "docs:json": "typedoc --entryPoints src/index.ts --includes src/**/*.ts --json docs/v1/spec.json --excludeExternals"
   },
-  "dependencies": {
-    "cross-fetch": "^3.1.5"
-  },
   "optionalDependencies": {
-    "@dqbd/tiktoken": "^1.0.2"
+    "@dqbd/tiktoken": "^1.0.2",
+    "cross-fetch": "^3.1.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
@@ -58,5 +61,8 @@
     "ts-node": "^10.9.1",
     "typedoc": "^0.22.16",
     "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "js-tiktoken": "^1.0.6"
   }
 }
