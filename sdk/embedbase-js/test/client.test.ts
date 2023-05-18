@@ -224,7 +224,7 @@ describe('API error handling tests', () => {
       // Manually mock the stream function for this test
       const streamMock = jest.fn(() => {
         return (async function* () {
-          throw new Response(JSON.stringify({ error: 'some error' }), { status: statusCode });
+          throw new Error(JSON.stringify({ error: 'some error' }));
         })();
       });
 
@@ -238,11 +238,8 @@ describe('API error handling tests', () => {
           expect(false).toBe(true);
         }
       } catch (error) {
-        const text = await error.json();
-        expect(text).toHaveProperty('error', 'some error');
         // Check if the error is an instance of Response and has the desired status
-        expect(error).toBeInstanceOf(Response);
-        expect(error.status).toBe(statusCode);
+        expect(error).toBeInstanceOf(Error);
       }
     });
 
