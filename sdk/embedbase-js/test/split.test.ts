@@ -1,4 +1,4 @@
-import { splitText } from '../src/split/index'
+import { splitText, splitTextGenerator } from '../src/split/index'
 import { merge } from '../src/split'
 
 
@@ -30,3 +30,12 @@ describe('Splitting based on max tokens properly return start and end', () => {
     expect(chunks[1].end).toBe(199)
   })
 })
+
+it('splits text using generator', async () => {
+  const text = 'AGI '.repeat(50)
+  for await (const {chunk} of splitTextGenerator(text, { maxTokens: 1, chunkOverlap: 0 })) {
+    expect(chunk).toBe("AG")
+    return
+  }
+})
+    

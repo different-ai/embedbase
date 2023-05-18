@@ -47,10 +47,65 @@ export async function encodingForModel(
     return getEncoding(getEncodingNameForModel(model), options);
 }
 
+/**
+ * Split a text into chunks of maxTokens length.
+ * Depending on the model used, you may want to adjust the max_tokens and chunk_overlap parameters.
+ * For example, if you use the OpenAI embeddings model, you can use max_tokens of 500 and chunk_overlap of 200.
+ * While if you use "all-MiniLM-L6-v2" of sentence-transformers, you might use max_tokens of 30 and chunk_overlap of 20
+ * because the model has a relatively limited input size.
+ * (embedbase cloud use openai model at the moment)
+ *
+ * ### Example
+ *
+ * ```typescript
+ * const text = "This is a sample text to demonstrate the usage of the split_text function. \
+ * It can be used to split long texts into smaller chunks based on the max_tokens value given. \
+ * This is useful when using models that have a limited input size."
+ *
+ * // Split the text into chunks of maximum 10 tokens
+ * 
+ * for await (const chunk of splitTextGenerator(text, options)) {
+ *   // Do something with the chunk
+ * }
+ * ```
+ */
+export async function* splitTextGenerator(
+    text: string,
+    options?: SplitTextOptions,
+) {
+    options = {
+        maxTokens: options?.maxTokens ?? 500,
+        chunkOverlap: options?.chunkOverlap ?? 200,
+        strategy: options?.strategy ?? "token",
+        encodingName: options?.encodingName || "cl100k_base",
+        allowedSpecial: options?.allowedSpecial ?? [],
+        disallowedSpecial: options?.disallowedSpecial ?? [],
+    }
+
+    let splitter;
+    switch (options.strategy) {
+        case "character":
+            splitter = characterTextSplitter(text, options.maxTokens, options.chunkOverlap, options.separator);
+            break;
+        case "recursiveCharacter":
+            splitter = recursiveCharacterTextSplitter(text, options.maxTokens, options.chunkOverlap, options.separators);
+            break;
+        case "markdown":
+            splitter = markdownTextSplitter(text, options.maxTokens, options.chunkOverlap);
+            break;
+        case "token":
+        default:
+            splitter = await tokenTextSplitter(text, options.maxTokens, options.chunkOverlap, options.encodingName, options.allowedSpecial, options.disallowedSpecial);
+    }
+
+    for (const chunk of splitter) {
+        yield chunk;
+    }
+}
 
 
 /**
- * Split a text into chunks of max_tokens length.
+ * Split a text into chunks of maxTokens length.
  * Depending on the model used, you may want to adjust the max_tokens and chunk_overlap parameters.
  * For example, if you use the OpenAI embeddings model, you can use max_tokens of 500 and chunk_overlap of 200.
  * While if you use "all-MiniLM-L6-v2" of sentence-transformers, you might use max_tokens of 30 and chunk_overlap of 20
@@ -72,26 +127,11 @@ export async function splitText(
     text: string,
     options?: SplitTextOptions,
 ): Promise<SplitTextChunk[]> {
-    options = {
-        maxTokens: options?.maxTokens ?? 500,
-        chunkOverlap: options?.chunkOverlap ?? 200,
-        strategy: options?.strategy ?? "token",
-        encodingName: options?.encodingName || "cl100k_base",
-        allowedSpecial: options?.allowedSpecial ?? [],
-        disallowedSpecial: options?.disallowedSpecial ?? [],
+    const chunks = [];
+    for await (const chunk of splitTextGenerator(text, options)) {
+        chunks.push(chunk);
     }
-
-    switch (options.strategy) {
-        case "character":
-            return characterTextSplitter(text, options.maxTokens, options.chunkOverlap, options.separator);
-        case "recursiveCharacter":
-            return recursiveCharacterTextSplitter(text, options.maxTokens, options.chunkOverlap, options.separators);
-        case "markdown":
-            return markdownTextSplitter(text, options.maxTokens, options.chunkOverlap);
-        case "token":
-        default:
-            return tokenTextSplitter(text, options.maxTokens, options.chunkOverlap, options.encodingName, options.allowedSpecial, options.disallowedSpecial);
-    }
+    return chunks;
 }
 
 /**
