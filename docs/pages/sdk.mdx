@@ -178,6 +178,11 @@ print(data)
 #   },
 # ]
 ```
+
+Metadata filter is not yet available in the Python SDK, if you need it,
+[please reach out](https://discord.gg/3qXwZQ6Z)
+we are moving fast and can implement this in a few hours.
+
   </Tab>
 </Tabs>
 
@@ -381,6 +386,53 @@ print(data)
   </Tab>
 </Tabs>
 
+
+### Generating text
+
+Under the hood, generating text use OpenAI models. If you are interested in using
+other models, such as open-source ones, please contact us.
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```ts copy
+const data = await embedbase
+  .dataset('my-documentation')
+  .createContext('my-context')
+
+const question = 'How do I use Embedbase?'
+const prompt =
+`Based on the following context:\n${data.join('\n')}\nAnswer the user's question: ${question}`
+
+for await (const res of embedbase.generate(prompt)) {
+    console.log(res)
+    // You, can, use, ...
+}
+```
+
+You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
+
+```ts copy
+const history = [
+    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
+    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
+    {"role": "assistant", "content": "You can npm i embedbase-js, write two lines of code, and..."},
+    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
+]
+
+// ...
+for await (const res of embedbase.generate(prompt, {history})) {
+    console.log(res)
+    // You, need, to, query, Notion, API, like, so:, ...
+}
+```
+
+  </Tab>
+    <Tab>
+This is not yet available in the Python SDK, if you need it, [please reach out](https://discord.gg/3qXwZQ6Z)
+we are moving fast and can implement this in a few hours.
+
+  </Tab>
+</Tabs>
 
 ### Adding metadata
 
