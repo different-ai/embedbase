@@ -1,0 +1,143 @@
+---
+title: Learn to build a custom ChatGPT for your Notion database without code
+description: Learn to build a custom ChatGPT for your Notion database without code
+---
+
+import Image from 'next/image'
+import { Callout } from 'nextra-theme-docs'
+
+<Image src="/zapier-notion-demo.gif" width={800} height={500} />
+
+Today we're going to learn how to build a custom ChatGPT that can answer questions
+about your recruiting tracker database that you store in Notion.
+
+ChatGPT is a game-changer, but it doesn't have any knowledge about your company, your product, or your data. Embedbase makes it easy for you to connect your data to ChatGPT.
+
+## Overview
+
+We're going to cover a few things here, but the big picture is that:{' '}
+
+1. We'll need to send our Notion database to Embedbase every time it changes
+2. We'll use Zapier to listen to new Notion database items and send them to Embedbase
+3. We'll use Embedbase dashboard to ask questions about our recruiting tracker database
+
+## Diving into the implementation
+
+As a reminder, we will create a **custom ChatGPT** that can answer questions about your recruiting tracker database that you store in Notion.
+
+### Creating a Notion database
+
+If you don't already have a Notion database, let's create one. Head to your Notion workspace.
+
+<Image src="/zapier-notion-click-templates.png" width={800} height={500} />
+
+Then click on "Templates" and search for "Recruiting".
+
+<Image src="/zapier-notion-search-recruiting.png" width={800} height={500} />
+
+
+### Creating a Zapier Zap
+
+Alright, now that we have a Notion database, let's create a Zapier Zap that will send new items to Embedbase.
+
+If you don't already have a Zapier account, you can create one for free [here](https://zapier.com/sign-up/).
+
+Once you have your account, go to the [Zapier dashboard](https://zapier.com/app/dashboard) and click on "Create Zap".
+
+<Image src="/zapier-create-zap.png" width={800} height={500} />
+
+#### Notion Trigger
+
+Let's find the Notion event that will trigger our Zap. Search for "Notion".
+
+<Image src="/zapier-search-notion.png" width={800} height={500} />
+
+Now select the "New Database Item" trigger.
+
+<Image src="/zapier-select-new-database-item.png" width={800} height={500} />
+
+You will need to connect your account to Zapier. Click on "Connect an Account".
+You need to give access to Zapier to the pages you want to use that contain the database.
+
+<Image src="/zapier-connect-account.png" width={800} height={500} />
+
+Now you should be able to select your database from the dropdown in the next step:
+
+<Image src="/zapier-select-database.png" width={800} height={500} />
+
+You should get some success message like this:
+
+<Image src="/zapier-success.png" width={800} height={500} />
+
+Awesome! You just created a Zap which triggers when a new Notion database item is created.
+
+#### Embedbase Action
+
+Now let's do something with this event data, like sending it to Embedbase,
+search for "Embedbase":
+
+<Image src="/zapier-search-embedbase.png" width={800} height={500} />
+
+Choose the "Add Document" action.
+
+<Image src="/zapier-select-add-document.png" width={800} height={500} />
+
+You need to connect your Embedbase account by adding your Embedbase API key, you can find it in the [Embedbase dashboard](https://app.embedbase.xyz/dashboard).
+
+<Image src="/zapier-add-api-key.png" width={800} height={500} />
+
+<Image src="/copy-api-key.png" width={800} height={500} />
+
+The most important step here is to add the right information from this Notion database item to Embedbase. We'll need to add the following:
+
+<Image src="/zapier-add-document.png" width={800} height={500} />
+
+<Callout type="info" emoji="ℹ️">
+  Note that `path` as a metadata key is a best practice in Embedbase as a way to let ChatGPT provide links to what he says, like and URL or a path to a file.
+  Here ChatGPT will be able to point you to your Notion pages in his answers.
+</Callout>
+
+You can now test your Zap and see if it works.
+
+<Image src="/zapier-notion-publish.png" width={800} height={500} />
+
+#### Importing existing data
+
+Let's import existing data:
+
+<Image src="/zapier-notion-import-existing-data-one.png" width={800} height={500} />
+<Image src="/zapier-notion-import-existing-data-two.png" width={800} height={500} />
+<Image src="/zapier-notion-import-existing-data-three.png" width={800} height={500} />
+
+Now, head to [Embedbase dashboard](https://app.embedbase.xyz/dashboard) and you should see your documents.
+
+<Image src="/zapier-notion-dashboard-click-dataset.png" width={800} height={500} />
+<Image src="/zapier-notion-explorer.png" width={800} height={500} />
+
+#### Try the playground
+
+The final result, head to the playground and select your Notion dataset and ask a question:
+
+<Image src="/zapier-notion-demo.gif" width={800} height={500} />
+
+## Closing thoughts
+
+In summary, we have:
+
+- created a Notion database
+- created a Zapier Zap that sends new Notion database items to Embedbase
+- asked questions to our recruiting tracker database
+
+Note here that we imported the existing data, but every time you will add a new item to your Notion database, it will be automatically sent to Embedbase.
+
+That's it for today, you just learned how to use Zapier to connect any data source to Embedbase.
+
+If you liked this blog post, leave a star ⭐️ on https://github.com/different-ai/embedbase, we are also eager for feedback ❤️. If you want to self-host it, please [book a demo](https://cal.com/potato/20min) 😁.
+Please feel free to contact us for any help or join the [Embedbase Discord](https://discord.gg/pMNeuGrDky) if you have any questions.
+
+ChatGPT is a game-changer, but it doesn't have any knowledge about your company, your product, or your data. Embedbase makes it easy for you to connect your data to ChatGPT.
+
+## Where to go from here
+
+Now that all your Notion data is in Embedbase, you can also build experiences programmatically with the Embedbase API and SDKs,
+check out the [Embedbase SDKs documentation](https://docs.embedbase.xyz/sdk).
