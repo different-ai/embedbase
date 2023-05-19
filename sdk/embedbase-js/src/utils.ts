@@ -1,4 +1,4 @@
-import http, { IncomingMessage, ClientRequest } from "http";
+import http, { ClientRequest, IncomingMessage } from "http";
 import https from "https";
 import { getEnv } from "./env";
 import { Fetch } from "./types";
@@ -131,7 +131,7 @@ async function* streamFetch(
  * @param headers 
  * @returns 
  */
-export async function* stream (url: string, body: string, headers: { [key: string]: string }) {
+export async function* stream(url: string, body: string, headers: { [key: string]: string }) {
   if (getEnv() === "node") {
     yield* streamHttp(url, body, headers)
   } else {
@@ -141,8 +141,119 @@ export async function* stream (url: string, body: string, headers: { [key: strin
 
 export const getFetch = (): Fetch => {
   if (getEnv() === "node") {
-    // return import('cross-fetch').then((f) => f.default)
     return require("cross-fetch").default
   }
   return fetch
 }
+
+
+export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
+  private generator: AsyncGenerator<T>;
+  constructor(asyncGenerator: AsyncGenerator<T>) {
+    this.generator = asyncGenerator;
+  }
+
+  // Standard methods for AsyncIterableIterator
+  async next(): Promise<IteratorResult<T>> {
+    return await this.generator.next();
+  }
+
+  [Symbol.asyncIterator](): AsyncIterableIterator<T> {
+    return this;
+  }
+
+  async return?(value?: T): Promise<IteratorResult<T, any>> {
+    return await this.generator.return(value);
+  }
+
+  async throw?(e?: any): Promise<IteratorResult<T>> {
+    return await this.generator.throw(e);
+  }
+
+  /**
+   * **Example**
+   * ```ts
+   * await generator.map((value) => value + 1)
+   * ```
+   * @param fn 
+   * @returns 
+   */
+  async map<U>(fn: (value: T) => U): Promise<Array<U>> {
+    const result: Array<U> = [];
+    let iterator = await this.generator.next();
+    while (!iterator.done) {
+      result.push(fn(iterator.value));
+      iterator = await this.generator.next();
+    }
+    return result;
+  }
+
+  /**
+   * **Example**
+   * ```ts
+   * await generator.filter((value) => value > 10)
+   * ```
+   * @param fn 
+   * @returns 
+   */
+  async filter(fn: (value: T) => boolean): Promise<Array<T>> {
+    const result: Array<T> = [];
+    let iterator = await this.generator.next();
+    while (!iterator.done) {
+      if (fn(iterator.value)) {
+        result.push(iterator.value);
+      }
+      iterator = await this.generator.next();
+    }
+    return result;
+  }
+
+  /**
+   * **Example**
+   * ```ts
+   * await generator.forEach((value) => console.log(value))
+   * ```
+   * @param fn 
+   * @returns 
+   */
+  async forEach(fn: (value: T) => void): Promise<void> {
+    let iterator = await this.generator.next();
+    while (!iterator.done) {
+      fn(iterator.value);
+      iterator = await this.generator.next();
+    }
+  }
+
+  /**
+   * **Example**
+   * ```ts
+   * await generator.batch(100).map((b) => console.log('do something with batch of 100 here'))
+   * ```
+   * 
+   * Returns a CustomAsyncGenerator of batches of size `batchSize`
+   * @param batchSize 
+   * @param fn 
+   */
+  batch(batchSize: number): CustomAsyncGenerator<Array<T>> {
+    return new CustomAsyncGenerator(this.batchGenerator(batchSize));
+  }
+
+  private async *batchGenerator(batchSize: number): AsyncGenerator<Array<T>> {
+    let batch: Array<T> = [];
+    let iterator = await this.generator.next();
+    while (!iterator.done) {
+      batch.push(iterator.value);
+      if (batch.length === batchSize) {
+        yield batch;
+        batch = [];
+      }
+      iterator = await this.generator.next();
+    }
+
+    // If there are any leftover items in the batch, yield them as well.
+    if (batch.length > 0) {
+      yield batch;
+    }
+  }
+} 
+

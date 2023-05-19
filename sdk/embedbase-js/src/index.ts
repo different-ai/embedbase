@@ -14,5 +14,5 @@ export const createClient = (embedbaseUrl: string, embedbaseKey?: string) => {
   return new EmbedbaseClient(embedbaseUrl, embedbaseKey)
 }
 
-export { merge, splitText, splitTextGenerator } from './split'
+export { merge, splitText } from './split'
 

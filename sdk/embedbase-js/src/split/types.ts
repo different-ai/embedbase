@@ -7,12 +7,12 @@ export interface SplitTextChunk {
     end: number
 }
 export interface MergeOptions {
-    maxLen?: number
+    chunkSize?: number
     encodingName?: TiktokenEncoding
     separator?: string
 }
 export type SplitTextOptions = {
-    maxTokens?: number;
+    chunkSize?: number;
     chunkOverlap?: number;
     strategy?: string;
     separator?: string;

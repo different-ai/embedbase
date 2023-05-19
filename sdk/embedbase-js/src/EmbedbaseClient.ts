@@ -5,14 +5,12 @@ import type {
   ClientContextData,
   ClientDatasets,
   ClientSearchData,
-  EmbedbaseClientOptions,
-  Fetch,
   GenerateOptions,
   Metadata,
   SearchData,
-  SearchOptions,
+  SearchOptions
 } from './types';
-import { camelize, getFetch, stream } from './utils';
+import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
 
 let fetch = getFetch();
 
@@ -180,7 +178,7 @@ export default class EmbedbaseClient {
     return data
   }
 
-  public async * generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string> {
+  public generate(prompt: string, options?: GenerateOptions): CustomAsyncGenerator<string> {
     const url = 'https://app.embedbase.xyz/api/chat'
 
     options = options || {
@@ -198,16 +196,22 @@ export default class EmbedbaseClient {
       }
     }
 
-    for await (const res of stream(
-      url,
-      JSON.stringify({
-        prompt,
-        system,
-        history: options?.history,
-      }),
-      this.headers,
-    )) {
-      yield res
-    }
+    const asyncGen = async function* (): AsyncGenerator<string> {
+      const streamGen = stream(
+        url,
+        JSON.stringify({
+          prompt,
+          system,
+          history: options?.history,
+        }),
+        this.headers,
+      );
+
+      for await (const res of streamGen) {
+        yield res;
+      }
+    }.bind(this);
+
+    return new CustomAsyncGenerator(asyncGen());
   }
 }
