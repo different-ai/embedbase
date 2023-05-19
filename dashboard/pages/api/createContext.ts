@@ -1,23 +1,10 @@
-import { createClient } from 'embedbase-js'
+import { createClient, merge } from 'embedbase-js'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 import { CreateContextResponse } from '../../utils/types'
-import { get_encoding } from '@dqbd/tiktoken'
 import * as Sentry from '@sentry/nextjs'
 
-export const merge = async (chunks: string[], maxLen = 1800) => {
-  let curLen = 0
-  const tokenizer = get_encoding('cl100k_base')
-
-  const context = []
-  for (const chunk of chunks) {
-    const nTokens = tokenizer.encode(chunk).length
-    curLen += nTokens + 4
-    if (curLen > maxLen) {
-      break
-    }
-    context.push(chunk)
-  }
-  return context.join('\n\n###\n\n')
+export const config = {
+  runtime: 'edge',
 }
 
 const createContext = async (
@@ -54,29 +41,35 @@ const createContext = async (
 }
 
 // 2. Get a context from a dataset
-export default async function buildPrompt(req: any, res: any) {
-  const prompt = req.body.prompt
+export default async function buildPrompt(req: Request, res: Response) {
+  const { prompt, datasetIds, apiKey } = await req.json()
   if (!prompt) {
-    res.status(400).json({ error: 'No prompt' })
-    return
+    return new Response(JSON.stringify({ error: 'No prompt' }), {
+      status: 400,
+    })
   }
-  const datasetIds = req.body.datasetIds
   if (!datasetIds) {
-    res.status(400).json({ error: 'No datasetIds' })
-    return
+    return new Response(JSON.stringify({ error: 'No datasetIds' }), {
+      status: 400,
+    })
   }
 
-  const apiKey = req.body.apiKey
   if (!apiKey) {
-    res.status(400).json({ error: 'No apiKey' })
-    return
+    return new Response(JSON.stringify({ error: 'No apiKey' }), {
+      status: 400,
+    })
   }
 
   try {
     const context = await createContext(prompt, datasetIds, apiKey)
-    res.status(200).json(context)
+    return new Response(JSON.stringify(context), {
+      status: 200,
+    })
   } catch (error) {
+    console.error(error)
     Sentry.captureException(error)
-    res.status(500).json({ error: error.message })
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+    })
   }
 }
