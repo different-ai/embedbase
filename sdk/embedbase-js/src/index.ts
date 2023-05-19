@@ -1,13 +1,11 @@
 import EmbedbaseClient from './EmbedbaseClient'
+import { EmbedbaseClientOptions } from './types'
 
 export { default as EmbedbaseClient } from './EmbedbaseClient'
 export type {
-  BatchAddDocument,
-  SearchOptions,
-  ClientSearchData,
-  ClientAddData,
+  BatchAddDocument, ClientAddData,
   ClientContextData,
-  ClientDatasets,
+  ClientDatasets, ClientSearchData, SearchOptions
 } from './types'
 /**
  * Creates a new Embedbase Client.
@@ -15,4 +13,6 @@ export type {
 export const createClient = (embedbaseUrl: string, embedbaseKey?: string) => {
   return new EmbedbaseClient(embedbaseUrl, embedbaseKey)
 }
+
+export { merge, splitText } from './split'
 

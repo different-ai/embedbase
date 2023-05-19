@@ -1,18 +1,18 @@
-import fetch from 'cross-fetch'
 import type {
   AddData,
+  BatchAddDocument,
   ClientAddData,
   ClientContextData,
-  ClientSearchData,
-  Fetch,
-  SearchData,
-  SearchOptions,
-  BatchAddDocument,
   ClientDatasets,
-  Metadata,
+  ClientSearchData,
   GenerateOptions,
-} from './types'
-import { camelize, stream } from './utils'
+  Metadata,
+  SearchData,
+  SearchOptions
+} from './types';
+import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
+
+let fetch = getFetch();
 
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
@@ -20,7 +20,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
     private dataset: string,
     private query: string,
     private options: SearchOptions = {}
-  ) {}
+  ) { }
 
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
@@ -48,7 +48,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
 
   where(field: string, operator: string, value: any): SearchBuilder {
     // this.options.where = { [field]: { [operator]: value } };
-    this.options.where = { };
+    this.options.where = {};
     this.options.where[field] = value;
     return this;
   }
@@ -67,7 +67,6 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
  * An typescript library to interact with Embedbase
  */
 export default class EmbedbaseClient {
-  protected fetch?: Fetch
   public embedbaseApiUrl: string
   protected embedbaseApiKey: string
 
@@ -80,7 +79,10 @@ export default class EmbedbaseClient {
    * @param embedbaseUrl The unique Embedbase URL which is supplied when you create a new project in your project dashboard.
    * @param embedbaseKey The unique Embedbase Key which is supplied when you create a new project in your project dashboard.
    */
-  constructor(protected embedbaseUrl: string, protected embedbaseKey?: string) {
+  constructor(
+    protected embedbaseUrl: string,
+    protected embedbaseKey?: string,
+  ) {
     if (!embedbaseUrl) throw new Error('embedbaseUrl is required.')
     // if url is embedbase cloud (https://api.embedbase.xyz) and no key is provided, throw error
     if (embedbaseUrl === 'https://api.embedbase.xyz' && !embedbaseKey) {
@@ -176,7 +178,7 @@ export default class EmbedbaseClient {
     return data
   }
 
-  public async * generate(prompt: string, options?: GenerateOptions): AsyncGenerator<string> {
+  public generate(prompt: string, options?: GenerateOptions): CustomAsyncGenerator<string> {
     const url = 'https://app.embedbase.xyz/api/chat'
 
     options = options || {
@@ -194,16 +196,22 @@ export default class EmbedbaseClient {
       }
     }
 
-    for await (const res of stream(
-      url,
-      JSON.stringify({ 
-        prompt,
-        system,
-        history: options?.history,
-      }),
-      this.headers,
-    )) {
-      yield res
-    }
+    const asyncGen = async function* (): AsyncGenerator<string> {
+      const streamGen = stream(
+        url,
+        JSON.stringify({
+          prompt,
+          system,
+          history: options?.history,
+        }),
+        this.headers,
+      );
+
+      for await (const res of streamGen) {
+        yield res;
+      }
+    }.bind(this);
+
+    return new CustomAsyncGenerator(asyncGen());
   }
 }

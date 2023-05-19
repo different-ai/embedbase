@@ -4,14 +4,14 @@
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
-    "module": "CommonJS",
     "outDir": "dist/main",
     "rootDir": "src",
     "sourceMap": true,
     "target": "ES2015",
-
+    "resolveJsonModule": true,
     "strict": false,
-
+    "module": "commonjs",
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "forceConsistentCasingInFileNames": true,

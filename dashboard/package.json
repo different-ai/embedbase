@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.4.4",
-    "@dqbd/tiktoken": "^1.0.4",
+    "@dqbd/tiktoken": "^1.0.7",
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",
     "@sentry/nextjs": "^7.46.0",
@@ -18,7 +18,7 @@
     "@supabase/auth-helpers-nextjs": "^0.5.6",
     "@supabase/auth-helpers-react": "^0.3.1",
     "@supabase/auth-ui-react": "^0.3.5",
-    "embedbase-js": "^1.8.1",
+    "embedbase-js": "1.11.0",
     "eslint": "8.29.0",
     "eslint-config-next": "13.0.7",
     "eventsource-parser": "^0.1.0",

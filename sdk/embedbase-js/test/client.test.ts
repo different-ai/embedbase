@@ -1,5 +1,6 @@
 import { createClient } from '../src/index'
-
+import {it, describe, expect, jest, test} from '@jest/globals';
+import { stream as originalStream } from '../src/utils'
 
 try {
   require('dotenv').config({ path: './.env' })
@@ -208,10 +209,17 @@ test('should be able to chat', async () => {
   }
 }, 10000)
 
-
-
-import { stream as originalStream } from '../src/utils'
-
+test('should be able to chat with map, foreach etc', async () => {
+  const outputs = await embedbase.generate('hello').map((res) => res)
+  expect(outputs).toBeDefined()
+  const noHello = await embedbase.generate('hello').filter((res) => res !== 'hello')
+  expect(noHello).toBeDefined()
+  const aListOfHellos = await embedbase.generate('hello').batch(10).map((res) => res)
+  expect(aListOfHellos).toBeInstanceOf(Array)
+  let lastMessage = ''
+  await embedbase.generate('hello').forEach((res) => lastMessage = res)
+  expect(lastMessage).toBeDefined()
+}, 30000)
 
 
 const errorStatusCodes = [500, 401, 402];

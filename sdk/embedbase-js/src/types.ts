@@ -1,5 +1,9 @@
 export type Fetch = typeof fetch
 
+export interface EmbedbaseClientOptions {
+  browser: boolean
+}
+
 export interface BatchAddDocument {
   data: string
   metadata?: Metadata
