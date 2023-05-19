@@ -31,15 +31,6 @@
     ],
     "@semantic-release/commit-analyzer",
     [
-      "@semantic-release/release-notes-generator",
-      {
-        "config": {
-          "preset": "angular",
-          "commitPath": "sdk/embedbase-js/**"
-        }
-      }
-    ],
-    [
       "@semantic-release/github",
       {
         "successComment": false,
