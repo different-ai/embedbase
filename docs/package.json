@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "sync": "npx tsx ./scripts/sync.ts",
-    "clear": "node scripts/clear.js"
+    "clear": "node scripts/clear.js",
+    "postbuild": "next-sitemap"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
     "embedbase-js": "^1.7.9",
     "eventsource-parser": "^0.1.0",
     "next": "^13.2.4",
+    "next-sitemap": "^4.1.3",
     "nextra": "^2.3.0",
     "nextra-theme-docs": "^2.3.0",
     "openai": "3.2",
