@@ -11,7 +11,7 @@ import { splitText } from 'embedbase-js/dist/main/split';
 
 const text = `some very long text`
 
-splitText(text, { maxTokens: 500, }, async ({chunk}) => {
+splitText(text).forEach(async ({chunk, start, end}) => {
     // do whatever you want with the chunks
     // in this case we sent it to https://embedbase.xyz
     const data = await embedbase.dataset('some-data-set').add(chunk)

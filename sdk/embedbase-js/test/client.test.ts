@@ -94,7 +94,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data).toHaveLength(10)
-  })
+  }, 30000)
 
   test('should return an array of similarities', async () => {
     const embedbase = createClient(URL, KEY)
@@ -123,7 +123,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data[0]).toHaveProperty('metadata')
-  })
+  }, 30000)
 
   // this is not striclty to just a simplification for our tests
   test('should use return equal element of top_k', async () => {
