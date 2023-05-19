@@ -1,7 +1,7 @@
 import { getGithubContent, getRepoName } from "@/lib/github";
 import { batch } from "@/utils/array";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
-// import { BatchAddDocument, createClient, splitText } from "embedbase-js";
+import { BatchAddDocument, createClient, splitText } from "embedbase-js";
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
@@ -43,7 +43,11 @@ const getApiKey = async (req: Request, res: Response) => {
 }
 
 // 1. Sync all the docs from a github repo onto embedbase
-export default async function sync(req: Request, res: Response) {
+export default async function sync(
+  req: Request, res: Response,
+  // TODO undefined, IDK check https://github.com/orgs/vercel/discussions/1947
+  context: any,
+) {
   const body = await req.json()
   const url = body.url
   const startTime = Date.now();
@@ -58,32 +62,37 @@ export default async function sync(req: Request, res: Response) {
       status: 400,
     })
   }
-  // const embedbase = createClient(EMBEDBASE_URL, apiKey, { browser: true });
+  const embedbase = createClient(EMBEDBASE_URL, apiKey);
 
   console.log(`Syncing ${url}...`);
-  const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
-  const repo = getRepoName(url);
-  console.log(`Found ${githubFiles.length} files in ${repo}`);
 
-  // HACK to create dataset
-  // await embedbase.dataset(repo).add('.');
+  const longTask = async () => {
+    const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
+    const repo = getRepoName(url);
+    console.log(`Found ${githubFiles.length} files in ${repo}`);
 
-  // const chunks: BatchAddDocument[] = [];
-  // // TODO this is quite ugly
-  // await Promise.all(githubFiles
-  //   // ignore chunks containing <|endoftext|>
-  //   // because it crashes the tokenizer
-  //   .filter((file) => !file.content.includes("<|endoftext|>"))
-  //   .map((file) =>
-  //     splitText(file.content).then((c) =>
-  //       c.map(({ chunk }) => chunks.push({
-  //         data: chunk,
-  //         metadata: file.metadata,
-  //       })
-  //       )
-  //     )));
-  // await batch(chunks, (chunk) => embedbase.dataset(repo).batchAdd(chunk))
-  // console.log(`Synced ${chunks.length} docs from ${repo} in ${Date.now() - startTime}ms`)
+    // HACK to create dataset
+    await embedbase.dataset(repo).add('.');
+
+    const chunks: BatchAddDocument[] = [];
+    await Promise.all(githubFiles
+      // ignore chunks containing <|endoftext|>
+      // because it crashes the tokenizer
+      .filter((file) => !file.content.includes("<|endoftext|>"))
+      .map((file) =>
+        splitText(file.content).map(({ chunk }) => chunks.push({
+          data: chunk,
+          metadata: file.metadata,
+        }))
+      )
+    );
+    await batch(chunks, (chunk) => embedbase.dataset(repo).batchAdd(chunk))
+    console.log(`Synced ${chunks.length} docs from ${repo} in ${Date.now() - startTime}ms`)
+  }
+
+  // keep running in background but return instant response to client
+  context.waitUntil(longTask())
+
   return new Response(JSON.stringify({ message: 'Syncing' }), {
     status: 200,
   })
