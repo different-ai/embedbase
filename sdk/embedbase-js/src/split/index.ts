@@ -106,7 +106,7 @@ export function splitText(text: string, options?: SplitTextOptions): CustomAsync
 
 /**
  * This function takes a list of `chunks` and optional parameters `chunkSize`, `encodingName`, and `separator`.
- * It encodes each chunk using the specified tokenizer, checks if the current length exceeds the `max_len`,
+ * It encodes each chunk using the specified tokenizer, checks if the current length exceeds the `chunkSize`,
  * breaks if it does, and appends the chunk to the `context` list.
  * Finally, it joins the context list with the specified separator
  * (default is '\\n\\n###\\n\\n') and returns the merged string.
