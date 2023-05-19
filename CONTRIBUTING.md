@@ -6,7 +6,7 @@
 
 * Embeddings
   - [x] [openai embeddings](https://platform.openai.com/docs/guides/embeddings)
-  - [ ] [cohere embeddings](https://cohere.ai/embed)
+  - [x] [cohere embeddings](https://cohere.ai/embed)
   - [ ] [Google PaLM embeddings](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
   - [x] local (BERT, LLaMa, Vicuna, etc.)
 * Vector database
@@ -115,6 +115,8 @@ make release
 #### Embedbase Javascript SDK
 
 For the Javascript SDK, just push to main, we use semantic-release to automatically release when a change has been made to the main branch.
+
+We use https://semantic-release.gitbook.io/semantic-release/ under the hood.
 
 #### Embedbase Hosted
 
