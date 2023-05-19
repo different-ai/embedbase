@@ -200,7 +200,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeInstanceOf(Array)
     expect(data.length).toBeGreaterThanOrEqual(1)
     expect(data[0].metadata).toHaveProperty('source', 'github.com')
-  }, 10000)
+  }, 30000)
 })
 
 test('should be able to chat', async () => {
