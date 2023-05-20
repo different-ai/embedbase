@@ -1,9 +1,19 @@
 {
   "tagFormat": "js-${version}",
   "branches": [
-    { "name": "main" },
-    { "name": "next", "channel": "next", "prerelease": true },
-    { "name": "rc", "channel": "rc", "prerelease": true }
+    {
+      "name": "main"
+    },
+    {
+      "name": "next",
+      "channel": "next",
+      "prerelease": true
+    },
+    {
+      "name": "rc",
+      "channel": "rc",
+      "prerelease": true
+    }
   ],
   "plugins": [
     [
@@ -20,7 +30,6 @@
       }
     ],
     "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
     [
       "@semantic-release/github",
       {

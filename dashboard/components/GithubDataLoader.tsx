@@ -38,9 +38,10 @@ export function GithubDataLoader() {
 
     const handleUpload = async ({ githubRepo }: FieldValues) => {
         console.log('indexing', githubRepo)
+        const url = githubRepo
         // empty the input
-        setValue('githubRepo', '')
-        const datasetId = getRepoName(githubRepo);
+        // setValue('githubRepo', '')
+        const datasetId = getRepoName(url);
         toast.success(`Adding repository to embedbase in dataset ${datasetId}`, {
             position: 'bottom-center',
             duration: 5000
@@ -50,20 +51,18 @@ export function GithubDataLoader() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url: githubRepo }),
-        }).catch((err) => toast.error('Error adding repository to embedbase'))
+            body: JSON.stringify({ url: url }),
+        }).catch((err) => {
+            console.log('err', err)
+            toast.error('Error adding repository to embedbase')
+        })
         push(`/dashboard/playground?datasetId=${datasetId}&new=true`)
     }
     const isSubmitDisabled = !watch('githubRepo') || !isRepositoryValid || isLoading
 
     return (
         <div className="flex flex-col gap-3">
-            <p className="text-gray-500 text-sm sm:col-span-2 sm:mt-0">
-                Import data without code. Drop a public GitHub repository
-                URL in the bar.
 
-                We will automatically import this repository into a dataset in Embedbase.
-            </p>
             <form className="w-full" onSubmit={handleSubmit(handleUpload)}>
                 <div className="relative mt-1 rounded-md gap-3">
                     <div className="flex gap-3">

@@ -1,16 +1,19 @@
 import { getGithubContent, getRepoName } from "@/lib/github";
-import { createClient } from "embedbase-js";
-import { BatchAddDocument } from "embedbase-js/dist/module/types";
-import { splitText } from "embedbase-js/dist/main/split";
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { batch } from "@/utils/array";
+import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { BatchAddDocument, createClient, splitText } from "embedbase-js";
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
 
-const getApiKey = async (req, res) => {
+export const config = {
+  runtime: 'edge'
+}
+
+const getApiKey = async (req: Request, res: Response) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient({ req, res });
+  // @ts-ignore
+  const supabase = createMiddlewareSupabaseClient({ req, res });
   // Check if we have a session
   const {
     data: { session },
@@ -40,8 +43,13 @@ const getApiKey = async (req, res) => {
 }
 
 // 1. Sync all the docs from a github repo onto embedbase
-export default async function sync(req: any, res: any) {
-  const url = req.body.url;
+export default async function sync(
+  req: Request, res: Response,
+  // TODO undefined, IDK check https://github.com/orgs/vercel/discussions/1947
+  context: any,
+) {
+  const body = await req.json()
+  const url = body.url
   const startTime = Date.now();
   const apiKey = await getApiKey(req, res)
   if (!apiKey) {
@@ -49,33 +57,43 @@ export default async function sync(req: any, res: any) {
       status: 401,
     })
   }
+  if (!url) {
+    return new Response(JSON.stringify({ error: 'No URL provided' }), {
+      status: 400,
+    })
+  }
   const embedbase = createClient(EMBEDBASE_URL, apiKey);
-  const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
-  const repo = getRepoName(url);
 
-  // HACK to create dataset
-  await embedbase.dataset(repo).add('');
+  console.log(`Syncing ${url}...`);
 
-  const chunks: BatchAddDocument[] = [];
-  githubFiles.forEach((file) =>
-    // ignore chunks containing <|endoftext|>
-    // because it crashes the tokenizer
-    !file.content.includes("<|endoftext|>") &&
-    splitText(
-      file.content,
-      { maxTokens: 500, chunkOverlap: 200 },
-      ({ chunk }) =>
+  const longTask = async () => {
+    const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
+    const repo = getRepoName(url);
+    console.log(`Found ${githubFiles.length} files in ${repo}`);
 
-        chunks.push({
+    // HACK to create dataset
+    await embedbase.dataset(repo).add('.');
+
+    const chunks: BatchAddDocument[] = [];
+    await Promise.all(githubFiles
+      // ignore chunks containing <|endoftext|>
+      // because it crashes the tokenizer
+      .filter((file) => !file.content.includes("<|endoftext|>"))
+      .map((file) =>
+        splitText(file.content).map(({ chunk }) => chunks.push({
           data: chunk,
           metadata: file.metadata,
-        })
-    ));
-  await batch(chunks, (chunk) => embedbase.dataset(repo).batchAdd(chunk))
-  console.log(`Synced ${chunks.length} docs from ${repo} in ${Date.now() - startTime}ms`)
+        }))
+      )
+    );
+    await batch(chunks, (chunk) => embedbase.dataset(repo).batchAdd(chunk))
+    console.log(`Synced ${chunks.length} docs from ${repo} in ${Date.now() - startTime}ms`)
+  }
+
+  // keep running in background but return instant response to client
+  context.waitUntil(longTask())
+
   return new Response(JSON.stringify({ message: 'Syncing' }), {
     status: 200,
   })
-  // .catch((error) => res.status(500).json({ error: error }))
-  // .then(() => res.status(200));
 }

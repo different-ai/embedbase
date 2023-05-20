@@ -9,7 +9,7 @@ For any help or assistance with deployment, [book a demo](https://cal.com/potato
 
 First, install Embedbase Python package and [Uvicorn](https://www.uvicorn.org/) to run it:
 
-```bash
+```bash copy
 pip install embedbase uvicorn
 ```
 
@@ -17,13 +17,13 @@ pip install embedbase uvicorn
 
 Run Postgres in Docker:
 
-```bash
+```bash copy
 docker run --name postgres -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
 ```
 
 Basic entrypoint that uses Postgres & OpenAI ([get your key](https://platform.openai.com/account/api-keys)):
 
-```py filename="main.py"
+```py filename="main.py" copy
 import os
 from embedbase import get_app
 from embedbase.database.postgres_db import Postgres
@@ -34,7 +34,7 @@ app = get_app().use_db(Postgres()).use_embedder(OpenAI("<your key>")).run()
 
 Run:
 
-```bash
+```bash copy
 uvicorn main:app
 ```
 
@@ -42,7 +42,7 @@ uvicorn main:app
 
 Basic entrypoint that uses Supabase & OpenAI ([get your key](https://platform.openai.com/account/api-keys)):
 
-```py filename="main.py"
+```py filename="main.py" copy
 import os
 from embedbase import get_app
 from embedbase.database.supabase_db import Supabase

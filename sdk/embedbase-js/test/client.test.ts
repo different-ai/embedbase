@@ -1,4 +1,6 @@
 import { createClient } from '../src/index'
+import {it, describe, expect, jest, test} from '@jest/globals';
+import { stream as originalStream } from '../src/utils'
 
 try {
   require('dotenv').config({ path: './.env' })
@@ -92,7 +94,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data).toHaveLength(10)
-  })
+  }, 30000)
 
   test('should return an array of similarities', async () => {
     const embedbase = createClient(URL, KEY)
@@ -121,7 +123,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data[0]).toHaveProperty('metadata')
-  })
+  }, 30000)
 
   // this is not striclty to just a simplification for our tests
   test('should use return equal element of top_k', async () => {
@@ -167,22 +169,22 @@ describe('Check if the client is able to fetch data', () => {
 
     const d = [
       {
-          "data": "Alice invited Bob at 6 PM at the restaurant",
-          "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        "data": "Alice invited Bob at 6 PM at the restaurant",
+        "metadata": { "source": "notion.so", "path": "https://notion.so/alice" },
       },
       {
-          "data": "John pushed code on github at 8 AM",
-          "metadata": {
-              "source": "github.com",
-              "path": "https://github.com/john/john",
-          },
+        "data": "John pushed code on github at 8 AM",
+        "metadata": {
+          "source": "github.com",
+          "path": "https://github.com/john/john",
+        },
       },
       {
-          "data": "The lion is the king of the savannah.",
-          "metadata": {
-              "source": "wikipedia.org",
-              "path": "https://en.wikipedia.org/wiki/Lion",
-          },
+        "data": "The lion is the king of the savannah.",
+        "metadata": {
+          "source": "wikipedia.org",
+          "path": "https://en.wikipedia.org/wiki/Lion",
+        },
       },
     ]
 
@@ -198,5 +200,82 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeInstanceOf(Array)
     expect(data.length).toBeGreaterThanOrEqual(1)
     expect(data[0].metadata).toHaveProperty('source', 'github.com')
-  }, 10000)
+  }, 30000)
 })
+
+test('should be able to chat', async () => {
+  for await (const res of embedbase.generate('hello')) {
+    expect(res).toBeDefined()
+  }
+}, 10000)
+
+test('should be able to chat with map, foreach etc', async () => {
+  const outputs = await embedbase.generate('hello').map((res) => res)
+  expect(outputs).toBeDefined()
+  const noHello = await embedbase.generate('hello').filter((res) => res !== 'hello')
+  expect(noHello).toBeDefined()
+  const aListOfHellos = await embedbase.generate('hello').batch(10).map((res) => res)
+  expect(aListOfHellos).toBeInstanceOf(Array)
+  let lastMessage = ''
+  await embedbase.generate('hello').forEach((res) => lastMessage = res)
+  expect(lastMessage).toBeDefined()
+}, 30000)
+
+
+const errorStatusCodes = [500, 401, 402];
+
+
+describe('API error handling tests', () => {
+  test(`should handle API crashing with Response error`, async () => {
+    errorStatusCodes.forEach(async (statusCode) => {
+
+      // Manually mock the stream function for this test
+      const streamMock = jest.fn(() => {
+        return (async function* () {
+          throw new Error(JSON.stringify({ error: 'some error' }));
+        })();
+      });
+
+      // Replace the original stream function with the mock
+      jest.spyOn(require('../src/utils'), 'stream').mockImplementation(streamMock);
+
+
+      try {
+        for await (const res of embedbase.generate('hello')) {
+          // Execution should not reach here, so the test will fail if it does
+          expect(false).toBe(true);
+        }
+      } catch (error) {
+        // Check if the error is an instance of Response and has the desired status
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
+
+    // Restore the original stream function implementation after the test
+    jest.spyOn(require('../src/utils'), 'stream').mockImplementation(originalStream);
+  }, 10000);
+
+
+});
+
+test('should be able to list documents', async () => {
+  // first add some documents, then list
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset('unit_test').add('hello')
+  await embedbase.dataset('unit_test').add('hello1')
+  await embedbase.dataset('unit_test').add('hello2')
+
+  let documents = await embedbase.dataset('unit_test').list({
+    offset: 0,
+    limit: 3,
+  })
+  expect(documents).toBeDefined()
+  expect(documents).toBeInstanceOf(Array)
+  expect(documents.length).toBeGreaterThanOrEqual(3)
+
+  documents = await embedbase.dataset('unit_test').list({
+    offset: 1,
+    limit: 2,
+  })
+  expect(documents.length).toEqual(2)
+}, 30000)

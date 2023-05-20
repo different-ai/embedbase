@@ -11,18 +11,13 @@
   "bugs": "https://github.com/different-ai/embedbase/issues",
   "license": "MIT",
   "author": "Different AI",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "./split": {
-    "types": "dist/module/split/index.d.ts",
-    "import": "dist/module/split/index.js",
-    "require": "dist/main/split/index.js"
-  },
   "main": "dist/main/index.js",
   "module": "dist/module/index.js",
   "types": "dist/module/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ],
   "sideEffects": false,
   "repository": "different-ai/embedbase",
   "scripts": {
@@ -38,11 +33,9 @@
     "docs": "typedoc --entryPoints src/index.ts --out docs/v1 --includes src/**/*.ts",
     "docs:json": "typedoc --entryPoints src/index.ts --includes src/**/*.ts --json docs/v1/spec.json --excludeExternals"
   },
-  "dependencies": {
-    "cross-fetch": "^3.1.5"
-  },
   "optionalDependencies": {
-    "@dqbd/tiktoken": "^1.0.2"
+    "js-tiktoken": "^1.0.6",
+    "cross-fetch": "^3.1.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",

@@ -1,11 +1,14 @@
-import asyncio
-import json
 from typing import List, Optional
+
+import asyncio
 import itertools
+import json
+
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
 from embedbase.database.base import Dataset, SearchResponse, SelectResponse
+from embedbase.models import Document
 
 
 class Postgres(VectorDatabase):
@@ -149,9 +152,13 @@ where
                     conditions.append(
                         sql.SQL("user_id = {}").format(sql.Literal(user_id))
                     )
-                return list(self.conn.execute(
-                    sql.SQL(query).format(conditions=sql.SQL(" and ").join(conditions))
-                ))
+                return list(
+                    self.conn.execute(
+                        sql.SQL(query).format(
+                            conditions=sql.SQL(" and ").join(conditions)
+                        )
+                    )
+                )
             except Exception as e:
                 raise e
 
@@ -160,14 +167,10 @@ where
         docs = []
         if ids:
             elements = [ids[i : i + n] for i in range(0, len(ids), n)]
-            docs = await asyncio.gather(
-                *[_fetch(e, []) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch(e, []) for e in elements])
         else:
             elements = [hashes[i : i + n] for i in range(0, len(hashes), n)]
-            docs = await asyncio.gather(
-                *[_fetch([], e) for e in elements]
-            )
+            docs = await asyncio.gather(*[_fetch([], e) for e in elements])
         return [
             SelectResponse(
                 id=row[0],
@@ -200,6 +203,8 @@ where
                 user_id,
                 json.dumps(row.metadata),
             ]
+            # {'code': '22P05', 'details': '\\u0000 cannot be converted to text.', 'hint': None, 'message': 'unsupported Unicode escape sequence'}
+            row.data = row.data.replace("\x00", "")
             return data
 
         values = [tuple(_d(row)) for _, row in df.iterrows()]
@@ -245,10 +250,9 @@ where
         user_id: Optional[str] = None,
         where=None,
     ):
-
         d = {
             "query_embedding": str(vector),
-            "similarity_threshold": 0,  # TODO: make this configurable
+            "similarity_threshold": 0.0,  # TODO: make this configurable
             "match_count": top_k,
             "query_dataset_ids": dataset_ids,
         }
@@ -306,3 +310,12 @@ where
                 )
             )
         return data
+
+    async def list(
+        self,
+        dataset_id: str,
+        user_id: Optional[str] = None,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> List[Document]:
+        raise NotImplementedError

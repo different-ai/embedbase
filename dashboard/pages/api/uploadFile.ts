@@ -1,10 +1,8 @@
-import { createClient } from 'embedbase-js'
-import { BatchAddDocument } from 'embedbase-js/dist/module/types'
-import { splitText } from 'embedbase-js/dist/main/split'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { batch } from '@/utils/array'
-import fs from 'fs'
 import * as Sentry from '@sentry/nextjs'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { ClientAddData, createClient } from 'embedbase-js'
+import { splitText } from 'embedbase-js/dist/main/split'
+import fs from 'fs'
 import pdfParse from 'pdf-parse'
 
 import formidable from 'formidable'
@@ -17,6 +15,7 @@ export const config = {
   },
   // runtime: 'edge'
 }
+
 
 const getApiKey = async (req, res) => {
   // Create authenticated Supabase Client
@@ -86,33 +85,29 @@ export default async function sync(req: any, res: any) {
 
       try {
         console.log('PDF data:', file)
-        const metadata = {
+        const metadata: any = {
           name: file.originalFilename,
           mimeType: file.mimetype,
           lastModifiedDate: file.lastModifiedDate,
           size: file.size,
         }
         const pdfText = await pdfParse(pdfData)
+        // remove \\u0000 -> cannot be converted to text
+        const fixedPdf = pdfText.text.replace(/\u0000/g, '')
 
-        console.log('PDF Content:', pdfText.text)
+        console.log('PDF Content:', fixedPdf)
 
-        const chunks: BatchAddDocument[] = []
-        splitText(
-          pdfText.text,
-          { maxTokens: 500, chunkOverlap: 200 },
-          ({ chunk }) =>
-            chunks.push({
-              data: chunk,
-              metadata: metadata,
-            })
+        const promises: Promise<ClientAddData[]>[] = []
+        await splitText(fixedPdf).batch(100).forEach((batch) =>
+          promises.push(embedbase.dataset(datasetId).batchAdd(
+            batch.map((c) => ({ data: c.chunk, metadata: metadata }))
+          ))
         )
-        await batch(chunks, (chunk) =>
-          embedbase.dataset(datasetId).batchAdd(chunk),
-          300
-        )
+
+        await Promise.all(promises)
+
         console.log(
-          `Synced ${chunks.length} docs from ${datasetId} in ${
-            Date.now() - startTime
+          `Synced to ${datasetId} in ${Date.now() - startTime
           }ms`
         )
         res.status(200).json({ message: 'File uploaded successfully' })

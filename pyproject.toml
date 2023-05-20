@@ -4,14 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "embedbase"
-version = "1.1.4"
-description = "API, SDK & dashboard to easily create, store, and retrieve machine learning embeddings."
+version = "1.1.9"
+description = "Open-source API & SDK to integrate your data and easily hook them up to LLMs."
 readme = "README.md"
 authors = ["Different AI <louis@embedbase.xyz>"]
 license = "MIT"
 repository = "https://github.com/different-ai/embedbase"
 homepage = "https://github.com/different-ai/embedbase"
-keywords = ["embeddings", "machine learning", "artificial intelligence"]
+keywords = ["embeddings", "machine learning", "artificial intelligence", "llm"]
 
 classifiers = [
     "Development Status :: 4 - Beta",

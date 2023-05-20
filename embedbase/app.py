@@ -1,28 +1,26 @@
+from typing import Any, Awaitable, Callable, Optional, Tuple, Union
+
 import asyncio
-import os
-from typing import Awaitable, Callable, Optional, Tuple, Union
-from fastapi import FastAPI, Request, status
-from fastapi.middleware import Middleware
-from starlette.types import Scope
-from embedbase.database.base import VectorDatabase
-from embedbase.embedding.base import Embedder
-from embedbase.logging_utils import get_logger
-from embedbase.models import (
-    DeleteRequest,
-    SearchRequest,
-    AddRequest,
-    UpdateRequest,
-)
-from embedbase.utils import embedbase_ascii, get_user_id
-from embedbase.settings import Settings
+import datetime
 import hashlib
+import os
 import time
 import urllib.parse
 import uuid
+import warnings
 
+from fastapi import FastAPI, Request, status
+from fastapi.middleware import Middleware
 from fastapi.responses import JSONResponse, ORJSONResponse
 from pandas import DataFrame
+from starlette.types import Scope
 
+from embedbase.database.base import VectorDatabase
+from embedbase.embedding.base import Embedder
+from embedbase.logging_utils import get_logger
+from embedbase.models import AddRequest, DeleteRequest, SearchRequest, UpdateRequest
+from embedbase.settings import Settings
+from embedbase.utils import embedbase_ascii, get_user_id
 
 UPLOAD_BATCH_SIZE = int(os.environ.get("UPLOAD_BATCH_SIZE", "100"))
 
@@ -39,6 +37,16 @@ class Embedbase:
             default_response_class=ORJSONResponse,
         )
         self.logger = get_logger(settings)
+
+    def _base_return(self, dataset_id: Optional[str] = None) -> dict:
+        o = {
+            "id": uuid.uuid4().hex,
+            "created": int(datetime.datetime.now().timestamp()),
+        }
+        if dataset_id:
+            o["dataset_id"] = dataset_id
+
+        return o
 
     def use_db(
         self,
@@ -66,7 +74,9 @@ class Embedbase:
         self,
         plugin: Union[
             Middleware,
-            Callable[[Scope], Awaitable[Tuple[str, str]]],
+            Callable[
+                [Scope, Any, VectorDatabase, Embedder], Awaitable[Tuple[str, str]]
+            ],
         ],
         **kwargs,
     ) -> "Embedbase":
@@ -78,10 +88,10 @@ class Embedbase:
 
             @self.fastapi_app.middleware("http")
             async def middleware(request: Request, call_next):
-                return await plugin(request, call_next)
+                return await plugin(request, call_next, self.db, self.embedder)
 
         elif "CORSMiddleware" in str(plugin):
-            self.logger.info(f"Enabling CORSMiddleware")
+            self.logger.info("Enabling CORSMiddleware")
             self.fastapi_app.add_middleware(plugin, **kwargs)
         # check if has "dispatch" function
         elif "dispatch" in dir(plugin):
@@ -104,7 +114,12 @@ class Embedbase:
 
         await self.db.clear(dataset_id, user_id)
         self.logger.info("Cleared index")
-        return JSONResponse(status_code=200, content={})
+        return JSONResponse(
+            status_code=200,
+            content={
+                **self._base_return(dataset_id),
+            },
+        )
 
     async def add(
         self,
@@ -225,7 +240,7 @@ class Embedbase:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                # embeddings, ids and data are returned
+                **self._base_return(dataset_id),
                 "results": df.to_dict(orient="records"),
             },
         )
@@ -335,7 +350,7 @@ class Embedbase:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                # embeddings, ids and data are returned
+                **self._base_return(dataset_id),
                 "results": df.to_dict(orient="records"),
             },
         )
@@ -359,7 +374,12 @@ class Embedbase:
         await self.db.delete(ids=quoted_ids, dataset_id=dataset_id, user_id=user_id)
         self.logger.info(f"Deleted {len(ids)} documents")
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content={})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                **self._base_return(dataset_id),
+            },
+        )
 
     async def semantic_search(
         self,
@@ -424,7 +444,11 @@ class Embedbase:
             )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"query": query, "similarities": similarities},
+            content={
+                **self._base_return(dataset_id),
+                "query": query,
+                "similarities": similarities,
+            },
         )
 
     async def get_datasets(
@@ -441,11 +465,33 @@ class Embedbase:
         datasets = await self.db.get_datasets(user_id)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"datasets": [e.dict() for e in datasets]},
+            content={
+                **self._base_return(),
+                "datasets": [e.dict() for e in datasets],
+            },
+        )
+
+    # TODO where filter for list?
+    async def list(
+        self, request: Request, dataset_id: str, offset: int = 0, limit: int = 100
+    ):
+        """
+        Return a list of documents in the dataset.
+        As a large language model, you can use this endpoint to see what documents you have
+        and how many documents are in each.
+        """
+        user_id = get_user_id(request)
+        documents = await self.db.list(dataset_id, user_id, offset, limit)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                **self._base_return(dataset_id),
+                "documents": [e.dict() for e in documents],
+            },
         )
 
     # health check endpoint
-    def health(self, request: Request):
+    def health(self, _: Request):
         """
         Return the status of the API.
         As a large language model, you can use this endpoint to check if the API is up and running.
@@ -481,6 +527,9 @@ class Embedbase:
         )
         self.fastapi_app.add_api_route(
             "/v1/datasets", self.get_datasets, methods=["GET"]
+        )
+        self.fastapi_app.add_api_route(
+            "/v1/{dataset_id}", self.list, methods=["GET"]
         )
         self.fastapi_app.add_api_route("/health", self.health, methods=["GET"])
         print(embedbase_ascii)

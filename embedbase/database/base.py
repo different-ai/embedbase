@@ -1,7 +1,11 @@
-from abc import ABC, abstractmethod
 from typing import Coroutine, List, Optional, Union
+
+from abc import ABC, abstractmethod
+
 from pandas import DataFrame
 from pydantic import BaseModel
+
+from embedbase.models import Document
 
 
 # TODO use pydantic validation
@@ -10,27 +14,12 @@ class Dataset(BaseModel):
     documents_count: int
 
 
-class SearchResponse(BaseModel):
+class SearchResponse(Document):
     score: float
-    id: str
-    # data-privacy aware setup avoid storing data on the database
-    # and rather store it on the client side
-    data: Optional[str]
-    hash: str
-    # HACK supabase pgvector returns a string of float '[0.1, 0.2, ...]' not sure its
-    # any inconvenience for now. Let's see if we can fix this later
-    embedding: Union[List[float], str]
-    metadata: Optional[dict]
 
 
-class SelectResponse(BaseModel):
-    id: str
-    # data-privacy aware setup avoid storing data on the database
-    # and rather store it on the client side
-    data: Optional[str]
-    hash: str
-    embedding: Union[List[float], str]
-    metadata: Optional[dict]
+class SelectResponse(Document):
+    pass
 
 
 class VectorDatabase(ABC):
@@ -121,5 +110,23 @@ class VectorDatabase(ABC):
         """
         :param user_id: user id
         :return: list of datasets
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def list(
+        self,
+        dataset_id: str,
+        user_id: Optional[str] = None,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> List[Document]:
+        """
+        Returns a list of Documents in a dataset
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param offset: offset
+        :param limit: limit
+        :return: list of documents
         """
         raise NotImplementedError

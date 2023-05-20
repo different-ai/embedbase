@@ -14,7 +14,7 @@ import { User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
 const FreePlan = () => {
-  return <Plan tier={tiers[0]}>{}</Plan>
+  return <Plan tier={tiers[0]}>{ }</Plan>
 }
 
 interface Subscription {
@@ -30,19 +30,19 @@ interface Subscription {
   price_id: string
   quantity: number
   status:
-    | 'active'
-    | 'trialing'
-    | 'past_due'
-    | 'unpaid'
-    | 'canceled'
-    | 'incomplete'
-    | 'incomplete_expired'
+  | 'active'
+  | 'trialing'
+  | 'past_due'
+  | 'unpaid'
+  | 'canceled'
+  | 'incomplete'
+  | 'incomplete_expired'
   trial_end: null | Date
   trial_start: null | Date
   user_id: string
 }
 
-const useSubscription = (): {
+export const useSubscription = (): {
   user: User | null
   subscription: Subscription | null
 } => {
@@ -54,17 +54,18 @@ const useSubscription = (): {
       .from('subscriptions')
       .select('*')
       .eq('user_id', user?.id)
+      .order('created', { ascending: false })
+      .limit(1)
       .single()
       .then(({ data }) => {
         setSubscription(data)
       })
   }, [user])
-  console.log(subscription)
 
   return { user, subscription }
 }
 
-const ProPlan = () => {
+const HobbyPlan = () => {
   const router = useRouter()
   const [priceIdLoading, setPriceIdLoading] = useState<string>()
   const { subscription } = useSubscription()
@@ -95,14 +96,68 @@ const ProPlan = () => {
         onClick={() => handleCheckout(tiers[1])}
         className="flex w-full items-center justify-center gap-3 py-3 font-semibold"
       >
-        {priceIdLoading && (
+        {priceIdLoading ?
           <>
             Upgrading...
             <Spinner />
-          </>
-        )}
-        {!priceIdLoading && subscription?.status === 'active' && 'Manage plan'}
-        {!priceIdLoading && subscription?.status !== 'active' && 'Upgrade'}
+          </> :
+          // plan is pro
+          (!priceIdLoading && subscription?.status === 'active' &&
+            subscription?.price_id === tiers.find((t) => t.name == "Hobby").id) ?
+            'Manage plan' :
+            // plan is pro
+            (!priceIdLoading && subscription?.status === 'active' &&
+              subscription?.price_id === tiers.find((t) => t.name == "Pro").id) ?
+              'Downgrade' : "Upgrade"
+        }
+      </PrimaryButton>
+    </Plan>
+  )
+}
+
+const ProPlan = () => {
+  const router = useRouter()
+  const [priceIdLoading, setPriceIdLoading] = useState<string>()
+  const { subscription } = useSubscription()
+
+  const handleCheckout = async (price: Price) => {
+    setPriceIdLoading(price.id)
+    if (subscription) {
+      return router.push('/dashboard')
+    }
+
+    try {
+      const { sessionId } = await postData({
+        url: '/api/create-checkout-session',
+        data: { price },
+      })
+
+      const stripe = await getStripe()
+      stripe?.redirectToCheckout({ sessionId })
+    } catch (error) {
+      return alert((error as Error)?.message)
+    } finally {
+      setPriceIdLoading(undefined)
+    }
+  }
+  return (
+    <Plan tier={tiers[2]}>
+      <PrimaryButton
+        onClick={() => handleCheckout(tiers[2])}
+        className="flex w-full items-center justify-center gap-3 py-3 font-semibold"
+      >
+        {priceIdLoading ?
+          <>
+            Upgrading...
+            <Spinner />
+          </> :
+          // plan is pro
+          (!priceIdLoading && subscription?.status === 'active' &&
+            subscription?.price_id === tiers.find((t) => t.name == "Pro").id) ?
+            'Manage plan' :
+            // plan is free or hobby
+            'Upgrade'
+        }
       </PrimaryButton>
     </Plan>
   )
@@ -110,7 +165,7 @@ const ProPlan = () => {
 
 const EnterprisePlan = () => {
   return (
-    <Plan tier={tiers[2]}>
+    <Plan tier={tiers[3]}>
       <a
         href="https://cal.com/potato/20min?duration=20"
         target="_blank"
@@ -129,7 +184,7 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
   const limit =
     (subscription?.price_id &&
       tiers.find((t) => t.id == subscription?.price_id)?.playgroundLimit) ||
-    5
+    50
 
   return (
     <Dashboard>
@@ -156,8 +211,9 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
         </div>
         <Usage usage={usage} limit={limit} />
 
-        <div className="mx-auto grid max-w-md grid-cols-1 gap-4 lg:max-w-5xl lg:grid-cols-3 lg:gap-4">
+        <div className="mx-auto grid max-w-md grid-cols-1 gap-2 lg:max-w-7xl lg:grid-cols-4 lg:gap-4">
           <FreePlan />
+          <HobbyPlan />
           <ProPlan />
           <EnterprisePlan />
         </div>

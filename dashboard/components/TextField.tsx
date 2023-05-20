@@ -6,11 +6,12 @@ export interface TextFieldProps {
   autoFocus?: boolean
   placeholder?: string
   onClick?: () => void
+  className?: string
 }
 
 // eslint-disable-next-line react/display-name
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
-  ({ value, onChange, autoFocus, placeholder, onClick }, ref) => {
+  ({ value, onChange, autoFocus, placeholder, onClick, className }, ref) => {
     return (
       <input
         ref={ref}
@@ -20,7 +21,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         type="text"
         value={value}
         onChange={onChange}
-        className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className={className+" w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"}
       />
     )
   }

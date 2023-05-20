@@ -1,5 +1,9 @@
 export type Fetch = typeof fetch
 
+export interface EmbedbaseClientOptions {
+  browser: boolean
+}
+
 export interface BatchAddDocument {
   data: string
   metadata?: Metadata
@@ -39,7 +43,7 @@ export interface SearchOptions {
   where?: object
 }
 
-export interface AddDataResult {
+export interface Document {
   id: string
   data: string
   embedding: number[]
@@ -47,7 +51,7 @@ export interface AddDataResult {
   metadata?: Metadata
 }
 export interface AddData {
-  results?: AddDataResult[]
+  results?: Document[]
   error?: string
 }
 
@@ -62,4 +66,19 @@ export interface ClientAddData {
 export interface ClientDatasets {
   datasetId: string
   documentsCount: number
+}
+
+
+export type Role = 'user' | 'system' | 'assistant'
+type Chat = {
+  role: Role
+  content: string
+}
+export interface GenerateOptions {
+  history: Chat[]
+}
+
+export interface RangeOptions {
+  offset: number
+  limit: number
 }

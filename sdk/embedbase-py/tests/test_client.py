@@ -8,7 +8,8 @@ from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.base import Embedder
 
-from embedbase_client.client import EmbedbaseAsyncClient, SearchResult
+from embedbase_client.client import EmbedbaseAsyncClient, SearchResult, EmbedbaseClient
+from embedbase_client.types import SearchSimilarity
 
 
 # pylint: disable=missing-docstring
@@ -107,7 +108,7 @@ async def test_search_documents():
     # Check that the results are SearchResult instances
     assert len(results) > 0
     for result in results:
-        assert isinstance(result, SearchResult)
+        assert isinstance(result, SearchSimilarity)
 
     # Check that the results contain the expected documents
     document_datas = [result.data for result in results]

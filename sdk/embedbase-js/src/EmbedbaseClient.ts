@@ -1,17 +1,20 @@
-import fetch from 'cross-fetch'
 import type {
   AddData,
+  BatchAddDocument,
   ClientAddData,
   ClientContextData,
+  ClientDatasets,
   ClientSearchData,
-  Fetch,
+  GenerateOptions,
+  Metadata,
+  RangeOptions,
   SearchData,
   SearchOptions,
-  BatchAddDocument,
-  ClientDatasets,
-  Metadata,
-} from './types'
-import { camelize } from './utils'
+  Document
+} from './types';
+import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
+
+let fetch = getFetch();
 
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
@@ -19,7 +22,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
     private dataset: string,
     private query: string,
     private options: SearchOptions = {}
-  ) {}
+  ) { }
 
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
@@ -47,7 +50,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
 
   where(field: string, operator: string, value: any): SearchBuilder {
     // this.options.where = { [field]: { [operator]: value } };
-    this.options.where = { };
+    this.options.where = {};
     this.options.where[field] = value;
     return this;
   }
@@ -60,13 +63,50 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
   }
 }
 
+class ListBuilder implements PromiseLike<Document[]> {
+  constructor(
+    private client: EmbedbaseClient,
+    private dataset: string,
+    private options: RangeOptions = {
+      offset: 1,
+      limit: 10
+    }
+  ) { }
+
+  async list(): Promise<Document[]> {
+    const listUrl = `${this.client.embedbaseApiUrl}/${this.dataset}?offset=${this.options.offset}&limit=${this.options.limit}`
+    const res: Response = await fetch(listUrl, {
+      method: 'GET',
+      headers: this.client.headers,
+    })
+    const data: {documents: Document[]} = await res.json()
+    return data.documents;
+  }
+
+  offset(offset: number): ListBuilder {
+    this.options.offset = offset;
+    return this;
+  }
+
+  limit(limit: number): ListBuilder {
+    this.options.limit = limit;
+    return this;
+  }
+
+  then<TResult1 = Document[], TResult2 = never>(
+    onfulfilled?: ((value: Document[]) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.list().then(onfulfilled, onrejected);
+  }
+}
+
 /**
  * Embedbase Client.
  *
  * An typescript library to interact with Embedbase
  */
 export default class EmbedbaseClient {
-  protected fetch?: Fetch
   public embedbaseApiUrl: string
   protected embedbaseApiKey: string
 
@@ -79,7 +119,10 @@ export default class EmbedbaseClient {
    * @param embedbaseUrl The unique Embedbase URL which is supplied when you create a new project in your project dashboard.
    * @param embedbaseKey The unique Embedbase Key which is supplied when you create a new project in your project dashboard.
    */
-  constructor(protected embedbaseUrl: string, protected embedbaseKey?: string) {
+  constructor(
+    protected embedbaseUrl: string,
+    protected embedbaseKey?: string,
+  ) {
     if (!embedbaseUrl) throw new Error('embedbaseUrl is required.')
     // if url is embedbase cloud (https://api.embedbase.xyz) and no key is provided, throw error
     if (embedbaseUrl === 'https://api.embedbase.xyz' && !embedbaseKey) {
@@ -149,11 +192,19 @@ export default class EmbedbaseClient {
     }))
   }
 
+  list(dataset: string, options: RangeOptions = {
+    offset: 0,
+    limit: 100,
+  }): ListBuilder {
+    return new ListBuilder(this, dataset, options);
+  }
+
   dataset(dataset: string): {
     search: (query: string, options?: SearchOptions) => SearchBuilder
     add: (document: string, metadata?: Metadata) => Promise<ClientAddData>
     batchAdd: (documents: BatchAddDocument[]) => Promise<ClientAddData[]>
     createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+    list: (options?: RangeOptions) => ListBuilder
   } {
     return {
       search: (query: string, options?: SearchOptions) =>
@@ -162,6 +213,7 @@ export default class EmbedbaseClient {
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
       createContext: async (query: string, options?: SearchOptions) =>
         this.createContext(dataset, query, options),
+      list: (options?: RangeOptions) => this.list(dataset, options),
     }
   }
 
@@ -173,5 +225,42 @@ export default class EmbedbaseClient {
     })
     const data: ClientDatasets[] = camelize((await res.json()).datasets)
     return data
+  }
+
+  public generate(prompt: string, options?: GenerateOptions): CustomAsyncGenerator<string> {
+    const url = 'https://app.embedbase.xyz/api/chat'
+
+    options = options || {
+      history: [],
+    }
+
+    // hack to remove system from history because api is slightly different from openai
+    // and we want to go on-pair with openai api for now
+    let system = ''
+    if (options?.history) {
+      const systemIndex = options.history.findIndex((item) => item.role === 'system')
+      if (systemIndex > -1) {
+        system = options.history[systemIndex].content
+        options.history.splice(systemIndex, 1)
+      }
+    }
+
+    const asyncGen = async function* (): AsyncGenerator<string> {
+      const streamGen = stream(
+        url,
+        JSON.stringify({
+          prompt,
+          system,
+          history: options?.history,
+        }),
+        this.headers,
+      );
+
+      for await (const res of streamGen) {
+        yield res;
+      }
+    }.bind(this);
+
+    return new CustomAsyncGenerator(asyncGen());
   }
 }

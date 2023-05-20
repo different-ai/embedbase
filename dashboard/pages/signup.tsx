@@ -60,10 +60,31 @@ export const getServerSideProps = async (ctx) => {
     data: { session },
   } = await supabase.auth.getSession()
 
+  const hasApiKey = async () => {
+    try {
+      const { data, status, error } = await supabase
+        .from('api-keys')
+        .select()
+        .eq('user_id', session?.user?.id)
+      if (error && status !== 406) {
+        throw error
+      }
+      return data.length > 0
+    } catch (e) {
+      console.error(e)
+      return false
+    }
+  }
+
+  
   if (session) {
+    const hasKey = await hasApiKey()
     return {
       redirect: {
-        destination: '/dashboard',
+        destination: 
+          !hasKey ?
+          '/onboarding/create-api-key' :
+          '/dashboard',
         permanent: false,
       },
     }

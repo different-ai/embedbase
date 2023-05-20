@@ -9,7 +9,6 @@ on:
     paths:
       - "hosted/**"
   workflow_dispatch:
-
 env:
   PROJECT_ID: embedbase
   SERVICE: embedbase-hosted
@@ -28,7 +27,8 @@ jobs:
         id: regex-match
         with:
           text: ${{ github.event.head_commit.message }}
-          regex: "^Release hosted ([^ ]+)"
+          # match "Release core <some version>" but also "Release hosted <some version>"
+          regex: "Release (core|hosted) ([^ ]+)"
 
       - name: Install deps
         run: |
@@ -37,6 +37,11 @@ jobs:
           make install
         working-directory: hosted
 
+      - name: Bump version if necessary
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        run: |
+          make bump
+      
       # TODO: Add tests
 
       - id: auth
@@ -52,7 +57,8 @@ jobs:
       - name: Get the version
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: get_version
-        run: echo "VERSION=$(sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)" >> $GITHUB_ENV
+        # __version__ = "0.0.1" in version.py
+        run: echo "VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)" >> $GITHUB_ENV
         working-directory: hosted
 
       - name: Build and push
@@ -76,7 +82,9 @@ jobs:
           region: us-central1
           tag: ${{ env.VERSION }}
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
-
+          env_vars: |
+            SENTRY_RELEASE=${{ env.VERSION }}
+  
       - uses: rickstaa/action-create-tag@v1
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: "tag_create"

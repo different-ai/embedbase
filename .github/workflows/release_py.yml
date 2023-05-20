@@ -52,7 +52,7 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: "tag_create"
         with:
-          tag: sdk-py-${{ env.version }}
+          tag: sdk-py-${{ steps.regex-match.outputs.group1 }}
           tag_exists_error: true
           message: "Release ${{ steps.regex-match.outputs.group1 }}"
 
@@ -60,7 +60,7 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: sdk-py-${{ env.version }}
-          name: sdk-py-${{ env.version }}
+          tag_name: sdk-py-${{ steps.regex-match.outputs.group1 }}
+          name: sdk-py-${{ steps.regex-match.outputs.group1 }}
           draft: false
           prerelease: false

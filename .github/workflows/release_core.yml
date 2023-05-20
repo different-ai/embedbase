@@ -27,7 +27,7 @@ jobs:
         id: regex-match
         with:
           text: ${{ github.event.head_commit.message }}
-          regex: "^Release ([^ ]+)"
+          regex: "^Release core ([^ ]+)"
 
       - name: Install Poetry
         run: |
@@ -36,6 +36,23 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+
+      - name: Read EMBEDBASE_TEST_CONFIG JSON secret and write it to config.yaml
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        env:
+          EMBEDBASE_TEST_CONFIG: ${{ secrets.EMBEDBASE_TEST_CONFIG }}
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
+          chmod +x yq
+          echo $EMBEDBASE_TEST_CONFIG | yq -P > config.yaml
+
+      - name: Run tests
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        run: |
+          docker run --rm --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
+          while ! docker exec pgvector pg_isready -U postgres; do sleep 1; done
+          poetry run pytest --ignore=sdk/embedbase-js --ignore=hosted
+          docker stop pgvector
 
       - name: Build package
         run: |
@@ -47,18 +64,11 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish
 
-      - name: Get version
-        id: get_version
-        run: |
-          pip install toml
-          VERSION=$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
-          echo "version=${VERSION}" >> $GITHUB_ENV
-
       - uses: rickstaa/action-create-tag@v1
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: "tag_create"
         with:
-          tag: core-${{ env.version }}
+          tag: core-${{ steps.regex-match.outputs.group1 }}
           tag_exists_error: true
           message: ${{ github.event.head_commit.message }}
 
@@ -66,53 +76,9 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: core-${{ env.version }}
-          name: core-${{ env.version }}
+          tag_name: core-${{ steps.regex-match.outputs.group1 }}
+          name: core-${{ steps.regex-match.outputs.group1 }}
           draft: false
           prerelease: false
           # TODO: iterate on this changelog thing later
           body: ${{ github.event.head_commit.message }}
-
-      # TODO: until docker usage is clarified
-      # - name: Login to GitHub Container Registry
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.repository_owner }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Build and push Embedbase production with minimal dependencies
-      #   if: ${{ steps.regex-match.outputs.match != '' }}
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     file: ./docker/Dockerfile
-      #     platforms: linux/amd64
-      #     push: true
-      #     build-args: FLAVOR=minimal
-      #     tags: |
-      #       ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-minimal
-
-      # - name: Build and push dev
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     file: ./docker/Dockerfile.dev
-      #     platforms: linux/amd64
-      #     push: true
-      #     build-args: FLAVOR=all
-      #     tags: |
-      #       ghcr.io/${{ github.repository_owner }}/embedbase:latest-dev
-
-      # - name: Build and push Embedbase production with full dependencies
-      #   if: ${{ steps.regex-match.outputs.match != '' }}
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     file: ./docker/Dockerfile
-      #     platforms: linux/amd64
-      #     push: true
-      #     build-args: FLAVOR=all
-      #     tags: |
-      #       ghcr.io/${{ github.repository_owner }}/embedbase:${{ env.VERSION }}-all
-      #       ghcr.io/${{ github.repository_owner }}/embedbase:latest

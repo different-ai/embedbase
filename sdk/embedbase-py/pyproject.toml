@@ -34,6 +34,7 @@ python = "^3.8"
 # todo: optional dependencies
 tiktoken = "^0.3.3"
 httpx = "^0.24.0"
+pydantic = "^1.10.7"
 
 [tool.poetry.dev-dependencies]
 click = "^7.1.2"

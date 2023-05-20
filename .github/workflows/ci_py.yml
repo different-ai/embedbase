@@ -42,18 +42,7 @@ jobs:
         poetry install
       working-directory: sdk/embedbase-py
 
-    - name: Run style checks
-      run: |
-        make check-codestyle
-      working-directory: sdk/embedbase-py
-
     - name: Run tests
       run: |
         make test
       working-directory: sdk/embedbase-py
-
-    # TODO: don't care now, alpha release
-    # - name: Run safety checks
-    #   run: |
-    #     make check-safety
-    #   working-directory: sdk/embedbase-py

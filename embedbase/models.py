@@ -1,9 +1,18 @@
 from typing import List, Optional, Union
+
 from pydantic import BaseModel
 
-# TODO: response models once stable
 
 class Document(BaseModel):
+    id: str
+    data: Optional[str]
+    hash: str
+    embedding: Union[List[float], str]
+    metadata: Optional[dict]
+    dataset_ids: List[str] = []
+
+
+class AddDocument(BaseModel):
     # data can be
     # - a string - for example  "This is a document"
     # TODO: currently only string is supported (later could be images, audio, multi/cross-modal)
@@ -13,16 +22,19 @@ class Document(BaseModel):
 
 
 class AddRequest(BaseModel):
-    documents: List[Document]
+    documents: List[AddDocument]
     store_data: bool = True
+
 
 class UpdateDocument(BaseModel):
     id: str
     data: Optional[str] = None
     metadata: Optional[dict] = None
 
+
 class UpdateRequest(BaseModel):
     documents: List[UpdateDocument]
+
 
 class DeleteRequest(BaseModel):
     ids: List[str]

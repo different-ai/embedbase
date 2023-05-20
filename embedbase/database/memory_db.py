@@ -1,9 +1,11 @@
+from typing import List, Optional
 from embedbase.database.base import (
     Dataset,
     SearchResponse,
     SelectResponse,
     VectorDatabase,
 )
+from embedbase.models import Document
 
 
 # Calculate cosine similarity
@@ -176,3 +178,12 @@ class MemoryDatabase(VectorDatabase):
         ]
         for doc_id in doc_ids_to_remove:
             del self.storage[doc_id]
+
+    async def list(
+        self,
+        dataset_id: str,
+        user_id: Optional[str] = None,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> List[Document]:
+        raise NotImplementedError

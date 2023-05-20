@@ -1,5 +1,12 @@
+
+export const config = {
+    runtime: 'edge'
+}
+
 export default async function github(req: any, res: any) {
-    const url = req.body.repositoryUrl;
+    const body = await req.json()
+
+    const url = body.repositoryUrl;
     // exact user and repo name
     // example https://github.com/aframevr/aframe
     // > aframevr/aframe
@@ -7,7 +14,9 @@ export default async function github(req: any, res: any) {
     const regex = /github\.com\/(.*)\/(.*)/;
     const match = url.match(regex);
     if (!match) {
-        return res.status(400).json({ error: "Invalid URL" });
+        return new Response(JSON.stringify({ error: 'No URL provided' }), {
+            status: 400,
+        })
     }
     const user = match[1];
     const repo = match[2];
@@ -18,7 +27,11 @@ export default async function github(req: any, res: any) {
             return { message: "Invalid repository" };
         });
     if (response.message) {
-        return res.status(400).json({ error: response.message });
+        return new Response(JSON.stringify({ error: response.message }), {
+            status: 400,
+        })
     }
-    return res.status(200).json({ message: "Valid repository" });
+    return new Response(JSON.stringify({ error: 'Valid repository' }), {
+        status: 200,
+    })
 }

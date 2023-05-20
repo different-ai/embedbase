@@ -2,13 +2,16 @@ LOCAL_PORT="8000"
 SERVICE="embedbase-hosted"
 GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null || echo "none")
 LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
-VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' service.prod.yaml)
+VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
 REGION="us-central1"
 
 
 # notify current gcp project
 $(info Current GCP project: ${GCLOUD_PROJECT})
+
+bump:
+	python3 bump.py
 
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
@@ -52,7 +55,7 @@ release: ## [Local development] Release a new version of the API.
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${VERSION}: $$COMMIT'"; \
-	git commit -m "Release hosted ${VERSION}: $$COMMIT"; \
+	git commit -m "Release hosted ${VERSION} $$COMMIT"; \
 	git push origin main
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
