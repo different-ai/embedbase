@@ -183,7 +183,7 @@ class MemoryDatabase(VectorDatabase):
         self,
         dataset_id: str,
         user_id: Optional[str] = None,
-        page: int = 0,
+        offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
         raise NotImplementedError

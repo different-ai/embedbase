@@ -207,13 +207,13 @@ class Supabase(VectorDatabase):
         self,
         dataset_id: str,
         user_id: Optional[str] = None,
-        page: int = 0,
+        offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
         req = self.supabase.table("documents").select("*").eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
-        req = req.range(page * limit, (page + 1) * limit)
+        req = req.range(offset * limit, (offset + 1) * limit)
         data = req.execute().data
         return [
             Document(

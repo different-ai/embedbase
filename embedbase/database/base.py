@@ -118,14 +118,14 @@ class VectorDatabase(ABC):
         self,
         dataset_id: str,
         user_id: Optional[str] = None,
-        page: int = 0,
+        offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
         """
         Returns a list of Documents in a dataset
         :param dataset_id: dataset id
         :param user_id: user id
-        :param page: page
+        :param offset: offset
         :param limit: limit
         :return: list of documents
         """

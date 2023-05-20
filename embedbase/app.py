@@ -473,7 +473,7 @@ class Embedbase:
 
     # TODO where filter for list?
     async def list(
-        self, request: Request, dataset_id: str, page: int = 0, limit: int = 100
+        self, request: Request, dataset_id: str, offset: int = 0, limit: int = 100
     ):
         """
         Return a list of documents in the dataset.
@@ -481,7 +481,7 @@ class Embedbase:
         and how many documents are in each.
         """
         user_id = get_user_id(request)
-        documents = await self.db.list(dataset_id, user_id, page, limit)
+        documents = await self.db.list(dataset_id, user_id, offset, limit)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
