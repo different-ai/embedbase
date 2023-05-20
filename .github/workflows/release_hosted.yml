@@ -37,6 +37,11 @@ jobs:
           make install
         working-directory: hosted
 
+      - name: Bump version if necessary
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        run: |
+          make bump
+      
       # TODO: Add tests
 
       - id: auth

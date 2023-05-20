@@ -10,6 +10,9 @@ REGION="us-central1"
 # notify current gcp project
 $(info Current GCP project: ${GCLOUD_PROJECT})
 
+bump:
+	python3 bump.py
+
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
 	. env/bin/activate; \
