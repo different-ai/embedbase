@@ -87,17 +87,17 @@ const embedbase = createClient(url, apiKey)
 To get started, import the `EmbedbaseClient` class and create a new instance:
 
 ```python copy
-from embedbase_client.client import EmbedbaseClient
+from embedbase_client import EmbedbaseClient
 
 embedbase_url = "https://api.embedbase.xyz"
 embedbase_key = "<get your key here: https://app.embedbase.xyz>"
-client = EmbedbaseClient(embedbase_url, embedbase_key)
+embedbase = EmbedbaseClient(embedbase_url, embedbase_key)
 ```
 
 In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
 This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
 ```python copy
-from embedbase_client.client import EmbedbaseAsyncClient
+from embedbase_client import EmbedbaseAsyncClient
 ```
 
 Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
@@ -154,7 +154,7 @@ const data = await embedbase
 To search a dataset, call the `search` method on a `Dataset` object:
 
 ```python copy
-data = client.dataset("your_dataset_name").search("your_query", limit=5)
+data = embedbase.dataset("your_dataset_name").search("your_query", limit=5).get()
 print(data)
 # [
 #   {
@@ -179,10 +179,11 @@ print(data)
 # ]
 ```
 
-Metadata filter is not yet available in the Python SDK, if you need it,
-[please reach out](https://discord.gg/3qXwZQ6Z)
-we are moving fast and can implement this in a few hours.
+You can also filter by metadata:
 
+```python copy
+embedbase.dataset("your_dataset_name").search("your_query").where("source", "==", "amazon").get()
+```
   </Tab>
 </Tabs>
 
@@ -345,7 +346,7 @@ for c in chunks:
     documents.append({
         "data": c.chunk,
     })
-result = client.dataset("my-dataset").batch_add(documents)
+result = embedbase.dataset("my-dataset").batch_add(documents)
 ```
   </Tab>
 </Tabs>
