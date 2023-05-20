@@ -1,10 +1,13 @@
 from typing import Any, Dict, List, Optional
 
+
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import httpx
+import requests
+from embedbase_client.model import ClientAddData, ClientDatasets, SearchResult
 
 from embedbase_client.types import (
     BatchAddDocument,
@@ -14,6 +17,42 @@ from embedbase_client.types import (
     ClientSearchData,
     SearchSimilarity,
 )
+
+
+class SearchBuilder:
+    def __init__(self, client, dataset: str, query: str, options: Optional[Dict[str, Any]] = None):
+        if options is None:
+            options = {}
+        self.client = client
+        self.dataset = dataset
+        self.query = query
+        self.options = options
+
+    def get(self) -> List[SearchResult]:
+        return self.search()
+
+    def search(self) -> "SearchBuilder":
+        top_k = self.options.get("limit", None) or 5
+        search_url = f"{self.client.embedbase_url}/{self.dataset}/search"
+
+        request_body = {"query": self.query, "top_k": top_k}
+
+        if "where" in self.options:
+            request_body["where"] = self.options["where"]
+
+        headers = self.client.headers
+        res = requests.post(search_url, headers=headers, json=request_body)
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+
+        return [SearchResult(**result) for result in data["similarities"]]
+
+    def where(self, field: str, operator: str, value: Any) -> "SearchBuilder":
+        # self.options["where"] = {field: {operator: value}}
+        self.options["where"] = {}
+        self.options["where"][field] = value
+        return self
 
 
 class BaseClient(ABC):
@@ -149,7 +188,9 @@ class Dataset:
     client: "EmbedbaseClient"
     dataset: str
 
-    def search(self, query: str, limit: Optional[int] = None) -> ClientSearchData:
+    def search(
+        self, query: str, limit: Optional[int] = None
+    ) -> SearchBuilder:
         return self.client.search(self.dataset, query, limit)
 
     def add(
@@ -160,14 +201,32 @@ class Dataset:
     def batch_add(self, documents: List[Dict[str, Any]]) -> List[ClientAddData]:
         return self.client.batch_add(self.dataset, documents)
 
-    def create_context(
-        self, query: str, limit: Optional[int] = None
-    ) -> List[ClientContextData]:
+    def create_context(self, query: str, limit: Optional[int] = None) -> List[str]:
         return self.client.create_context(self.dataset, query, limit)
 
     def clear(self) -> None:
         return self.client.clear(self.dataset)
 
+
+class BaseClient:
+    def __init__(
+        self,
+        embedbase_url: str = "https://api.embedbase.xyz",
+        embedbase_key: Optional[str] = None,
+        fastapi_app: Optional[Any] = None,
+    ):
+        if not embedbase_url:
+            raise ValueError("embedbase_url is required.")
+
+        if embedbase_url == "https://api.embedbase.xyz" and not embedbase_key:
+            raise ValueError("embedbase_key is required when using Embedbase Cloud.")
+
+        self.embedbase_url = embedbase_url.rstrip("/") + "/v1"
+        self.embedbase_api_key = embedbase_key
+        self.fastapi_app = fastapi_app
+        self.headers = {"Content-Type": "application/json"}
+        if self.embedbase_api_key:
+            self.headers["Authorization"] = f"Bearer {self.embedbase_api_key}"
 
 class EmbedbaseClient(BaseClient):
     def __init__(
@@ -177,27 +236,74 @@ class EmbedbaseClient(BaseClient):
         fastapi_app: Optional[Any] = None,
     ):
         super().__init__(embedbase_url, embedbase_key)
-        self._async_client = EmbedbaseAsyncClient(
-            embedbase_url, embedbase_key, fastapi_app
-        )
+        # warn user that passing fastapi_app is not supported
+        # in sync client
+        if fastapi_app:
+            raise ValueError(
+                "fastapi_app is not supported in sync client. "
+                "Please use AsyncEmbedbaseClient instead."
+            )
 
-    def _run_async(self, coroutine):
-        return asyncio.run(coroutine)
+
+    def create_context(
+        self, dataset: str, query: str, limit: Optional[int] = None
+    ) -> List[str]:
+        top_k = limit or 5
+        search_url = f"{self.embedbase_url}/{dataset}/search"
+        res = requests.post(
+            search_url, headers=self.headers, json={"query": query, "top_k": top_k}
+        )
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+        return [similarity["data"] for similarity in data["similarities"]]
 
     def search(
         self, dataset: str, query: str, limit: Optional[int] = None
-    ) -> ClientSearchData:
-        return self._run_async(self._async_client.search(dataset, query, limit))
+    ) -> SearchBuilder:
+        return SearchBuilder(self, dataset, query, {"limit": limit})
+
+    def where(
+        self, dataset: str, query: str, field: str, operator: str, value: Any
+    ) -> SearchBuilder:
+        return SearchBuilder(
+            self, dataset, query,
+        ).where(field, operator, value)
 
     def add(
         self, dataset: str, document: str, metadata: Optional[Dict[str, Any]] = None
     ) -> ClientAddData:
-        return self._run_async(self._async_client.add(dataset, document, metadata))
+        add_url = f"{self.embedbase_url}/{dataset}"
+        res = requests.post(
+            add_url,
+            headers=self.headers,
+            json={"documents": [{"data": document, "metadata": metadata}]},
+        )
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+
+        return ClientAddData(
+            id=data["results"][0]["id"],
+            status="error" if data.get("error") else "success",
+        )
 
     def batch_add(
         self, dataset: str, documents: List[Dict[str, Any]]
     ) -> List[ClientAddData]:
-        return self._run_async(self._async_client.batch_add(dataset, documents))
+        add_url = f"{self.embedbase_url}/{dataset}"
+        res = requests.post(
+            add_url, headers=self.headers, json={"documents": documents}
+        )
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+        return [
+            ClientAddData(
+                id=result["id"], status="error" if data.get("error") else "success"
+            )
+            for result in data["results"]
+        ]
 
     def create_context(
         self, dataset: str, query: str, limit: Optional[int] = None
@@ -205,13 +311,21 @@ class EmbedbaseClient(BaseClient):
         return self._run_async(self._async_client.create_context(dataset, query, limit))
 
     def clear(self, dataset: str) -> None:
-        return self._run_async(self._async_client.clear(dataset))
+        url = f"{self.embedbase_url}/{dataset}/clear"
+        res = requests.get(url, headers=self.headers)
+        if res.status_code != 200:
+            raise Exception(res.text)
 
     def dataset(self, dataset: str) -> Dataset:
         return Dataset(client=self, dataset=dataset)
 
     def datasets(self) -> List[ClientDatasets]:
-        return self._run_async(self._async_client.datasets())
+        datasets_url = f"{self.embedbase_url}/datasets"
+        res = requests.get(datasets_url, headers=self.headers)
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+        return [ClientDatasets(**dataset) for dataset in data["datasets"]]
 
 
 @dataclass
@@ -227,12 +341,12 @@ class AsyncDataset:
     ) -> ClientAddData:
         return await self.client.add(self.dataset, document, metadata)
 
-    async def batch_add(self, documents: List[Dict[str, Any]]) -> List[dict]:
+    async def batch_add(self, documents: List[Dict[str, Any]]) -> List[ClientAddData]:
         return await self.client.batch_add(self.dataset, documents)
 
     async def create_context(
         self, query: str, limit: Optional[int] = None
-    ) -> List[ClientContextData]:
+    ) -> List[str]:
         return await self.client.create_context(self.dataset, query, limit)
 
     async def clear(self) -> None:
@@ -243,18 +357,35 @@ class EmbedbaseAsyncClient(BaseClient):
     def dataset(self, dataset: str) -> AsyncDataset:
         return AsyncDataset(client=self, dataset=dataset)
 
-    async def search(
+    async def create_context(
         self, dataset: str, query: str, limit: Optional[int] = None
-    ) -> ClientSearchData:
+    ) -> List[str]:
         top_k = limit or 5
-        search_url = f"/v1/{dataset}/search"
+        search_url = f"/{dataset}/search"
         async with httpx.AsyncClient(
             app=self.fastapi_app, base_url=self.embedbase_url
         ) as client:
             res = await client.post(
                 search_url, headers=self.headers, json={"query": query, "top_k": top_k}
             )
-        res.raise_for_status()
+        if res.status_code != 200:
+            raise Exception(res.text)
+        data = res.json()
+        return [similarity["data"] for similarity in data["similarities"]]
+
+    async def search(
+        self, dataset: str, query: str, limit: Optional[int] = None
+    ) -> ClientSearchData:
+        top_k = limit or 5
+        search_url = f"/{dataset}/search"
+        async with httpx.AsyncClient(
+            app=self.fastapi_app, base_url=self.embedbase_url
+        ) as client:
+            res = await client.post(
+                search_url, headers=self.headers, json={"query": query, "top_k": top_k}
+            )
+        if res.status_code != 200:
+            raise Exception(res.text)
         data = res.json()
         return [
             SearchSimilarity(
@@ -279,12 +410,13 @@ class EmbedbaseAsyncClient(BaseClient):
                 headers=self.headers,
                 json={"documents": [{"data": document, "metadata": metadata}]},
             )
-        res.raise_for_status()
+        if res.status_code != 200:
+            raise Exception(res.text)
         data = res.json()
-        return {
-            "id": data["results"][0]["id"],
-            "status": "error" if data.get("error") else "success",
-        }
+        return ClientAddData(
+            id=data["results"][0]["id"],
+            status="error" if data.get("error") else "success",
+        )
 
     async def batch_add(
         self, dataset: str, documents: List[Dict[str, Any]]
@@ -296,35 +428,26 @@ class EmbedbaseAsyncClient(BaseClient):
             res = await client.post(
                 add_url, headers=self.headers, json={"documents": documents}
             )
-        res.raise_for_status()
+        if res.status_code != 200:
+            raise Exception(res.text)
         data = res.json()
+
         return [
-            {"id": result["id"], "status": "error" if data.get("error") else "success"}
+            ClientAddData(
+                id=result["id"],
+                status="error" if data.get("error") else "success",
+            )
             for result in data["results"]
         ]
 
-    async def create_context(
-        self, dataset: str, query: str, limit: Optional[int] = None
-    ) -> List[ClientContextData]:
-        top_k = limit or 5
-        search_url = f"/v1/{dataset}/search"
-        async with httpx.AsyncClient(
-            app=self.fastapi_app, base_url=self.embedbase_url
-        ) as client:
-            res = await client.post(
-                search_url, headers=self.headers, json={"query": query, "top_k": top_k}
-            )
-        res.raise_for_status()
-        data = res.json()
-        return [similarity["data"] for similarity in data["similarities"]]
-
     async def clear(self, dataset: str) -> None:
-        url = f"/v1/{dataset}/clear"
+        url = f"/{dataset}/clear"
         async with httpx.AsyncClient(
             app=self.fastapi_app, base_url=self.embedbase_url
         ) as client:
             res = await client.get(url, headers=self.headers)
-        res.raise_for_status()
+        if res.status_code != 200:
+            raise Exception(res.text)
 
     async def datasets(self) -> List[ClientDatasets]:
         datasets_url = "/v1/datasets"
@@ -332,6 +455,7 @@ class EmbedbaseAsyncClient(BaseClient):
             app=self.fastapi_app, base_url=self.embedbase_url
         ) as client:
             res = await client.get(datasets_url, headers=self.headers)
-        res.raise_for_status()
+        if res.status_code != 200:
+            raise Exception(res.text)
         data = res.json()
-        return data["datasets"]
+        return [ClientDatasets(**dataset) for dataset in data["datasets"]]
