@@ -13,6 +13,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
     steps:
       - uses: actions/checkout@v3
 
@@ -31,11 +35,25 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
 
+      - name: Set up cache
+        uses: actions/cache@v2.1.6
+        with:
+          path: sdk/embedbase-py/.venv
+          key: venv-${{ matrix.python-version }}-${{ hashFiles('sdk/embedbase-py/pyproject.toml') }}-${{ hashFiles('sdk/embedbase-py/poetry.lock') }}
+      
       - name: Install dependencies
         run: |
+          poetry config virtualenvs.in-project true
           poetry install
         working-directory: sdk/embedbase-py
-
+  
+      - name: Run tests
+        run: |
+          make test
+        env:
+          EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+        working-directory: sdk/embedbase-py
+  
       - name: Build package
         run: |
           poetry build
