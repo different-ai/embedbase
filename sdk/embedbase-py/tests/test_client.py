@@ -2,14 +2,16 @@
 
 from typing import List, Union
 
+import asyncio
+
 import numpy as np
 import pytest
+from embedbase_client import EmbedbaseAsyncClient
+from embedbase_client.model import SearchSimilarity
+
 from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
 from embedbase.embedding.base import Embedder
-
-from embedbase_client.client import EmbedbaseAsyncClient, SearchResult, EmbedbaseClient
-from embedbase_client.types import SearchSimilarity
 
 
 # pylint: disable=missing-docstring
@@ -56,7 +58,7 @@ base_url = "http://localhost:8000"
 client = EmbedbaseAsyncClient(embedbase_url=base_url, fastapi_app=app)
 
 # Dataset to be used in tests
-test_dataset = "test_dataset"
+test_dataset = "unit_test"
 
 ds = client.dataset(test_dataset)
 
@@ -68,6 +70,7 @@ def setup_and_teardown():
     # Teardown - clear the test dataset
     ds.clear()
 
+
 @pytest.mark.asyncio
 async def test_add_single_document():
     document = "This is a test document."
@@ -75,8 +78,8 @@ async def test_add_single_document():
 
     result = await ds.add(document, metadata)
 
-    assert result["status"] == "success"
-    assert isinstance(result["id"], str)
+    assert isinstance(result.id, str)
+
 
 @pytest.mark.asyncio
 async def test_batch_add_documents():
@@ -89,8 +92,8 @@ async def test_batch_add_documents():
 
     assert len(results) == len(documents)
     for result in results:
-        assert result["status"] == "success"
-        assert isinstance(result["id"], str)
+        assert isinstance(result.id, str)
+
 
 @pytest.mark.asyncio
 async def test_search_documents():
@@ -103,7 +106,7 @@ async def test_search_documents():
 
     # Perform a search
     query = "Document"
-    results = await ds.search(query)
+    results = await ds.search(query).get()
 
     # Check that the results are SearchResult instances
     assert len(results) > 0
@@ -114,6 +117,7 @@ async def test_search_documents():
     document_datas = [result.data for result in results]
     for doc in documents:
         assert doc["data"] in document_datas
+
 
 @pytest.mark.asyncio
 async def test_filter_by_metadata_using_where():
@@ -138,18 +142,11 @@ async def test_filter_by_metadata_using_where():
         },
     ]
 
-    asyncio.gather(*[ds.add(input["data"], input["metadata"]) for input in d])
+    await asyncio.gather(*[ds.add(input["data"], input["metadata"]) for input in d])
 
-    data = (
-        ds
-        .search("Time related")
-        .where("source", "==", "github.com")
-    )
+    data = await ds.search("Time related").where("source", "==", "github.com").get()
 
     assert data is not None
     assert isinstance(data, list)
     assert len(data) >= 1
-    assert (
-        "source" in data[0].metadata
-        and data[0].metadata["source"] == "github.com"
-    )
+    assert "source" in data[0].metadata and data[0].metadata["source"] == "github.com"

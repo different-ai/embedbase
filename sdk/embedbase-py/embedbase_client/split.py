@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional
 
 from tiktoken import get_encoding
 
@@ -24,7 +24,6 @@ def split_text(
     max_tokens: int = MAX_CHUNK_LENGTH,
     chunk_overlap: int = CHUNK_OVERLAP,
     encoding_name: str = EMBEDDING_ENCODING,
-    callback: Optional[Callable[[SplitTextChunk], None]] = None,
 ) -> List[SplitTextChunk]:
     """
     Split a text into chunks of max_tokens length.
@@ -63,8 +62,6 @@ def split_text(
         chunk = tokenizer.decode(chunk_ids)
         chunk_item = SplitTextChunk(chunk, start_idx, cur_idx)
         chunks.append(chunk_item)
-        if callback:
-            callback(chunk_item)
         start_idx += chunk_size - chunk_overlap
         cur_idx = min(start_idx + chunk_size, len(input_ids))
         chunk_ids = input_ids[start_idx:cur_idx]
