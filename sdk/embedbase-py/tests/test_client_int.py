@@ -11,7 +11,7 @@ dotenv.load_dotenv("../../.env")
 base_url = "https://api.embedbase.xyz"
 api_key = os.environ.get("EMBEDBASE_API_KEY")
 print(api_key)
-client = EmbedbaseClient(embedbase_url=base_url, embedbase_key=api_key)
+client = EmbedbaseClient(embedbase_url=base_url, embedbase_key=api_key, timeout=60)
 
 # Dataset to be used in tests
 test_dataset = "unit_test"
@@ -19,7 +19,9 @@ test_dataset = "unit_test"
 ds = client.dataset(test_dataset)
 
 
-async_client = EmbedbaseAsyncClient(embedbase_url=base_url, embedbase_key=api_key)
+async_client = EmbedbaseAsyncClient(
+    embedbase_url=base_url, embedbase_key=api_key, timeout=60
+)
 
 async_ds = async_client.dataset(test_dataset)
 

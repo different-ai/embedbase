@@ -507,6 +507,57 @@ print(data)
   </Tab>
 </Tabs>
 
+
+### Listing documents
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```js copy
+const data = await embedbase.dataset('test-amazon-product-reviews').list()
+console.log(data)
+// [
+//   {
+//     "id": "eiew823",
+//     "data": "Lightweight. Telescopic. Easy zipper case for storage.
+//          Didn't put in dishwasher. Still perfect after many uses.",
+//     "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   },
+//   {
+//     "id": "eiew823",
+//     "data": "Lightweight. Telescopic. Easy zipper case for storage.
+//          Didn't put in dishwasher. Still perfect after many uses.",
+//     "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   }
+// ]
+```
+  </Tab>
+    <Tab>
+```python copy
+data = embedbase.dataset('test-amazon-product-reviews').list()
+print(data)
+# [
+#   {
+#     "id": "eiew823",
+#     "data": "Lightweight. Telescopic. Easy zipper case for storage.
+#          Didn't put in dishwasher. Still perfect after many uses.",
+#     "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+#     "embedding": [0.1, 0.2, 0.3, ...]
+#   },
+#   {
+#     "id": "eiew823",
+#     "data": "Lightweight. Telescopic. Easy zipper case for storage.
+#          Didn't put in dishwasher. Still perfect after many uses.",
+#     "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
+#     "embedding": [0.1, 0.2, 0.3, ...]
+#   }
+# ]
+```
+  </Tab>
+</Tabs>
+
+
 ## Create a recommendation engine
 
 Check out [this tutorial](https://docs.embedbase.xyz/tutorials/recommendation-engine-to-increase-time-spent).

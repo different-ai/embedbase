@@ -222,8 +222,9 @@ class EmbedbaseClient(BaseClient):
         embedbase_url: str = "https://api.embedbase.xyz",
         embedbase_key: Optional[str] = None,
         fastapi_app: Optional[Any] = None,
+        timeout: Optional[float] = 30,
     ):
-        super().__init__(embedbase_url, embedbase_key)
+        super().__init__(embedbase_url, embedbase_key, timeout)
         # warn user that passing fastapi_app is not supported
         # in sync client
         if fastapi_app:
