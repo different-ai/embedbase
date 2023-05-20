@@ -30,11 +30,11 @@ jobs:
       run: make poetry-download
       working-directory: sdk/embedbase-py
 
-    # - name: Set up cache
-    #   uses: actions/cache@v2.1.6
-    #   with:
-    #     path: sdk/embedbase-py/.venv
-    #     key: venv-${{ matrix.python-version }}-${{ hashFiles('sdk/embedbase-py/pyproject.toml') }}-${{ hashFiles('sdk/embedbase-py/poetry.lock') }}
+    - name: Set up cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: sdk/embedbase-py/.venv
+        key: venv-${{ matrix.python-version }}-${{ hashFiles('sdk/embedbase-py/pyproject.toml') }}-${{ hashFiles('sdk/embedbase-py/poetry.lock') }}
     
     - name: Install dependencies
       run: |
@@ -47,4 +47,6 @@ jobs:
         make test
       env:
         EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+        # necessary hack otherwise ci running in parallel create concurrency issues
+        EMBEDBASE_DATASET: ci_sdk_py_unit_test
       working-directory: sdk/embedbase-py

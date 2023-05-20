@@ -14,7 +14,7 @@ api_key = os.environ.get("EMBEDBASE_API_KEY")
 client = EmbedbaseClient(embedbase_url=base_url, embedbase_key=api_key, timeout=120)
 
 # Dataset to be used in tests
-test_dataset = "unit_test"
+test_dataset = os.environ.get("EMBEDBASE_DATASET", "unit_test")
 
 ds = client.dataset(test_dataset)
 
@@ -28,12 +28,10 @@ async_ds = async_client.dataset(test_dataset)
 
 @pytest.fixture(autouse=True)
 def setup_and_teardown():
-    time.sleep(1)
     yield
 
     # Teardown - clear the test dataset
     ds.clear()
-    time.sleep(1)
 
 
 def test_add_single_document():

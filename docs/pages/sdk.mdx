@@ -432,9 +432,36 @@ for await (const res of embedbase.generate(prompt, {history})) {
 
   </Tab>
     <Tab>
-This is not yet available in the Python SDK, if you need it, [please reach out](https://discord.gg/3qXwZQ6Z)
-we are moving fast and can implement this in a few hours.
+```python copy
+data = embedbase.dataset(dataset_id).create_context("my-context")
+question = 'How do I use Embedbase?'
+# ⚠️ note here that the prompt depends
+# on the used embedder in embedbase.
+# See `create_context` doc for details. ⚠️
+prompt = (
+    "Based on the following context:\n"
+    + "\n".join(data)
+    + f"\nAnswer the user's question: {question}"
+)
+for r in embedbase.generate(prompt):
+    print(r)
+    # You, need, to, query, Notion, API, like, so:, ...
+```
 
+You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
+
+```python copy
+history = [
+    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
+    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
+    {"role": "assistant", "content": "You can pip install embedbase-client, write two lines of code, and..."},
+    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
+]
+
+for r in embedbase.generate(prompt, history):
+    print(r)
+    # You, need, to, query, Notion, API, like, so:, ...
+```
   </Tab>
 </Tabs>
 

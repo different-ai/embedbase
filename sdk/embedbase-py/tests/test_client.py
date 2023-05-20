@@ -3,6 +3,7 @@
 from typing import List, Union
 
 import asyncio
+import os
 
 import numpy as np
 import pytest
@@ -58,7 +59,7 @@ base_url = "http://localhost:8000"
 client = EmbedbaseAsyncClient(embedbase_url=base_url, fastapi_app=app, timeout=60)
 
 # Dataset to be used in tests
-test_dataset = "unit_test"
+test_dataset = os.environ.get("EMBEDBASE_DATASET", "unit_test")
 
 ds = client.dataset(test_dataset)
 

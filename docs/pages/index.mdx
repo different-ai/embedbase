@@ -115,25 +115,14 @@ import openai
 question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
 context = embedbase.dataset(dataset_id).create_context(question)
 prompt = f'Based on the following context:\n{context}\nAnswer the user\'s question: {question}'
-
-openai.api_key = os.environ.get('OPENAI_API_KEY')
-completion = openai.ChatCompletion.create(
-    model='gpt-3.5-turbo',
-    messages=[{'role': 'user', 'content': prompt}]
-)
-print(completion.choices[0].message.content)
+for result in embedbase.generate(prompt):
+    print(result)
 ```
 ```
 You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
 and their unique bohemian style can elevate your wardrobe for work.
 However, please note that they may not be the most suitable for climbing.
 ```
-
-`.generate` is not yet available in the Python SDK, if you need it, [please reach out](https://discord.gg/3qXwZQ6Z)
-we are moving fast and can implement this in a few hours.
-
-You have to use OpenAI SDK in the meantime.
-
   </Tab>
 </Tabs>
 
@@ -144,11 +133,6 @@ You have to use OpenAI SDK in the meantime.
 ```bash copy
 npm i embedbase-js
 ```
-
-<Callout type="info" emoji="ℹ️">
-    For OpenAI installation, please refer to [their documentation](https://github.com/openai/openai-node).
-</Callout>
-
   </Tab>
   <Tab>
 
