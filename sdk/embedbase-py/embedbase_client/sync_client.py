@@ -10,7 +10,7 @@ from embedbase_client.model import ClientDatasets, Document, Metadata, SearchSim
 
 class SyncSearchBuilder:
     def __init__(
-        self, client, dataset: str, query: str, options: Optional[Dict[str, Any]] = None
+        self, client: BaseClient, dataset: str, query: str, options: Optional[Dict[str, Any]] = None
     ):
         if options is None:
             options = {}
@@ -74,7 +74,7 @@ class SyncSearchBuilder:
 class SyncListBuilder:
     def __init__(
         self,
-        client,
+        client: BaseClient,
         dataset: str,
         options: Optional[Dict[str, Any]] = None,
     ):
@@ -224,7 +224,7 @@ class EmbedbaseClient(BaseClient):
         fastapi_app: Optional[Any] = None,
         timeout: Optional[float] = 30,
     ):
-        super().__init__(embedbase_url, embedbase_key, timeout)
+        super().__init__(embedbase_url, embedbase_key, timeout=timeout)
         # warn user that passing fastapi_app is not supported
         # in sync client
         if fastapi_app:

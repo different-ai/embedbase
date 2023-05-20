@@ -136,6 +136,7 @@ def test_list_documents():
         {"data": "Document 1", "metadata": {"key": "value1"}},
         {"data": "Document 2", "metadata": {"key": "value2"}},
     ]
+    ds.clear()
     ds.batch_add(documents)
 
     # Perform a search
@@ -162,6 +163,7 @@ async def test_list_documents_async():
         {"data": "Document 1", "metadata": {"key": "value1"}},
         {"data": "Document 2", "metadata": {"key": "value2"}},
     ]
+    await async_ds.clear()
     await async_ds.batch_add(documents)
 
     # Perform a search
@@ -179,3 +181,12 @@ async def test_list_documents_async():
     document_datas = [result.data for result in results]
     for doc in documents:
         assert doc["data"] in document_datas
+
+
+def test_sync_client_got_timeout():
+    assert (
+        EmbedbaseClient(
+            embedbase_url=base_url, embedbase_key=api_key, timeout=3
+        ).timeout
+        == 3
+    )
