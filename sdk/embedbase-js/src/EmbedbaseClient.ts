@@ -7,8 +7,10 @@ import type {
   ClientSearchData,
   GenerateOptions,
   Metadata,
+  RangeOptions,
   SearchData,
-  SearchOptions
+  SearchOptions,
+  Document
 } from './types';
 import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
 
@@ -58,6 +60,44 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
     return this.search().then(onfulfilled, onrejected);
+  }
+}
+
+class ListBuilder implements PromiseLike<Document[]> {
+  constructor(
+    private client: EmbedbaseClient,
+    private dataset: string,
+    private options: RangeOptions = {
+      offset: 1,
+      limit: 10
+    }
+  ) { }
+
+  async list(): Promise<Document[]> {
+    const listUrl = `${this.client.embedbaseApiUrl}/${this.dataset}?offset=${this.options.offset}&limit=${this.options.limit}`
+    const res: Response = await fetch(listUrl, {
+      method: 'GET',
+      headers: this.client.headers,
+    })
+    const data: {documents: Document[]} = await res.json()
+    return data.documents;
+  }
+
+  offset(offset: number): ListBuilder {
+    this.options.offset = offset;
+    return this;
+  }
+
+  limit(limit: number): ListBuilder {
+    this.options.limit = limit;
+    return this;
+  }
+
+  then<TResult1 = Document[], TResult2 = never>(
+    onfulfilled?: ((value: Document[]) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.list().then(onfulfilled, onrejected);
   }
 }
 
@@ -152,11 +192,19 @@ export default class EmbedbaseClient {
     }))
   }
 
+  list(dataset: string, options: RangeOptions = {
+    offset: 0,
+    limit: 100,
+  }): ListBuilder {
+    return new ListBuilder(this, dataset, options);
+  }
+
   dataset(dataset: string): {
     search: (query: string, options?: SearchOptions) => SearchBuilder
     add: (document: string, metadata?: Metadata) => Promise<ClientAddData>
     batchAdd: (documents: BatchAddDocument[]) => Promise<ClientAddData[]>
     createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+    list: (options?: RangeOptions) => ListBuilder
   } {
     return {
       search: (query: string, options?: SearchOptions) =>
@@ -165,6 +213,7 @@ export default class EmbedbaseClient {
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
       createContext: async (query: string, options?: SearchOptions) =>
         this.createContext(dataset, query, options),
+      list: (options?: RangeOptions) => this.list(dataset, options),
     }
   }
 

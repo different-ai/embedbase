@@ -258,3 +258,24 @@ describe('API error handling tests', () => {
 
 });
 
+test('should be able to list documents', async () => {
+  // first add some documents, then list
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset('unit_test').add('hello')
+  await embedbase.dataset('unit_test').add('hello1')
+  await embedbase.dataset('unit_test').add('hello2')
+
+  let documents = await embedbase.dataset('unit_test').list({
+    offset: 0,
+    limit: 3,
+  })
+  expect(documents).toBeDefined()
+  expect(documents).toBeInstanceOf(Array)
+  expect(documents.length).toBeGreaterThanOrEqual(3)
+
+  documents = await embedbase.dataset('unit_test').list({
+    offset: 1,
+    limit: 2,
+  })
+  expect(documents.length).toEqual(2)
+}, 30000)

@@ -43,7 +43,7 @@ export interface SearchOptions {
   where?: object
 }
 
-export interface AddDataResult {
+export interface Document {
   id: string
   data: string
   embedding: number[]
@@ -51,7 +51,7 @@ export interface AddDataResult {
   metadata?: Metadata
 }
 export interface AddData {
-  results?: AddDataResult[]
+  results?: Document[]
   error?: string
 }
 
@@ -76,4 +76,9 @@ type Chat = {
 }
 export interface GenerateOptions {
   history: Chat[]
+}
+
+export interface RangeOptions {
+  offset: number
+  limit: number
 }
