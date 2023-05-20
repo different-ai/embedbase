@@ -2,9 +2,10 @@
 Tests at the end-to-end abstraction level.
 """
 
+from typing import List
+
 import math
 from random import randint
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -13,8 +14,8 @@ from httpx import AsyncClient
 
 from embedbase import get_app
 from embedbase.database.base import VectorDatabase
-from embedbase.database.postgres_db import Postgres
 from embedbase.database.memory_db import MemoryDatabase
+from embedbase.database.postgres_db import Postgres
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
 from embedbase.settings import get_settings_from_file
@@ -30,7 +31,7 @@ def init_databases():
 
     try:
         vector_databases.append(Postgres())
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         print("Postgres dependency not installed, skipping")
     vector_databases.append(MemoryDatabase())
     try:
@@ -40,13 +41,15 @@ def init_databases():
                 key=settings.supabase_key,
             )
         )
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         print("Supabase dependency not installed, skipping")
 
 
-async def run_around_tests(skip_db = None):
+async def run_around_tests(skip_db=[]):
     for vector_database in vector_databases:
-        if skip_db is not None and isinstance(vector_database, skip_db):
+        if len(skip_db) > 0 and any(
+            [isinstance(vector_database, db) for db in skip_db]
+        ):
             continue
         await vector_database.clear(unit_testing_dataset)
         settings = get_settings_from_file()
@@ -491,9 +494,11 @@ d = [
         },
     },
 ]
+
+
 @pytest.mark.asyncio
 async def test_search_with_where():
-    async for app in run_around_tests(skip_db=Postgres):
+    async for app in run_around_tests(skip_db=[Postgres]):
         # First, insert some documents
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.post(
@@ -519,7 +524,11 @@ async def test_search_with_where():
             assert response.status_code == 200
             json_response = response.json()
             assert len(json_response.get("similarities")) == 1
-            assert json_response.get("similarities")[0]["data"] == "John pushed code at 8 AM"
+            assert (
+                json_response.get("similarities")[0]["data"]
+                == "John pushed code at 8 AM"
+            )
+
 
 @pytest.mark.asyncio
 async def test_search_should_return_everything_necessary():
@@ -549,3 +558,24 @@ async def test_search_should_return_everything_necessary():
             assert "dataset_id" in json_response
             assert "id" in json_response
             assert "created" in json_response
+
+
+@pytest.mark.asyncio
+async def test_list_endpoint():
+    async for app in run_around_tests(skip_db=[Postgres, MemoryDatabase]):
+        # First, insert some documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": d},
+            )
+            assert response.status_code == 200
+
+        # Now, list documents
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.get(
+                f"/v1/{unit_testing_dataset}",
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("documents")) == 5

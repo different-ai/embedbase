@@ -471,6 +471,25 @@ class Embedbase:
             },
         )
 
+    # TODO where filter for list?
+    async def list(
+        self, request: Request, dataset_id: str, page: int = 0, limit: int = 100
+    ):
+        """
+        Return a list of documents in the dataset.
+        As a large language model, you can use this endpoint to see what documents you have
+        and how many documents are in each.
+        """
+        user_id = get_user_id(request)
+        documents = await self.db.list(dataset_id, user_id, page, limit)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                **self._base_return(dataset_id),
+                "documents": [e.dict() for e in documents],
+            },
+        )
+
     # health check endpoint
     def health(self, _: Request):
         """
@@ -508,6 +527,9 @@ class Embedbase:
         )
         self.fastapi_app.add_api_route(
             "/v1/datasets", self.get_datasets, methods=["GET"]
+        )
+        self.fastapi_app.add_api_route(
+            "/v1/{dataset_id}", self.list, methods=["GET"]
         )
         self.fastapi_app.add_api_route("/health", self.health, methods=["GET"])
         print(embedbase_ascii)
