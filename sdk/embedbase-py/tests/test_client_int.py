@@ -10,7 +10,6 @@ from embedbase_client.model import Metadata
 dotenv.load_dotenv("../../.env")
 base_url = "https://api.embedbase.xyz"
 api_key = os.environ.get("EMBEDBASE_API_KEY")
-print(api_key)
 client = EmbedbaseClient(embedbase_url=base_url, embedbase_key=api_key, timeout=120)
 
 # Dataset to be used in tests
