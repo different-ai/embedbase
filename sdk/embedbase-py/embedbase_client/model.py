@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Extra
 
@@ -19,7 +19,7 @@ class Metadata(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         return self.__dict__
 
-    # HACK to have Document(metadata={"path": "foo", "bar": "baz"}) -> 
+    # HACK to have Document(metadata={"path": "foo", "bar": "baz"}) ->
     #   Document(id=None, data=None, hash=None, embedding=None, metadata=Metadata(path='foo', bar='baz'))
     # instead of
     #   Document(id=None, data=None, hash=None, embedding=None, metadata=Metadata(path='foo'))
@@ -70,3 +70,15 @@ class AddDataResult(Document):
 class AddData(BaseModel):
     results: Optional[List[AddDataResult]]
     error: Optional[str]
+
+
+Role = Literal["user", "system", "assistant"]
+
+
+class Chat(BaseModel):
+    role: Role
+    content: str
+
+
+class GenerateOptions(BaseModel):
+    history: List[Chat]

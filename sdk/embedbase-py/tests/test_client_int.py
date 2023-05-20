@@ -1,6 +1,7 @@
 # pylint: disable=missing-function-docstring
 import asyncio
 import os
+import time
 
 import dotenv
 import pytest
@@ -27,10 +28,12 @@ async_ds = async_client.dataset(test_dataset)
 
 @pytest.fixture(autouse=True)
 def setup_and_teardown():
+    time.sleep(1)
     yield
 
     # Teardown - clear the test dataset
     ds.clear()
+    time.sleep(1)
 
 
 def test_add_single_document():
@@ -189,3 +192,14 @@ def test_sync_client_got_timeout():
         ).timeout
         == 3
     )
+
+
+@pytest.mark.asyncio
+async def test_async_client_generate():
+    async for result in async_client.generate("hello"):
+        assert isinstance(result, str)
+
+
+def test_sync_client_generate():
+    for result in client.generate("hello"):
+        assert isinstance(result, str)

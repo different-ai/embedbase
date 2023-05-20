@@ -1,16 +1,22 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Generator, List, Optional
 
+import json
 from dataclasses import dataclass
 
 import requests
 from embedbase_client.base import BaseClient
 from embedbase_client.errors import EmbedbaseAPIException
-from embedbase_client.model import ClientDatasets, Document, Metadata, SearchSimilarity
+from embedbase_client.model import ClientDatasets, Document, GenerateOptions, Metadata, SearchSimilarity
+from embedbase_client.utils import sync_stream
 
 
 class SyncSearchBuilder:
     def __init__(
-        self, client: BaseClient, dataset: str, query: str, options: Optional[Dict[str, Any]] = None
+        self,
+        client: BaseClient,
+        dataset: str,
+        query: str,
+        options: Optional[Dict[str, Any]] = None,
     ):
         if options is None:
             options = {}
@@ -133,9 +139,7 @@ class Dataset:
         """
         return SyncSearchBuilder(self.client, self.dataset, query, {"limit": limit})
 
-    def add(
-        self, document: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> Document:
+    def add(self, document: str, metadata: Optional[Dict[str, Any]] = None) -> Document:
         """
         Add a new document to the specified dataset.
 
@@ -408,3 +412,44 @@ class EmbedbaseClient(BaseClient):
             documents = embedbase.list("my_dataset")
         """
         return SyncListBuilder(self, dataset, {})
+
+    def generate(self, prompt: str, options: GenerateOptions = None) -> Generator[str, None, None]:
+        """
+        Generate text from an LLM using a synchronous generator that fetches generated text data in chunks.
+
+        Args:
+            prompt (str): The text prompt to send to the API for generating responses.
+            options (dict, optional): Options for the generation process, including history.
+                                    Defaults to None.
+
+        Returns:
+            Generator[str, None, None]: A synchronous generator that yields generated text data in chunks.
+        """
+        url = "https://app.embedbase.xyz/api/chat"
+
+        options = options or {
+            "history": [],
+        }
+
+        system = ""
+        if options.get("history"):
+            system_index = next(
+                (
+                    i
+                    for i, item in enumerate(options["history"])
+                    if item["role"] == "system"
+                ),
+                -1,
+            )
+            if system_index > -1:
+                system = options["history"][system_index]["content"]
+                del options["history"][system_index]
+
+        return sync_stream(
+            url,
+            json.dumps(
+                {"prompt": prompt, "system": system, "history": options["history"]}
+            ),
+            self.headers,
+            self.timeout,
+        )
