@@ -8,6 +8,8 @@ on:
       - rc
     paths:
       - "sdk/embedbase-py/**"
+      # when pyproject.toml changes
+      - "pyproject.toml"
   workflow_dispatch:
 
 jobs:

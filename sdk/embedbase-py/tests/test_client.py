@@ -64,11 +64,12 @@ ds = client.dataset(test_dataset)
 
 
 @pytest.fixture(autouse=True)
-def setup_and_teardown():
+@pytest.mark.asyncio
+async def setup_and_teardown():
     yield
 
     # Teardown - clear the test dataset
-    ds.clear()
+    await ds.clear()
 
 
 @pytest.mark.asyncio

@@ -135,7 +135,7 @@ class Dataset:
 
     def add(
         self, document: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+    ) -> Document:
         """
         Add a new document to the specified dataset.
 
