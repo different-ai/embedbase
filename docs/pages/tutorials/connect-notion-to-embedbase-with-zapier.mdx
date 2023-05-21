@@ -145,4 +145,56 @@ ChatGPT is a game-changer, but it doesn't have any knowledge about your company,
 ## Where to go from here
 
 Now that all your Notion data is in Embedbase, you can also build experiences programmatically with the Embedbase API and SDKs,
-check out the [Embedbase SDKs documentation](https://docs.embedbase.xyz/sdk).
+just run `npm i embedbase-js` copy the following code in `ask-your-notion.tsx`:
+
+
+```ts filename="ask-your-notion.tsx"
+import { createClient } from 'embedbase-js'
+const embedbase = createClient('https://api.embedbase.xyz', process.env.EMBEDBASE_API_KEY)
+
+const ask = async () => {
+    const datasetId = 'notion-recruiting-tracker'
+    const question = 'what kind of roles are we hiring in new york in q2?'
+    const context = await embedbase.dataset(datasetId).createContext(question)
+    const prompt =
+        `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
+    for await (const res of embedbase.generate(prompt)) {
+        console.log(res)
+    }
+}
+
+ask()
+```
+
+```bash
+$ export EMBEDBASE_API_KEY="<find me here https://app.embedbase.xyz>"
+$ npx tsx ask-your-notion.tsx 
+Based
+ on
+ the
+ given
+ context
+,
+ there
+ are
+ two
+ users
+ with
+ the
+ location
+ "
+New
+ York
+"
+ and
+ their
+ roles
+ are
+ "
+Software
+ Engineer
+,
+//...
+```
+
+For more information, check out the [Embedbase SDKs documentation](https://docs.embedbase.xyz/sdk).
