@@ -14,6 +14,8 @@ const KEY = process.env.EMBEDBASE_API_KEY || 'some.fake.KEY'
 const embedbase = createClient(URL, KEY)
 const RANDOM_DATASET_NAME = new Date().getTime().toString()
 
+const DATASET_NAME = process.env.EMBEDBASE_DATASET || 'unit_test_js'
+
 test('it should create the client connection', () => {
   expect(embedbase).toBeDefined()
   expect(embedbase).toBeInstanceOf({}.constructor)
@@ -147,7 +149,7 @@ describe('Check if the client is able to fetch data', () => {
 
   test('should return a list of datasets', async () => {
     const embedbase = createClient(URL, KEY)
-
+    // TODO clear dataset first
     await Promise.all([
       embedbase.dataset('foo').add('test'),
       embedbase.dataset('bar').add('test'),
@@ -261,15 +263,34 @@ describe('API error handling tests', () => {
 test('should be able to list documents', async () => {
   // first add some documents, then list
   const embedbase = createClient(URL, KEY)
-  await embedbase.dataset('unit_test').add('hello')
-  await embedbase.dataset('unit_test').add('hello1')
-  await embedbase.dataset('unit_test').add('hello2')
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('hello')
+  await embedbase.dataset(DATASET_NAME).add('hello1')
+  await embedbase.dataset(DATASET_NAME).add('hello2')
 
-  let documents = await embedbase.dataset('unit_test').list().offset(0).limit(3)
+  let documents = await embedbase.dataset(DATASET_NAME).list().offset(0).limit(3)
   expect(documents).toBeDefined()
   expect(documents).toBeInstanceOf(Array)
   expect(documents.length).toBeGreaterThanOrEqual(3)
 
-  documents = await embedbase.dataset('unit_test').list().offset(1).limit(2)
+  documents = await embedbase.dataset(DATASET_NAME).list().offset(0).limit(2)
   expect(documents.length).toEqual(2)
+
+  documents = await embedbase.dataset(DATASET_NAME).list().offset(1).limit(2)
+  expect(documents.length).toEqual(2)
+}, 30000)
+
+test('should be able to clear dataset', async () => {
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('hello')
+  let documents = await embedbase.dataset(DATASET_NAME).list()
+  expect(documents).toBeDefined()
+  expect(documents).toBeInstanceOf(Array)
+  expect(documents.length).toEqual(1)
+  await embedbase.dataset(DATASET_NAME).clear()
+  documents = await embedbase.dataset(DATASET_NAME).list()
+  expect(documents).toBeDefined()
+  expect(documents).toBeInstanceOf(Array)
+  expect(documents.length).toEqual(0)
 }, 30000)

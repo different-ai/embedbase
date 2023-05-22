@@ -68,7 +68,7 @@ class ListBuilder implements PromiseLike<Document[]> {
     private client: EmbedbaseClient,
     private dataset: string,
     private options: RangeOptions = {
-      offset: 1,
+      offset: 0,
       limit: 10
     }
   ) { }
@@ -199,12 +199,22 @@ export default class EmbedbaseClient {
     return new ListBuilder(this, dataset, options);
   }
 
+  public async clear(dataset: string): Promise<void> {
+    const clearUrl = `${this.embedbaseApiUrl}/${dataset}/clear`
+    await fetch(clearUrl, {
+      method: 'GET',
+      headers: this.headers,
+    })
+  }
+
+
   dataset(dataset: string): {
     search: (query: string, options?: SearchOptions) => SearchBuilder
     add: (document: string, metadata?: Metadata) => Promise<ClientAddData>
     batchAdd: (documents: BatchAddDocument[]) => Promise<ClientAddData[]>
     createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
     list: (options?: RangeOptions) => ListBuilder
+    clear: () => Promise<void>
   } {
     return {
       search: (query: string, options?: SearchOptions) =>
@@ -214,6 +224,7 @@ export default class EmbedbaseClient {
       createContext: async (query: string, options?: SearchOptions) =>
         this.createContext(dataset, query, options),
       list: (options?: RangeOptions) => this.list(dataset, options),
+      clear: async () => this.clear(dataset),
     }
   }
 
