@@ -104,7 +104,7 @@ The fastest way to get started with Embedbase is signing up for free to [Embedba
 - [x] Postgres
 - [x] Qdrant
 - [ ] Weaviate
-- [ ] Redix
+- [ ] Redis
 
 ### Embedding Models
 - [x] OpenAI Embeddings
