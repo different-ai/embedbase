@@ -43,6 +43,7 @@ jobs:
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           make bump
+        working-directory: hosted
       
       # TODO: Add tests
 

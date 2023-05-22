@@ -2,7 +2,7 @@ LOCAL_PORT="8000"
 SERVICE="embedbase-hosted"
 GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null || echo "none")
 LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
-VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)
+VERSION=$(shell sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)
 IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
 REGION="us-central1"
 
