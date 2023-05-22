@@ -213,7 +213,7 @@ class Supabase(VectorDatabase):
         req = self.supabase.table("documents").select("*").eq("dataset_id", dataset_id)
         if user_id:
             req = req.eq("user_id", user_id)
-        req = req.range(offset * limit, (offset + 1) * limit)
+        req = req.range(offset, offset + limit)
         data = req.execute().data
         return [
             Document(
