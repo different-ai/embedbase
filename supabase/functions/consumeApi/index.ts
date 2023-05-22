@@ -111,7 +111,7 @@ serve(async (req: any) => {
 
 
   return new Response(
-    null,
+    JSON.stringify({ userId, currentPlanPeriodUsage }),
     {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
