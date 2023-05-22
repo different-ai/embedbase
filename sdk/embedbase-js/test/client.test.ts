@@ -15,6 +15,8 @@ const embedbase = createClient(URL, KEY)
 const RANDOM_DATASET_NAME = new Date().getTime().toString()
 
 const DATASET_NAME = process.env.EMBEDBASE_DATASET || 'unit_test_js'
+const TIMEOUT = Number(process.env.EMBEDBASE_TIMEOUT || 0) || 120000
+
 
 test('it should create the client connection', () => {
   expect(embedbase).toBeDefined()
@@ -36,7 +38,7 @@ describe('Check if headers are set', () => {
 
     expect(getHeaders).toHaveProperty('Authorization', header.Authorization)
     expect(getHeaders).toHaveProperty('Content-Type', header['Content-Type'])
-  })
+  }, TIMEOUT)
 })
 
 describe('Check if the client is able to fetch data', () => {
@@ -47,7 +49,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toHaveProperty('id')
     expect(data).toHaveProperty('status')
-  })
+  }, TIMEOUT)
 
   test('should be able to batch add elements to a dataset', async () => {
     const embedbase = createClient(URL, KEY)
@@ -69,7 +71,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data).toHaveLength(10)
-  })
+  }, TIMEOUT)
 
   test('should be able to batch add elements with metadata to a dataset', async () => {
     const embedbase = createClient(URL, KEY)
@@ -96,7 +98,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data).toHaveLength(10)
-  }, 30000)
+  }, TIMEOUT)
 
   test('should return an array of similarities', async () => {
     const embedbase = createClient(URL, KEY)
@@ -112,7 +114,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data[0]).toHaveProperty('embedding')
     expect(data[0]).toHaveProperty('hash')
     expect(data[0].data).toBe('hello')
-  })
+  }, TIMEOUT)
 
   test('should return an array of similarities with metadata', async () => {
     const embedbase = createClient(URL, KEY)
@@ -125,7 +127,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data[0]).toHaveProperty('metadata')
-  }, 30000)
+  }, TIMEOUT)
 
   // this is not striclty to just a simplification for our tests
   test('should use return equal element of top_k', async () => {
@@ -136,7 +138,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeDefined()
     expect(data).toBeInstanceOf(Array)
     expect(data).toHaveLength(10)
-  })
+  }, TIMEOUT)
 
   test('should return a list of strings when using createContext', async () => {
     const embedbase = createClient(URL, KEY)
@@ -145,7 +147,7 @@ describe('Check if the client is able to fetch data', () => {
 
     expect(data).toBeDefined()
     expect(data).toHaveLength(10)
-  })
+  }, TIMEOUT)
 
   test('should return a list of datasets', async () => {
     const embedbase = createClient(URL, KEY)
@@ -165,7 +167,7 @@ describe('Check if the client is able to fetch data', () => {
     expect(datasetIds).toContain('foo')
     expect(datasetIds).toContain('bar')
     expect(datasetIds).toContain('baz')
-  })
+  }, TIMEOUT)
   test('should be able to filter by metadata using where', async () => {
     const embedbase = createClient(URL, KEY)
 
@@ -202,14 +204,14 @@ describe('Check if the client is able to fetch data', () => {
     expect(data).toBeInstanceOf(Array)
     expect(data.length).toBeGreaterThanOrEqual(1)
     expect(data[0].metadata).toHaveProperty('source', 'github.com')
-  }, 30000)
+  }, TIMEOUT)
 })
 
 test('should be able to chat', async () => {
   for await (const res of embedbase.generate('hello')) {
     expect(res).toBeDefined()
   }
-}, 10000)
+}, TIMEOUT)
 
 test('should receive maxed out plan error', async () => {
   // TODO: automatically make this key bankrupt on month start or mock http error
@@ -233,7 +235,7 @@ test('should receive maxed out plan error', async () => {
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe("Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz")
   }
-}, 30000)
+}, TIMEOUT)
 
 test('should be able to chat with map, foreach etc', async () => {
   const outputs = await embedbase.generate('hello').map((res) => res)
@@ -245,7 +247,7 @@ test('should be able to chat with map, foreach etc', async () => {
   let lastMessage = ''
   await embedbase.generate('hello').forEach((res) => lastMessage = res)
   expect(lastMessage).toBeDefined()
-}, 30000)
+}, TIMEOUT)
 
 
 const errorStatusCodes = [500, 401, 402];
@@ -279,7 +281,7 @@ describe('API error handling tests', () => {
 
     // Restore the original stream function implementation after the test
     jest.spyOn(require('../src/utils'), 'stream').mockImplementation(originalStream);
-  }, 10000);
+  }, TIMEOUT);
 
 
 });
@@ -302,7 +304,7 @@ test('should be able to list documents', async () => {
 
   documents = await embedbase.dataset(DATASET_NAME).list().offset(1).limit(2)
   expect(documents.length).toEqual(2)
-}, 30000)
+}, TIMEOUT)
 
 test('should be able to clear dataset', async () => {
   const embedbase = createClient(URL, KEY)
@@ -317,4 +319,4 @@ test('should be able to clear dataset', async () => {
   expect(documents).toBeDefined()
   expect(documents).toBeInstanceOf(Array)
   expect(documents.length).toEqual(0)
-}, 120000)
+}, TIMEOUT)
