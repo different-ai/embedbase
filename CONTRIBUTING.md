@@ -85,6 +85,7 @@ solution until a challenge comes up.
 - If your feature branch gets messed up, just update the `main` branch in your
   fork and create a fresh new clean "feature branch" where you can add your
   changes one by one in separate commits or all as a single commit.
+- When working on Github actions, you can test locally using [act](https://github.com/nektos/act) like so `act -W .github/workflows/ci_core.yml --container-architecture linux/amd64` (container-architecture is necessary if you use Mac M series)
 
 ### When does a review finish
 
