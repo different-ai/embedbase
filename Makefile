@@ -1,8 +1,8 @@
 #* development variables
 LOCAL_PORT="8000"
 
-#* read version from pyproject.toml
-VERSION="$(shell env/bin/python3 -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+#* read version from pyproject.toml version = "x.x.x" using bash
+VERSION="$(shell cat pyproject.toml | grep version | head -n 1 | cut -d '"' -f 2)"
 
 run: ## [DEVELOPMENT] Run the API
 	uvicorn embedbase.__main__:app --port ${LOCAL_PORT} --reload --log-level debug 
@@ -10,7 +10,9 @@ run: ## [DEVELOPMENT] Run the API
 test: ## [Local development] Run all Python tests with pytest.
 	docker run --rm --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
 	while ! docker exec -it pgvector pg_isready -U postgres; do sleep 1; done
-	poetry run pytest --ignore=sdk/embedbase-js --ignore=hosted; docker stop pgvector
+	poetry run pytest --cov-report=html --cov=embedbase --ignore=sdk --ignore=hosted;\
+	poetry run coverage-badge -o assets/images/coverage.svg -f;\
+	docker stop pgvector
 	@echo "Done testing"
 
 release: ## [Local development] Release a new version of the API.

@@ -51,8 +51,7 @@ jobs:
         run: |
           docker run --rm --name pgvector -e POSTGRES_DB=embedbase -e POSTGRES_PASSWORD=localdb -p 5432:5432 -p 8080:8080 -d ankane/pgvector
           while ! docker exec pgvector pg_isready -U postgres; do sleep 1; done
-          poetry run pytest --ignore=sdk/embedbase-js --ignore=hosted
-          docker stop pgvector
+          poetry run pytest --cov-report=html --cov=embedbase --ignore=sdk --ignore=hosted;poetry run coverage-badge -o assets/images/coverage.svg -f;docker stop pgvector
 
       - name: Build package
         run: |
