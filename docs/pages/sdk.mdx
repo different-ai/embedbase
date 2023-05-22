@@ -585,6 +585,22 @@ print(data)
 </Tabs>
 
 
+### Clearing a dataset
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```js copy
+await embedbase.dataset('test-amazon-product-reviews').clear()
+```
+  </Tab>
+    <Tab>
+```python copy
+embedbase.dataset('test-amazon-product-reviews').clear()
+```
+  </Tab>
+</Tabs>
+
+
 ## Create a recommendation engine
 
 Check out [this tutorial](https://docs.embedbase.xyz/tutorials/recommendation-engine-to-increase-time-spent).
