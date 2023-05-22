@@ -42,7 +42,7 @@ jobs:
       - name: Bump version if necessary
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
-          make bump
+          env/bin/python3 bump.py
         working-directory: hosted
       
       # TODO: Add tests
