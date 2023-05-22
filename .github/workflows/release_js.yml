@@ -32,6 +32,17 @@ jobs:
           npm run build
         working-directory: sdk/embedbase-js
 
+      - name: Run tests
+        run: |
+          npm clean-install
+          npm run test:coverage
+        working-directory: sdk/embedbase-js
+        env:
+          EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+          BANKRUPT_EMBEDBASE_KEY: ${{ secrets.BANKRUPT_EMBEDBASE_KEY }}
+          # necessary hack otherwise ci running in parallel create concurrency issues
+          EMBEDBASE_DATASET: release_sdk_js_unit_test
+
       - name: Create a release
         run: npx semantic-release@^18.0.0
         env:

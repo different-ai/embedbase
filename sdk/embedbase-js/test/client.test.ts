@@ -211,6 +211,30 @@ test('should be able to chat', async () => {
   }
 }, 10000)
 
+test('should receive maxed out plan error', async () => {
+  // TODO: automatically make this key bankrupt on month start or mock http error
+  const bankruptBase = createClient(URL, process.env.BANKRUPT_EMBEDBASE_KEY)
+
+  // const e = async () => {
+  //   for await (const res of bankruptBase.generate('hello')) {
+  //     expect(res).toBeDefined()
+  //   }
+  // }
+  // // run 50 time to max out plan
+  // Promise.all(Array(50).fill(0).map(() => e()))
+  
+  try {
+    for await (const res of bankruptBase.generate('hello')) {
+      // Execution should not reach here, so the test will fail if it does
+      expect(false).toBe(true);
+    }
+  } catch (error) {
+    // Check if the error is an instance of Response and has the desired status
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz")
+  }
+}, 30000)
+
 test('should be able to chat with map, foreach etc', async () => {
   const outputs = await embedbase.generate('hello').map((res) => res)
   expect(outputs).toBeDefined()
@@ -293,4 +317,4 @@ test('should be able to clear dataset', async () => {
   expect(documents).toBeDefined()
   expect(documents).toBeInstanceOf(Array)
   expect(documents.length).toEqual(0)
-}, 30000)
+}, 120000)

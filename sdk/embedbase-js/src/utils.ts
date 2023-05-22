@@ -83,7 +83,7 @@ async function* streamHttp(
       rawData += chunk;
     }
     const message = JSON.parse(rawData);
-    throw new Error(message);
+    throw new Error(message.error || message);
   } else {
     yield* readStream(response);
   }
@@ -102,8 +102,9 @@ async function* streamFetch(
 
   if (!response.ok) {
     // assuming the error is a JSON object
-    const message = await response.text()
-    throw new Error(message)
+    const message = await response.json()
+    // TODO: test this
+    throw new Error(message.error || message)
   }
 
   // This data is a ReadableStream
