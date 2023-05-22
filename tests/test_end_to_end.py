@@ -589,6 +589,15 @@ async def test_list_endpoint():
             json_response = response.json()
             assert len(json_response.get("documents")) == 4
 
+        # offset 1, limit 2
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.get(
+                f"/v1/{unit_testing_dataset}?offset=1&limit=2",
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("documents")) == 2
+
         # offset 2, limit 2
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.get(
@@ -597,3 +606,12 @@ async def test_list_endpoint():
             assert response.status_code == 200
             json_response = response.json()
             assert len(json_response.get("documents")) == 2
+
+        # offset 2, limit 10
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.get(
+                f"/v1/{unit_testing_dataset}?offset=2&limit=10",
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("documents")) == 3
