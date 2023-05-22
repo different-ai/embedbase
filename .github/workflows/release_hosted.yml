@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -42,9 +42,24 @@ jobs:
       - name: Bump version if necessary
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
-          env/bin/python3 bump.py
+          env/bin/python3 bump.py > __version__.py
         working-directory: hosted
-      
+
+      - name: Get the version
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        id: get_version
+        # __version__ = "0.0.1" in version.py
+        run: echo "VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)" >> $GITHUB_ENV
+        working-directory: hosted
+
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add __version__.py
+          git commit -m "chore(hosted): bump to ${{ env.VERSION }}"
+          git push
+        working-directory: hosted
+
       # TODO: Add tests
 
       - id: auth
@@ -56,13 +71,6 @@ jobs:
       - name: Authorize Docker push
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: gcloud auth configure-docker
-
-      - name: Get the version
-        if: ${{ steps.regex-match.outputs.match != '' }}
-        id: get_version
-        # __version__ = "0.0.1" in version.py
-        run: echo "VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)" >> $GITHUB_ENV
-        working-directory: hosted
 
       - name: Build and push
         if: ${{ steps.regex-match.outputs.match != '' }}

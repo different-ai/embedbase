@@ -51,11 +51,12 @@ scripts/users: ## [Local development] Export users from the database.
 	python3 scripts/main.py get_users
 
 release: ## [Local development] Release a new version of the API.
-	@echo "Releasing Embedbase Hosted version ${VERSION}"; \
+	$(eval NEXT_VERSION := $(shell python3 bump.py))
+	@echo "Releasing Embedbase Hosted version ${NEXT_VERSION}"
 	read -p "Commit content:" COMMIT; \
 	git add .; \
-	echo "Committing '${VERSION}: $$COMMIT'"; \
-	git commit -m "Release hosted ${VERSION} $$COMMIT"; \
+	echo "Committing '${NEXT_VERSION}: $$COMMIT'"; \
+	git commit -m "Release hosted ${NEXT_VERSION} $$COMMIT"; \
 	git push origin main
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
@@ -63,3 +64,4 @@ release: ## [Local development] Release a new version of the API.
 
 help: # Run `make help` to get help on the make commands
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
