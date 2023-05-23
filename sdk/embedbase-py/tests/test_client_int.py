@@ -1,7 +1,6 @@
 # pylint: disable=missing-function-docstring
 import asyncio
 import os
-import time
 
 import dotenv
 import pytest
@@ -231,3 +230,48 @@ def test_sync_client_generate_should_receive_maxed_out_plan_error():
         str(e.value)
         == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
     )
+
+@pytest.mark.asyncio
+async def test_merge_datasets():
+    ds_one = f"{test_dataset}_organic_ingredients"
+    ds_two = f"{test_dataset}_cake_recipes"
+    await async_client.dataset(ds_one).clear()
+    await async_client.dataset(ds_two).clear()
+    await async_client.dataset(ds_one).batch_add(
+        [
+            {
+                "data": "flour",
+                "metadata": {"source": "organic.com", "path": "https://organic.com"},
+            },
+            {
+                "data": "eggs",
+                "metadata": {"source": "organic.com", "path": "https://organic.com"},
+            },
+            {
+                "data": "milk",
+                "metadata": {"source": "organic.com", "path": "https://organic.com"},
+            },
+        ]
+    )
+    await async_client.dataset(ds_two).batch_add(
+        [
+            {
+                "data": "Cake recipe: 1. Mix flour, eggs and milk. 2. Bake for 30 minutes.",
+                "metadata": {
+                    "source": "recipe.com",
+                    "path": "https://recipe.com",
+                    "ingredients": ["flour", "eggs", "milk"],
+                },
+            }
+        ]
+    )
+
+    question = "How to make a cake ?"
+    [results_one, results_two] = await asyncio.gather(
+        *[
+            async_client.dataset(ds_one).search(question, limit=6).get(),
+            async_client.dataset(ds_two).search(question, limit=1).get(),
+        ]
+    )
+    assert len(results_one) == 3
+    assert len(results_two) == 1
