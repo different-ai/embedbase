@@ -120,8 +120,7 @@ Alright, let's finally implement the script to send your data to Embedbase, past
 
 ```ts
 import glob from "glob";
-import { createClient, BatchAddDocument } from 'embedbase-js'
-import { splitText } from 'embedbase-js/dist/main/split';
+import { splitText, createClient, BatchAddDocument } from 'embedbase-js'
 import { getPostBySlug } from "../lib/api";
 
 try {
@@ -177,11 +176,11 @@ const sync = async () => {
     // using chunks is useful to send batches of documents to embedbase
     // this is useful when you send a lot of data
     const chunks = []
-    documents.map((document) =>
-        splitText(document.data, {}, async ({ chunk, start, end }) => chunks.push({
+    await Promise.all(documents.map((document) =>
+        splitText(document.data).map(({ chunk, start, end }) => chunks.push({
             data: chunk,
             metadata: document.metadata,
-        }))
+        })))
     )
     const datasetId = `recsys`
 

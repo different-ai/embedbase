@@ -7,6 +7,7 @@ description: Store and search Github repository content with Embedbase
 
 This example shows how to add a Github repository content to Embedbase.
 It uses the Embedbase JS SDK that you can install with `npm i embedbase-js`.
+You also need `cross-fetch` which allows you to use fetch in NodeJS.
 
 NextJS is also used here, but you can use any other framework or no framework at all.
 
@@ -15,9 +16,7 @@ This particular example has been used for web3 code, feel free to adapt it to yo
 
 ```ts filename="lib/github.ts"
 import fetch from 'cross-fetch';
-import { createClient } from "embedbase-js";
-import { splitText } from "embedbase-js/dist/module/split";
-import { BatchAddDocument, ClientAddData } from "embedbase-js/dist/module/types";
+import { createClient, BatchAddDocument, ClientAddData, splitText } from "embedbase-js";
 
 // extract repo name from url
 // e.g. https://github.com/gnosis/hashi should return gnosis-hashi
@@ -128,9 +127,7 @@ It uses the Embedbase JS SDK to add the documents to the dataset in batches of 1
 
 ```ts filename="pages/api/sync.ts"
 import fetch from 'cross-fetch';
-import { createClient } from "embedbase-js";
-import { splitText } from "embedbase-js/dist/module/split";
-import { BatchAddDocument, ClientAddData } from "embedbase-js/dist/module/types";
+import { splitText, createClient, BatchAddDocument, ClientAddData } from "embedbase-js";
 
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
@@ -146,17 +143,16 @@ export default async function sync(req: any, res: any) {
   const repo = getRepoName(url);
 
   const chunks: BatchAddDocument[] = [];
-  githubFiles.forEach((file) => splitText(
-    file.content,
-    { maxTokens: 500, chunkOverlap: 200 },
-    (chunk) => chunks.push({
-      data: chunk,
-      metadata: {
-        path: url,
-        links: file.metadata._links,
-      }
-    })
-  ));
+  await Promise.all(githubFiles
+      // ignore chunks containing <|endoftext|>
+      .filter((file) => !file.content.includes("<|endoftext|>"))
+      .map((file) =>
+        splitText(file.content).map(({ chunk }) => chunks.push({
+          data: chunk,
+          metadata: file.metadata,
+        }))
+      )
+    );
 
   console.log('indexing', chunks.length, 'chunks into dataset', repo)
   const batchSize = 100;
