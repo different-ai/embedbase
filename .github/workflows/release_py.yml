@@ -56,6 +56,7 @@ jobs:
           EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
           # necessary hack otherwise ci running in parallel create concurrency issues
           EMBEDBASE_DATASET: release_sdk_py_unit_test
+          BANKRUPT_EMBEDBASE_KEY: ${{ secrets.BANKRUPT_EMBEDBASE_KEY }}
         working-directory: sdk/embedbase-py
   
       - name: Build package

@@ -208,7 +208,7 @@ describe('Check if the client is able to fetch data', () => {
 })
 
 test('should be able to chat', async () => {
-  for await (const res of embedbase.generate('hello')) {
+  for await (const res of embedbase.generate('1+1=')) {
     expect(res).toBeDefined()
   }
 }, TIMEOUT)

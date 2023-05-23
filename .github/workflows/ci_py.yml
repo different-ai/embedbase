@@ -47,6 +47,7 @@ jobs:
         make test
       env:
         EMBEDBASE_API_KEY: ${{ secrets.EMBEDBASE_API_KEY }}
+        BANKRUPT_EMBEDBASE_KEY: ${{ secrets.BANKRUPT_EMBEDBASE_KEY }}
         # necessary hack otherwise ci running in parallel create concurrency issues
         EMBEDBASE_DATASET: ci_sdk_py_unit_test
       working-directory: sdk/embedbase-py

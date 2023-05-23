@@ -11,6 +11,7 @@ from embedbase_client.model import Metadata
 dotenv.load_dotenv("../../.env")
 base_url = "https://api.embedbase.xyz"
 api_key = os.environ.get("EMBEDBASE_API_KEY")
+bankrupt_api_key = os.environ.get("BANKRUPT_EMBEDBASE_KEY")
 client = EmbedbaseClient(embedbase_url=base_url, embedbase_key=api_key, timeout=120)
 
 # Dataset to be used in tests
@@ -201,3 +202,32 @@ async def test_async_client_generate():
 def test_sync_client_generate():
     for result in client.generate("hello"):
         assert isinstance(result, str)
+
+
+@pytest.mark.asyncio
+async def test_async_client_generate_should_receive_maxed_out_plan_error():
+    bankrupt_base = EmbedbaseAsyncClient(
+        embedbase_url=base_url, embedbase_key=bankrupt_api_key
+    )
+
+    with pytest.raises(Exception) as e:
+        async for res in bankrupt_base.generate("hello"):
+            assert res is not None
+    assert (
+        str(e.value)
+        == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
+    )
+
+
+def test_sync_client_generate_should_receive_maxed_out_plan_error():
+    bankrupt_base = EmbedbaseClient(
+        embedbase_url=base_url, embedbase_key=bankrupt_api_key
+    )
+
+    with pytest.raises(Exception) as e:
+        for res in bankrupt_base.generate("hello"):
+            assert res is not None
+    assert (
+        str(e.value)
+        == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
+    )
