@@ -17,9 +17,6 @@ const track = async (req, res, userId) => {
         api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
         event: 'chat middleware submitted',
         distinct_id: userId,
-        properties: {
-          api_key: req.headers.get('Authorization'),
-        },
       }),
     }
   )
