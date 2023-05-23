@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Extra
 
@@ -72,8 +72,7 @@ class AddData(BaseModel):
     error: Optional[str]
 
 
-Role = Literal["user", "system", "assistant"]
-
+Role = Annotated[Literal["user", "system", "assistant"], "Role"]
 
 class Chat(BaseModel):
     role: Role
