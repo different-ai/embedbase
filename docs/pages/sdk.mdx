@@ -216,6 +216,10 @@ If you have many documents to add, you should use `batchAdd`:
 ```ts copy
 embedbase.dataset(datasetId).batchAdd([{
   data: 'some text',
+  // you can also add metadata
+  // metadata: {
+  //   path: 'google.com'
+  // }
 }])
 ```
 
@@ -262,6 +266,10 @@ If you have many documents to add, you should use `batch_add`:
 embedbase.dataset(dataset_id).batch_add([
   {
     "data": "some text",
+    # you can also add metadata
+    # "metadata": {
+    #   "path": "google.com"
+    # }
   },
   {
     "data": "some more text",
