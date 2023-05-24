@@ -615,3 +615,34 @@ async def test_list_endpoint():
             assert response.status_code == 200
             json_response = response.json()
             assert len(json_response.get("documents")) == 3
+
+
+@pytest.mark.asyncio
+async def test_add_without_data_shouldnt_crash():
+    async for app in run_around_tests():
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": []},
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert json_response.get("results") == []
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": "",
+                        }
+                    ]
+                },
+            )
+            assert response.status_code == 422
+            text_response = response.text
+            assert (
+                text_response
+                == '{"detail":[{"loc":["body","documents",0,"data"],"msg":"data must not be empty","type":"assertion_error"}]}'
+            )

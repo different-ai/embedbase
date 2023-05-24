@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class Document(BaseModel):
@@ -19,6 +19,10 @@ class AddDocument(BaseModel):
     # etc.
     data: str
     metadata: Optional[dict]
+
+    @validator('data')
+    def data_must_not_be_empty(cls, v):
+        assert v != '', 'data must not be empty'
 
 
 class AddRequest(BaseModel):
