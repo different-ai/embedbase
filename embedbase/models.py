@@ -23,7 +23,7 @@ class AddDocument(BaseModel):
     @validator('data')
     def data_must_not_be_empty(cls, v):
         assert v != '', 'data must not be empty'
-
+        return v
 
 class AddRequest(BaseModel):
     documents: List[AddDocument]

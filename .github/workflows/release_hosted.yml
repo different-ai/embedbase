@@ -8,8 +8,12 @@ on:
       - rc
     paths:
       - "hosted/**"
-      - "embedbase/**"
-      - "pyproject.toml"
+
+  workflow_run:
+    workflows: ["Embedbase core release"]
+    types:
+      - completed
+
   workflow_dispatch:
 env:
   PROJECT_ID: embedbase
