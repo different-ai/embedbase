@@ -42,7 +42,7 @@ jobs:
       - name: Bump version if necessary
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
-          env/bin/python3 bump.py > __version__.py
+          env/bin/python3 bump.py > version.py
         working-directory: hosted
 
       - name: Get the version
@@ -55,7 +55,7 @@ jobs:
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add __version__.py
+          git add version.py
           git commit -m "chore(hosted): bump to ${{ env.VERSION }}"
           git push
         working-directory: hosted
