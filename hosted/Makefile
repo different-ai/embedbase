@@ -49,7 +49,6 @@ scripts/users: ## [Local development] Export users from the database.
 	python3 scripts/main.py get_users
 
 release: ## [Local development] Release a new version of the API.
-	@python3 bump.py bump
 	$(eval NEXT_VERSION := $(shell python3 bump.py get_next_version))
 	@echo "Releasing Embedbase Hosted version ${NEXT_VERSION}"; \
 	read -p "Commit content:" COMMIT; \

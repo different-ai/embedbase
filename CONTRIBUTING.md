@@ -122,8 +122,7 @@ We use https://semantic-release.gitbook.io/semantic-release/ under the hood.
 #### Embedbase Hosted
 
 1. `cd hosted`
-2. Bump the version in `python3 bump.py bump`
-3. 
+2. 
 ```bash
 make release
 ```
