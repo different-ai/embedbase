@@ -292,6 +292,35 @@ with ThreadPoolExecutor(max_workers=10) as executor:
   </Tab>
 </Tabs>
 
+### Updating data
+
+To update data, you can either setup a process of inserting in a new dataset fresh data (maybe like git) or
+you can use the following method:
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```js copy
+const data =
+  await embedbase.dataset('test-amazon-product-reviews').update({
+    id: 'eiew823',
+    data: 'some new text',
+  })
+  console.log(data)
+// {
+//   "id": "eiew823",
+//   "data": "some new text",
+//   "embedding": [0.1, 0.2, 0.3, ...]
+// }
+``` 
+  </Tab>
+  <Tab>
+
+This is not yet avaiable in the Python SDK, please ping louis030195 on [Discord](https://discord.gg/3X6xZtZ) if you need it
+and we will make it happen instantly!
+
+In the meantime check [how to do it using REST](https://docs.embedbase.xyz/interface#updating-data)
+  </Tab>
+
 ### Splitting and chunking large texts
 
 
