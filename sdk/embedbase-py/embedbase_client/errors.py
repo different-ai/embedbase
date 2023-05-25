@@ -34,9 +34,8 @@ class EmbedbaseAPIException(Exception):
         return self._message
 
     def __repr__(self):
-        return "%s(message=%r, http_status=%r, request_id=%r)" % (
+        return "%s(message=%r, http_status=%r)" % (
             self.__class__.__name__,
             self._message,
             self.http_status,
-            self.request_id,
         )

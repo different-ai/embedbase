@@ -231,6 +231,7 @@ def test_sync_client_generate_should_receive_maxed_out_plan_error():
         == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
     )
 
+
 @pytest.mark.asyncio
 async def test_merge_datasets():
     ds_one = f"{test_dataset}_organic_ingredients"
@@ -275,3 +276,25 @@ async def test_merge_datasets():
     )
     assert len(results_one) == 3
     assert len(results_two) == 1
+
+
+@pytest.mark.asyncio
+async def test_too_long_add_should_show_right_error():
+    with pytest.raises(Exception) as e:
+        await async_ds.add("a" * 100000)
+    assert (
+        str(e.value)
+        == "Document is too long, please split it into smaller documents, please see https://docs.embedbase.xyz/document-is-too-long"
+    )
+
+
+# @pytest.mark.asyncio
+@pytest.mark.skip(reason="TODO")
+async def test_too_long_for_request():
+    # timeout after 5 seconds
+    timeout_client = EmbedbaseAsyncClient(
+        embedbase_url=base_url, embedbase_key=api_key, timeout=5
+    )
+    with pytest.raises(Exception) as e:
+        await timeout_client.dataset(test_dataset).add("a" * 10000000)
+    # todo handle use case error handling better

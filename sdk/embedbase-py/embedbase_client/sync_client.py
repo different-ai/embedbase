@@ -6,7 +6,13 @@ from dataclasses import dataclass
 import requests
 from embedbase_client.base import BaseClient
 from embedbase_client.errors import EmbedbaseAPIException
-from embedbase_client.model import ClientDatasets, Document, GenerateOptions, Metadata, SearchSimilarity
+from embedbase_client.model import (
+    ClientDatasets,
+    Document,
+    GenerateOptions,
+    Metadata,
+    SearchSimilarity,
+)
 from embedbase_client.utils import sync_stream
 
 
@@ -55,9 +61,15 @@ class SyncSearchBuilder:
         res = requests.post(
             search_url, headers=headers, json=request_body, timeout=self.client.timeout
         )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [
             SearchSimilarity(
                 id=similarity["id"],
@@ -103,9 +115,15 @@ class SyncListBuilder:
 
         headers = self.client.headers
         res = requests.get(list_url, headers=headers, timeout=self.client.timeout)
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [Document(**document) for document in data["documents"]]
 
     def offset(self, offset: int) -> "SyncListBuilder":
@@ -262,9 +280,15 @@ class EmbedbaseClient(BaseClient):
             json={"query": query, "top_k": top_k},
             timeout=self.timeout,
         )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [similarity["data"] for similarity in data["similarities"]]
 
     def search(
@@ -318,8 +342,15 @@ class EmbedbaseClient(BaseClient):
             json={"documents": [{"data": document, "metadata": metadata}]},
             timeout=self.timeout,
         )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         data = res.json()
 
         return Document(
@@ -353,9 +384,15 @@ class EmbedbaseClient(BaseClient):
             json={"documents": documents},
             timeout=self.timeout,
         )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [
             Document(
                 **result,
@@ -375,8 +412,14 @@ class EmbedbaseClient(BaseClient):
         """
         url = f"{self.embedbase_url}/{dataset}/clear"
         res = requests.get(url, headers=self.headers, timeout=self.timeout)
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
 
     def dataset(self, dataset: str) -> Dataset:
         return Dataset(client=self, dataset=dataset)
@@ -393,9 +436,15 @@ class EmbedbaseClient(BaseClient):
         """
         datasets_url = f"{self.embedbase_url}/datasets"
         res = requests.get(datasets_url, headers=self.headers, timeout=self.timeout)
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [ClientDatasets(**dataset) for dataset in data["datasets"]]
 
     def list(self, dataset: str) -> SyncListBuilder:
@@ -413,7 +462,9 @@ class EmbedbaseClient(BaseClient):
         """
         return SyncListBuilder(self, dataset, {})
 
-    def generate(self, prompt: str, options: GenerateOptions = None) -> Generator[str, None, None]:
+    def generate(
+        self, prompt: str, options: GenerateOptions = None
+    ) -> Generator[str, None, None]:
         """
         Generate text from an LLM using a synchronous generator that fetches generated text data in chunks.
 

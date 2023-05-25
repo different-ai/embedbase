@@ -55,9 +55,15 @@ class AsyncSearchBuilder:
                 json=request_body,
                 timeout=self.client.timeout,
             )
-            if res.status_code != 200:
+            try:
+                data = res.json()
+            except json.JSONDecodeError:
+                # pylint: disable=raise-missing-from
                 raise EmbedbaseAPIException(res.text)
-            data = res.json()
+
+            if res.status_code != 200:
+                raise EmbedbaseAPIException(data.get("error", res.text))
+
             return [
                 SearchSimilarity(
                     id=similarity["id"],
@@ -115,9 +121,15 @@ class AsyncListBuilder:
             res = await client.get(
                 list_url, headers=headers, timeout=self.client.timeout
             )
-            if res.status_code != 200:
+            try:
+                data = res.json()
+            except json.JSONDecodeError:
+                # pylint: disable=raise-missing-from
                 raise EmbedbaseAPIException(res.text)
-            data = res.json()
+
+            if res.status_code != 200:
+                raise EmbedbaseAPIException(data.get("error", res.text))
+
             return [Document(**document) for document in data["documents"]]
 
     def offset(self, offset: int) -> "AsyncListBuilder":
@@ -257,9 +269,15 @@ class EmbedbaseAsyncClient(BaseClient):
                 json={"query": query, "top_k": top_k},
                 timeout=self.timeout,
             )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [similarity["data"] for similarity in data["similarities"]]
 
     def search(
@@ -306,9 +324,14 @@ class EmbedbaseAsyncClient(BaseClient):
                 json={"documents": [{"data": document, "metadata": metadata}]},
                 timeout=self.timeout,
             )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
         return Document(**data["results"][0])
 
     async def batch_add(
@@ -341,9 +364,15 @@ class EmbedbaseAsyncClient(BaseClient):
                 json={"documents": documents},
                 timeout=self.timeout,
             )
-        if res.status_code != 200:
+
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
 
         return [Document(**result) for result in data["results"]]
 
@@ -360,8 +389,14 @@ class EmbedbaseAsyncClient(BaseClient):
             app=self.fastapi_app, base_url=self.embedbase_url
         ) as client:
             res = await client.get(url, headers=self.headers, timeout=self.timeout)
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
 
     async def datasets(self) -> List[ClientDatasets]:
         """
@@ -378,9 +413,15 @@ class EmbedbaseAsyncClient(BaseClient):
             res = await client.get(
                 datasets_url, headers=self.headers, timeout=self.timeout
             )
-        if res.status_code != 200:
+        try:
+            data = res.json()
+        except json.JSONDecodeError:
+            # pylint: disable=raise-missing-from
             raise EmbedbaseAPIException(res.text)
-        data = res.json()
+
+        if res.status_code != 200:
+            raise EmbedbaseAPIException(data.get("error", res.text))
+
         return [ClientDatasets(**dataset) for dataset in data["datasets"]]
 
     def list(self, dataset: str) -> AsyncListBuilder:
