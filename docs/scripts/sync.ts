@@ -1,7 +1,6 @@
-import glob from 'glob'
-import fs from 'fs'
-import { createClient, BatchAddDocument } from 'embedbase-js'
-import { splitText } from 'embedbase-js/dist/main/split';
+import { BatchAddDocument, createClient, splitText } from 'embedbase-js';
+import fs from 'fs';
+import glob from 'glob';
 import path from 'path';
 
 
@@ -66,13 +65,15 @@ const sync = async () => {
             // content of the file
             data: fs.readFileSync(p, "utf-8")
         }));
-    const chunks = []
-    documents
-        // ignore data with "<|endoftext|>" as it crashes the tokenizer
-        .filter((d) => !d.data.includes("<|endoftext|>"))
-        // irony is that this script itself crash itself :D
+
+
+
+    const chunks: BatchAddDocument[] = [];
+    await Promise.all(documents
+        // ignore chunks containing <|endoftext|>
+        .filter((document) => !document.data.includes("<|endoftext|>"))
         .map((document) =>
-            splitText(document.data, { maxTokens: 500, chunkOverlap: 200 }, async ({ chunk, start, end }) => chunks.push({
+            splitText(document.data).map(({ chunk, start, end }) => chunks.push({
                 data: chunk,
                 metadata: {
                     path: document.path,
@@ -81,6 +82,7 @@ const sync = async () => {
                 }
             }))
         )
+    );
     const datasetId = `embedbase-documentation`
 
     console.log(`Syncing to ${datasetId} ${chunks.length} documents`);
