@@ -45,7 +45,12 @@ fetch(`${URL}/v1/${DATASET_ID}`, {
   body: JSON.stringify({
     documents: [
       {
-        data: 'Elon is sipping a tea on Mars'
+        data: 'Elon is sipping a tea on Mars',
+        // you can also add metadata
+        metadata: {
+          path: "https://spacex.com/mars",
+          title: "Elon Musk"
+        }
       }
     ]
   })
