@@ -46,14 +46,13 @@ jobs:
       - name: Bump version if necessary
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
-          env/bin/python3 bump.py > version.py
+          env/bin/python3 bump.py bump > version.txt
         working-directory: hosted
 
       - name: Get the version
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: get_version
-        # __version__ = "0.0.1" in version.py
-        run: echo "VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)" >> $GITHUB_ENV
+        run: echo "VERSION=$(echo version.txt)" >> $GITHUB_ENV
         working-directory: hosted
 
       - name: Commit version bump
@@ -61,7 +60,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add version.py
+          git add version.txt
           git commit -m "chore(hosted): bump to ${{ env.VERSION }}"
           git push
         working-directory: hosted

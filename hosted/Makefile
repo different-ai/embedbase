@@ -10,8 +10,6 @@ REGION="us-central1"
 # notify current gcp project
 $(info Current GCP project: ${GCLOUD_PROJECT})
 
-bump:
-	python3 bump.py
 
 install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv env; \
@@ -51,8 +49,9 @@ scripts/users: ## [Local development] Export users from the database.
 	python3 scripts/main.py get_users
 
 release: ## [Local development] Release a new version of the API.
-	$(eval NEXT_VERSION := $(shell python3 bump.py))
-	@echo "Releasing Embedbase Hosted version ${NEXT_VERSION}"
+	@python3 bump.py bump
+	$(eval NEXT_VERSION := $(shell python3 bump.py get_next_version))
+	@echo "Releasing Embedbase Hosted version ${NEXT_VERSION}"; \
 	read -p "Commit content:" COMMIT; \
 	git add .; \
 	echo "Committing '${NEXT_VERSION}: $$COMMIT'"; \
