@@ -56,7 +56,9 @@ jobs:
         run: echo "VERSION=$(sed -n 's/.*__version__ = \"\(.*\)\"/\1/p' version.py)" >> $GITHUB_ENV
         working-directory: hosted
 
-      - run: |
+      - name: Commit version bump
+        if: ${{ steps.regex-match.outputs.match != '' }}
+        run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add version.py
