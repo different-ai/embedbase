@@ -42,6 +42,7 @@ jobs:
           BANKRUPT_EMBEDBASE_KEY: ${{ secrets.BANKRUPT_EMBEDBASE_KEY }}
           # necessary hack otherwise ci running in parallel create concurrency issues
           EMBEDBASE_DATASET: release_sdk_js_unit_test
+          EMBEDBASE_TIMEOUT: 120000
 
       - name: Create a release
         run: npx semantic-release@^18.0.0

@@ -181,7 +181,12 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
    */
   async map<U>(fn: (value: T) => U): Promise<Array<U>> {
     const result: Array<U> = [];
-    let iterator = await this.generator.next();
+    let iterator
+    try {
+      iterator = await this.generator.next();
+    } catch (e) {
+      console.log(e)
+    }
     while (!iterator.done) {
       result.push(fn(iterator.value));
       iterator = await this.generator.next();
@@ -256,5 +261,5 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
       yield batch;
     }
   }
-} 
+}
 

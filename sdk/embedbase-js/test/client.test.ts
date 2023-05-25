@@ -1,6 +1,6 @@
-import { createClient } from '../src/index'
-import {it, describe, expect, jest, test} from '@jest/globals';
-import { stream as originalStream } from '../src/utils'
+import { describe, expect, jest, test } from '@jest/globals';
+import { createClient } from '../src/index';
+import { stream as originalStream } from '../src/utils';
 
 try {
   require('dotenv').config({ path: './.env' })
@@ -15,7 +15,7 @@ const embedbase = createClient(URL, KEY)
 const RANDOM_DATASET_NAME = new Date().getTime().toString()
 
 const DATASET_NAME = process.env.EMBEDBASE_DATASET || 'unit_test_js'
-const TIMEOUT = Number(process.env.EMBEDBASE_TIMEOUT || 0) || 120000
+const TIMEOUT = Number(process.env.EMBEDBASE_TIMEOUT || 0) || 60000
 
 
 test('it should create the client connection', () => {
@@ -41,171 +41,178 @@ describe('Check if headers are set', () => {
   }, TIMEOUT)
 })
 
-describe('Check if the client is able to fetch data', () => {
-  test('should be able to add elements to a dataset,   ', async () => {
-    const embedbase = createClient(URL, KEY)
-    // just used to make sure we're creating new datasets
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).add('hello')
-    expect(data).toBeDefined()
-    expect(data).toHaveProperty('id')
-    expect(data).toHaveProperty('status')
-  }, TIMEOUT)
+test('should be able to add elements to a dataset,   ', async () => {
+  const embedbase = createClient(URL, KEY)
+  // just used to make sure we're creating new datasets
+  const data = await embedbase.dataset(RANDOM_DATASET_NAME).add('hello')
+  expect(data).toBeDefined()
+  expect(data).toHaveProperty('id')
+  expect(data).toHaveProperty('embedding')
+}, TIMEOUT)
 
-  test('should be able to batch add elements to a dataset', async () => {
-    const embedbase = createClient(URL, KEY)
-    const inputs = [
-      'test',
-      'my',
-      'love',
-      'hello',
-      'world',
-      'wtest',
-      'helloooo',
-      'johny',
-      'continue',
-      'jurassic',
-    ]
-    const data = await embedbase
-      .dataset(RANDOM_DATASET_NAME)
-      .batchAdd(inputs.map((input) => ({ data: input })))
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data).toHaveLength(10)
-  }, TIMEOUT)
 
-  test('should be able to batch add elements with metadata to a dataset', async () => {
-    const embedbase = createClient(URL, KEY)
-    const inputs = [
-      'test',
-      'my',
-      'love',
-      'hello',
-      'world',
-      'wtest',
-      'helloooo',
-      'johny',
-      'continue',
-      'jurassic',
-    ]
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).batchAdd(
-      inputs.map((input) => ({
-        data: input,
-        metadata: {
-          timestamp: new Date().getTime(),
-        },
-      }))
-    )
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data).toHaveLength(10)
-  }, TIMEOUT)
+test('should be able to batch add elements to a dataset', async () => {
+  const embedbase = createClient(URL, KEY)
+  const inputs = [
+    'test',
+    'my',
+    'love',
+    'hello',
+    'world',
+    'wtest',
+    'helloooo',
+    'johny',
+    'continue',
+    'jurassic',
+  ]
+  await embedbase.dataset(DATASET_NAME).clear()
+  const data = await embedbase
+    .dataset(DATASET_NAME)
+    .batchAdd(inputs.map((input) => ({ data: input })))
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data).toHaveLength(10)
+}, TIMEOUT)
 
-  test('should return an array of similarities', async () => {
-    const embedbase = createClient(URL, KEY)
-    await embedbase.dataset(RANDOM_DATASET_NAME).add('hello')
-
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
-    console.log(data)
-
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data[0]).toHaveProperty('score')
-    expect(data[0]).toHaveProperty('data')
-    expect(data[0]).toHaveProperty('embedding')
-    expect(data[0]).toHaveProperty('hash')
-    expect(data[0].data).toBe('hello')
-  }, TIMEOUT)
-
-  test('should return an array of similarities with metadata', async () => {
-    const embedbase = createClient(URL, KEY)
-    await embedbase.dataset(RANDOM_DATASET_NAME).add('hello', {
-      timestamp: new Date().getTime(),
-    })
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
-    console.log(data)
-
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data[0]).toHaveProperty('metadata')
-  }, TIMEOUT)
-
-  // this is not striclty to just a simplification for our tests
-  test('should use return equal element of top_k', async () => {
-    const embedbase = createClient(URL, KEY)
-
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('test', { limit: 10 })
-
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data).toHaveLength(10)
-  }, TIMEOUT)
-
-  test('should return a list of strings when using createContext', async () => {
-    const embedbase = createClient(URL, KEY)
-
-    const data = await embedbase.dataset(RANDOM_DATASET_NAME).createContext('test', { limit: 10 })
-
-    expect(data).toBeDefined()
-    expect(data).toHaveLength(10)
-  }, TIMEOUT)
-
-  test('should return a list of datasets', async () => {
-    const embedbase = createClient(URL, KEY)
-    // TODO clear dataset first
-    await Promise.all([
-      embedbase.dataset('foo').add('test'),
-      embedbase.dataset('bar').add('test'),
-      embedbase.dataset('baz').add('test'),
-    ])
-
-    const data = await embedbase.datasets()
-
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data.length).toBeGreaterThanOrEqual(3)
-    const datasetIds = data.map((dataset) => dataset.datasetId)
-    expect(datasetIds).toContain('foo')
-    expect(datasetIds).toContain('bar')
-    expect(datasetIds).toContain('baz')
-  }, TIMEOUT)
-  test('should be able to filter by metadata using where', async () => {
-    const embedbase = createClient(URL, KEY)
-
-    const d = [
-      {
-        "data": "Alice invited Bob at 6 PM at the restaurant",
-        "metadata": { "source": "notion.so", "path": "https://notion.so/alice" },
+test('should be able to batch add elements with metadata to a dataset', async () => {
+  const embedbase = createClient(URL, KEY)
+  const inputs = [
+    'test',
+    'my',
+    'love',
+    'hello',
+    'world',
+    'wtest',
+    'helloooo',
+    'johny',
+    'continue',
+    'jurassic',
+  ]
+  await embedbase.dataset(DATASET_NAME).clear()
+  const data = await embedbase.dataset(DATASET_NAME).batchAdd(
+    inputs.map((input) => ({
+      data: input,
+      metadata: {
+        timestamp: new Date().getTime(),
       },
-      {
-        "data": "John pushed code on github at 8 AM",
-        "metadata": {
-          "source": "github.com",
-          "path": "https://github.com/john/john",
-        },
+    }))
+  )
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data).toHaveLength(10)
+}, TIMEOUT)
+
+test('should return an array of similarities', async () => {
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('hello')
+
+  const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
+  console.log(data)
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data[0]).toHaveProperty('score')
+  expect(data[0]).toHaveProperty('data')
+  expect(data[0]).toHaveProperty('embedding')
+  expect(data[0]).toHaveProperty('hash')
+  expect(data[0].data).toBe('hello')
+}, TIMEOUT)
+
+test('should return an array of similarities with metadata', async () => {
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(RANDOM_DATASET_NAME).add('hello', {
+    timestamp: new Date().getTime(),
+  })
+  const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
+  console.log(data)
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data[0]).toHaveProperty('metadata')
+}, TIMEOUT)
+
+// this is not striclty to just a simplification for our tests
+test('should use return equal element of top_k', async () => {
+  const embedbase = createClient(URL, KEY)
+
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('the tiger is the biggest cat')
+  await embedbase.dataset(DATASET_NAME).add('the butterfly is the smallest cat')
+  const data = await embedbase.dataset(DATASET_NAME).search('cats', { limit: 5 })
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data).toHaveLength(2)
+}, TIMEOUT)
+
+test('should return a list of strings when using createContext', async () => {
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('the tiger is the biggest cat')
+  await embedbase.dataset(DATASET_NAME).add('the butterfly is the smallest cat')
+  const data = await embedbase.dataset(DATASET_NAME).createContext('test', { limit: 10 })
+
+  expect(data).toBeDefined()
+  expect(data).toHaveLength(2)
+}, TIMEOUT)
+
+test('should return a list of datasets', async () => {
+  const embedbase = createClient(URL, KEY)
+  // TODO clear dataset first
+  await Promise.all([
+    embedbase.dataset('foo').add('test'),
+    embedbase.dataset('bar').add('test'),
+    embedbase.dataset('baz').add('test'),
+  ])
+
+  const data = await embedbase.datasets()
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data.length).toBeGreaterThanOrEqual(3)
+  const datasetIds = data.map((dataset) => dataset.datasetId)
+  expect(datasetIds).toContain('foo')
+  expect(datasetIds).toContain('bar')
+  expect(datasetIds).toContain('baz')
+}, TIMEOUT)
+test('should be able to filter by metadata using where', async () => {
+  const embedbase = createClient(URL, KEY)
+
+  const d = [
+    {
+      "data": "Alice invited Bob at 6 PM at the restaurant",
+      "metadata": { "source": "notion.so", "path": "https://notion.so/alice" },
+    },
+    {
+      "data": "John pushed code on github at 8 AM",
+      "metadata": {
+        "source": "github.com",
+        "path": "https://github.com/john/john",
       },
-      {
-        "data": "The lion is the king of the savannah.",
-        "metadata": {
-          "source": "wikipedia.org",
-          "path": "https://en.wikipedia.org/wiki/Lion",
-        },
+    },
+    {
+      "data": "The lion is the king of the savannah.",
+      "metadata": {
+        "source": "wikipedia.org",
+        "path": "https://en.wikipedia.org/wiki/Lion",
       },
-    ]
+    },
+  ]
 
-    await Promise.all(d.map((input) =>
-      embedbase.dataset('unit').add(input.data, input.metadata)))
+  await Promise.all(d.map((input) =>
+    embedbase.dataset('unit').add(input.data, input.metadata)))
 
-    const data = await embedbase
-      .dataset('unit')
-      .search('Time related')
-      .where('source', '==', 'github.com')
+  const data = await embedbase
+    .dataset('unit')
+    .search('Time related')
+    .where('source', '==', 'github.com')
 
-    expect(data).toBeDefined()
-    expect(data).toBeInstanceOf(Array)
-    expect(data.length).toBeGreaterThanOrEqual(1)
-    expect(data[0].metadata).toHaveProperty('source', 'github.com')
-  }, TIMEOUT)
-})
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data.length).toBeGreaterThanOrEqual(1)
+  expect(data[0].metadata).toHaveProperty('source', 'github.com')
+}, TIMEOUT)
 
 test('should be able to chat', async () => {
   for await (const res of embedbase.generate('1+1=')) {
@@ -224,7 +231,7 @@ test('should receive maxed out plan error', async () => {
   // }
   // // run 50 time to max out plan
   // Promise.all(Array(50).fill(0).map(() => e()))
-  
+
   try {
     for await (const res of bankruptBase.generate('hello')) {
       // Execution should not reach here, so the test will fail if it does
@@ -274,7 +281,6 @@ describe('API error handling tests', () => {
           expect(false).toBe(true);
         }
       } catch (error) {
-        // Check if the error is an instance of Response and has the desired status
         expect(error).toBeInstanceOf(Error);
       }
     });
@@ -320,3 +326,24 @@ test('should be able to clear dataset', async () => {
   expect(documents).toBeInstanceOf(Array)
   expect(documents.length).toEqual(0)
 }, TIMEOUT)
+
+
+test('should be able to update dataset', async () => {
+  const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  const result = await embedbase.dataset(DATASET_NAME).add('hello')
+  expect(result).toBeDefined()
+  expect(result).toHaveProperty('id')
+  const updateResult = await embedbase.dataset(DATASET_NAME).update([{
+    id: result.id,
+    data: 'hello world'
+  }])
+  expect(updateResult).toBeDefined()
+  expect(updateResult.length).toEqual(1)
+  expect(updateResult[0].data).toEqual('hello world')
+
+  const searchResult = await embedbase.dataset(DATASET_NAME).search('hello world')
+  expect(searchResult).toBeDefined()
+  expect(searchResult[0].id).toEqual(result.id)
+}, TIMEOUT)
+

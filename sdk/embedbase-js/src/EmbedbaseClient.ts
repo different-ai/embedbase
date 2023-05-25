@@ -1,18 +1,18 @@
 import type {
-  AddData,
   BatchAddDocument,
-  ClientAddData,
   ClientContextData,
   ClientDatasets,
   ClientSearchData,
+  Document,
   GenerateOptions,
   Metadata,
   RangeOptions,
   SearchData,
   SearchOptions,
-  Document
+  UpdateDocument
 } from './types';
 import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
+
 
 let fetch = getFetch();
 
@@ -79,7 +79,7 @@ class ListBuilder implements PromiseLike<Document[]> {
       method: 'GET',
       headers: this.client.headers,
     })
-    const data: {documents: Document[]} = await res.json()
+    const data: { documents: Document[] } = await res.json()
     return data.documents;
   }
 
@@ -128,6 +128,7 @@ export default class EmbedbaseClient {
     if (embedbaseUrl === 'https://api.embedbase.xyz' && !embedbaseKey) {
       throw new Error('embedbaseKey is required when using Embedbase Cloud.')
     }
+
     // strip trailing slash
     const _embedbaseUrl = embedbaseUrl.replace(/\/$/, '')
     this.embedbaseApiUrl = `${_embedbaseUrl}/v1`
@@ -167,29 +168,26 @@ export default class EmbedbaseClient {
     return new SearchBuilder(this, dataset, query, options);
   }
 
-  async add(dataset: string, document: string, metadata?: Metadata): Promise<ClientAddData> {
+  async add(dataset: string, document: string, metadata?: Metadata): Promise<Document> {
     const addUrl = `${this.embedbaseApiUrl}/${dataset}`
     const res: Response = await fetch(addUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ documents: [{ data: document, metadata: metadata }] }),
     })
-    const data: AddData = await res.json()
-    return { id: data.results?.[0]?.id, status: data.error ? 'error' : 'success' }
+    const data: { results: Document[] } = await res.json()
+    return data.results[0]
   }
 
-  async batchAdd(dataset: string, documents: BatchAddDocument[]): Promise<ClientAddData[]> {
+  async batchAdd(dataset: string, documents: BatchAddDocument[]): Promise<Document[]> {
     const addUrl = `${this.embedbaseApiUrl}/${dataset}`
     const res: Response = await fetch(addUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ documents: documents }),
     })
-    const data: AddData = await res.json()
-    return data.results.map((result) => ({
-      id: result.id,
-      status: data.error ? 'error' : 'success',
-    }))
+    const data: { results: Document[] } = await res.json()
+    return data.results
   }
 
   list(dataset: string, options: RangeOptions = {
@@ -207,14 +205,25 @@ export default class EmbedbaseClient {
     })
   }
 
+  public async update(dataset: string, documents: UpdateDocument[]): Promise<Document[]> {
+    const updateUrl = `${this.embedbaseApiUrl}/${dataset}`
+    const res: Response = await fetch(updateUrl, {
+      method: 'PUT',
+      headers: this.headers,
+      body: JSON.stringify({ documents: documents }),
+    })
+    const data: { results: Document[] } = await res.json()
+    return data.results
+  }
 
   dataset(dataset: string): {
     search: (query: string, options?: SearchOptions) => SearchBuilder
-    add: (document: string, metadata?: Metadata) => Promise<ClientAddData>
-    batchAdd: (documents: BatchAddDocument[]) => Promise<ClientAddData[]>
+    add: (document: string, metadata?: Metadata) => Promise<Document>
+    batchAdd: (documents: BatchAddDocument[]) => Promise<Document[]>
     createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
     list: (options?: RangeOptions) => ListBuilder
     clear: () => Promise<void>
+    update: (documents: UpdateDocument[]) => Promise<Document[]>
   } {
     return {
       search: (query: string, options?: SearchOptions) =>
@@ -225,6 +234,8 @@ export default class EmbedbaseClient {
         this.createContext(dataset, query, options),
       list: (options?: RangeOptions) => this.list(dataset, options),
       clear: async () => this.clear(dataset),
+      update: async (documents: UpdateDocument[]) => this.update(dataset, documents),
+
     }
   }
 
@@ -273,6 +284,7 @@ export default class EmbedbaseClient {
       }
     }.bind(this);
 
-    return new CustomAsyncGenerator(asyncGen());
+    return new CustomAsyncGenerator<string>(asyncGen());
   }
 }
+

@@ -25,12 +25,8 @@ export interface Metadata {
   [key: string]: any
 }
 
-export interface SearchSimilarity {
-  similiarity: number
-  data: string
-  embedding: number[]
-  hash: string
-  metadata?: Metadata
+export interface SearchSimilarity extends Document {
+  similarity: number
 }
 
 export interface SearchData {
@@ -81,4 +77,10 @@ export interface GenerateOptions {
 export interface RangeOptions {
   offset: number
   limit: number
+}
+
+export interface UpdateDocument {
+  id: string
+  data?: string
+  metadata?: Metadata
 }

@@ -1,5 +1,4 @@
 import EmbedbaseClient from './EmbedbaseClient'
-import { EmbedbaseClientOptions } from './types'
 
 export { default as EmbedbaseClient } from './EmbedbaseClient'
 export type {
