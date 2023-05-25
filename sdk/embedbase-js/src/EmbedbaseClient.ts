@@ -239,8 +239,8 @@ export default class EmbedbaseClient {
   }
 
   public generate(prompt: string, options?: GenerateOptions): CustomAsyncGenerator<string> {
-    // const url = 'https://app.embedbase.xyz/api/chat'
-    const url = 'http://localhost:3000/api/chat'
+    const url = 'https://app.embedbase.xyz/api/chat'
+    // const url = 'http://localhost:3000/api/chat'
 
     options = options || {
       history: [],
