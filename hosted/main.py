@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from middlewares.auth_api_key.auth_api_key import AuthApiKey
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
+from embedbase_internet_search import internet_search
 
 config_path = "config.yaml"
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
@@ -32,9 +33,9 @@ app = (
         allow_methods=["*"],
         allow_headers=["*"],
     )
-)
+).run()
 
-app = app.run()
+app.add_api_route("/v1/internet-search", internet_search, methods=["POST"])
 
 @app.exception_handler(Exception)
 async def custom_exception_handler(request: Request, exc: Exception):

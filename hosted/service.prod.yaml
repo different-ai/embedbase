@@ -37,6 +37,11 @@ spec:
             value: "production"
           - name: UPLOAD_BATCH_SIZE
             value: "100"
+          - name: BING_SUBSCRIPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                key: "1"
+                name: BING_SUBSCRIPTION_KEY
         ports:
           - containerPort: 8080
             name: http1

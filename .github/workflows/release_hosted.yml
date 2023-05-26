@@ -46,7 +46,7 @@ jobs:
       - name: Bump version if necessary
         if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
-          env/bin/python3 bump.py bump > version.txt
+          env/bin/python3 bump.py bump
         working-directory: hosted
 
       - name: Get the version
