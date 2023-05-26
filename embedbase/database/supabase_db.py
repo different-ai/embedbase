@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import ast
 import asyncio
@@ -101,7 +101,11 @@ class Supabase(VectorDatabase):
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
+        where: Optional[Union[dict, List[dict]]] = None,
     ):
+        if where:
+            # fill nan values with '' in order to filter out form the where
+            df = df.fillna("")
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
 
@@ -120,6 +124,33 @@ class Supabase(VectorDatabase):
                 if store_data:
                     data["data"] = row.data
                 return data
+
+            def _d_update(row: Series):
+                data = {}
+                if row.data:
+                    data["data"] = row.data.replace("\x00", "")
+                if row.metadata:
+                    data["metadata"] = row.metadata
+
+                # check that the dict has any keys
+                assert data, "no data to update"
+
+                return data
+
+            if where:
+                q = self.supabase.table("documents").update(
+                    [_d_update(row) for _, row in batch_df.iterrows()]
+                )
+                # update only for this user id and dataset id if given
+                if user_id:
+                    q = q.eq("user_id", user_id)
+                if dataset_id:
+                    q = q.eq("dataset_id", dataset_id)
+                metadata_keys = list(where.keys())
+                metadata_values = list(where.values())
+                for key, value in zip(metadata_keys, metadata_values):
+                    q = q.eq(f"metadata.{key}", value)
+                return q.execute()
 
             (
                 self.supabase.table("documents")

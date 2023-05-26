@@ -171,7 +171,7 @@ class Embedbase:
         df_length = len(df)
 
         self.logger.info(
-            f"Checking embeddings computing necessity for {df_length} documents"
+            f"Checking embeddings cache for {df_length} documents"
         )
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
@@ -259,6 +259,7 @@ class Embedbase:
         user_id = get_user_id(request)
 
         documents = request_body.documents
+        where = request_body.where
 
         filtered_data = []
         for doc in documents:
@@ -273,7 +274,7 @@ class Embedbase:
                         + ", please see https://docs.embedbase.xyz/document-is-too-long"
                     },
                 )
-            if doc.id is not None:
+            if doc.id is not None or where is not None:
                 filtered_data.append(doc.dict())
 
         df = DataFrame(
@@ -284,7 +285,7 @@ class Embedbase:
         start_time = time.time()
         self.logger.info(f"Refreshing {len(documents)} embeddings")
 
-        if not df.id.any():
+        if not df.id.any() and where is None:
             self.logger.info("No documents to update, exiting")
             return JSONResponse(
                 status_code=400,
@@ -293,7 +294,7 @@ class Embedbase:
                 },
             )
         if not df.data.any() and not df.metadata.any():
-            self.logger.info("No documents to update, exiting")
+            self.logger.info("No data nor metadata was given, exiting")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -306,8 +307,10 @@ class Embedbase:
 
         df_length = len(df)
 
+        # TODO: we can probably remove the embeddings part in update (unnecessary, embeddings always there?)
+
         self.logger.info(
-            f"Checking embeddings computing necessity for {df_length} documents"
+            f"Checking embeddings cache for {df_length} documents"
         )
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
@@ -341,9 +344,10 @@ class Embedbase:
             dataset_id,
             user_id,
             batch_size=UPLOAD_BATCH_SIZE,
+            where=where,
         )
 
-        self.logger.info(f"Updated {len(df)} documents")
+        self.logger.info(f"Updated {len(df)} documents' embeddings")
         end_time = time.time()
         self.logger.info(f"Updated in {end_time - start_time} seconds")
 

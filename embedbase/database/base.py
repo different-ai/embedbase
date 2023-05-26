@@ -57,6 +57,7 @@ class VectorDatabase(ABC):
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
+        where: Optional[Union[dict, List[dict]]] = None,
     ) -> Coroutine:
         """
         :param df: dataframe
@@ -64,6 +65,7 @@ class VectorDatabase(ABC):
         :param user_id: user id
         :param batch_size: batch size
         :param store_data: store data in database?
+        :param where: where condition to filter which documents to update
         """
         raise NotImplementedError
 

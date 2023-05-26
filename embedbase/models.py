@@ -20,10 +20,11 @@ class AddDocument(BaseModel):
     data: str
     metadata: Optional[dict]
 
-    @validator('data')
+    @validator("data")
     def data_must_not_be_empty(cls, v):
-        assert v != '', 'data must not be empty'
+        assert v != "", "data must not be empty"
         return v
+
 
 class AddRequest(BaseModel):
     documents: List[AddDocument]
@@ -38,7 +39,8 @@ class UpdateDocument(BaseModel):
 
 class UpdateRequest(BaseModel):
     documents: List[UpdateDocument]
-
+    where: Optional[Union[dict, List[dict]]] = None
+    # todo validator
 
 class DeleteRequest(BaseModel):
     ids: List[str]

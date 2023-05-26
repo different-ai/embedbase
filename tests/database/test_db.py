@@ -334,15 +334,16 @@ d = [
     },
 ]
 
+
 def pad_to_1536(x):
     return x + [0.0] * (1536 - len(x))
+
 
 @pytest.mark.asyncio
 async def test_search_with_where():
     """
     should not throw an error
     """
-
 
     for vector_database in vector_databases:
         if isinstance(vector_database, Postgres):
@@ -387,7 +388,59 @@ async def test_delete_with_where():
 
 @pytest.mark.asyncio
 async def test_update_with_where():
-    pass
+    d = [
+        {
+            "data": "Alice invited Bob at 6 PM",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
+        },
+        {
+            "data": "John invited Bob at 6 PM",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/john"},
+        },
+        {
+            "data": "Paul invited John at 3 PM",
+            "metadata": {"source": "notion.so", "path": "https://notion.so/john"},
+        },
+    ]
+    for vector_database in vector_databases:
+        if isinstance(vector_database, Postgres):
+            continue
+        if isinstance(vector_database, MemoryDatabase):
+            continue
+
+        # add documents
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(
+            pd.DataFrame(
+                [
+                    {
+                        "data": x["data"],
+                        "embedding": pad_to_1536(model.encode(x["data"]).tolist()),
+                        "id": str(uuid.uuid4()),
+                        "metadata": x["metadata"],
+                        "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        results = await vector_database.update(
+            pd.DataFrame(
+                [
+                    {
+                        # lets replace PM by AM
+                        "data": x["data"].replace("PM", "AM"),
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+            where={"source": "notion.so"},
+        )
+        assert results == 3, f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio

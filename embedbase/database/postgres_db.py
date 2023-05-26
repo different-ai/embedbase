@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import asyncio
 import itertools
@@ -189,7 +189,13 @@ where
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
+        where: Optional[Union[dict, List[dict]]] = None,
     ):
+        if where:
+            raise NotImplementedError(
+                "where is not implemented in postgres db yet, if you need it, ping us on discord and we will ship instantly"
+            )
+
         if len(df) == 0:
             return
 
@@ -261,7 +267,10 @@ where
             d["query_user_id"] = user_id
             q += ", %(query_user_id)s"
         if where:
-            raise NotImplementedError("where is not implemented yet in postgres")
+            raise NotImplementedError(
+                "where is not implemented in postgres db yet, if you need it, ping us on discord and we will ship instantly"
+            )
+
             # raise if where is not a dict
             if not isinstance(where, dict):
                 raise ValueError("currently only dict is supported for where")
