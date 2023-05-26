@@ -14,7 +14,7 @@ const config: DocsThemeConfig = {
     const config = useConfig<{ description?: string; image?: string }>()
     const description =
       config.frontMatter.description ||
-      'Embedbase is a suite of open-source tools to help developers use ML embeddings.'
+      'Open-source tools to build production-ready LLM apps in minutes'
     const image = config.frontMatter.image || '/embedbasejs.png'
     return (
       <>
