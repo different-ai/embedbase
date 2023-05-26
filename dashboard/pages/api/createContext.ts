@@ -40,9 +40,15 @@ const createContext = async (
   return { chunkedContext: chunkedContext, contexts: topResults }
 }
 
+type CreateContextRequest = {
+  prompt: string
+  datasetIds: string[]
+  apiKey: string
+}
+
 // 2. Get a context from a dataset
 export default async function buildPrompt(req: Request, res: Response) {
-  const { prompt, datasetIds, apiKey } = await req.json()
+  const { prompt, datasetIds, apiKey } = await req.json() as CreateContextRequest
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt' }), {
       status: 400,

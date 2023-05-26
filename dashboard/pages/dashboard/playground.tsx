@@ -8,8 +8,8 @@ import { Dataset } from '../../hooks/useDatasets'
 import { useAppStore } from '../../lib/store'
 import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
 
-import ShareModal from '@/components/ShareModal'
 import { SecondaryButton } from '@/components/Button'
+import ShareModal from '@/components/ShareModal'
 import { ShareIcon } from '@heroicons/react/24/outline'
 
 export function Playground() {
@@ -20,12 +20,15 @@ export function Playground() {
   const clearSelectedDatasetId = useSmartChatStore(
     (state) => state.clearSelectedDatasetId
   )
+  const useBingSearch = useSmartChatStore((state) => state.useBingSearch)
+  const setUseBingSearch = useSmartChatStore((state) => state.setUseBingSearch)
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   useEffect(() => {
     if (router.query.datasetId) {
       clearSelectedDatasetId()
       addToSetDatasetIds(router.query.datasetId as string)
+      setUseBingSearch(false)
     }
   }, [router.query.datasetId])
 
@@ -52,11 +55,19 @@ export function Playground() {
                 <SecondaryButton
                   onClick={() => setIsShareModalOpen(true)}
                   className="flex max-w-max gap-2"
+                  disabled={useBingSearch}
+                  // add html tooltip if disabled
+                  title={
+                    useBingSearch
+                     ? 'You can only share playgrounds that use Embedbase datasets.'
+                      : ''
+                  }
                 >
                   <ShareIcon height={18} width={18} />
                   Share this Playground
                 </SecondaryButton>
               </div>
+
             </div>
 
             <div className="rounded-2xl bg-gray-50 py-5 px-5">

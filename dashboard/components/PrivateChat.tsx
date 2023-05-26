@@ -8,13 +8,13 @@ import { useAppStore } from '../lib/store'
 import { defaultChatSystem } from '../utils/constants'
 import { CreateContextResponse } from '../utils/types'
 import { PrimaryButton } from './Button'
+import { ChatBox } from './ChatBox'
+import { ChatSkeleton } from './ChatSkeleton'
+import { Footer } from './Footer'
 import Markdown from './Markdown'
 import Spinner from './Spinner'
 import { SubmitIcon } from './SubmitIcon'
 import { SystemMessage } from './SystemMessage'
-import { ChatBox } from './ChatBox'
-import { ChatSkeleton } from './ChatSkeleton'
-import { Footer } from './Footer'
 const DatasetCheckboxes = ({ datasets, isLoading }) => {
   const selectedDatasetIds = useSmartChatStore(
     (state) => state.selectedDatasetIds
@@ -110,6 +110,42 @@ const DatasetCheckboxes = ({ datasets, isLoading }) => {
   )
 }
 
+import { Switch } from '@headlessui/react'
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
+
+function Toggle() {
+  const useBingSearch = useSmartChatStore((state) => state.useBingSearch)
+  const setUseBingSearch = useSmartChatStore((state) => state.setUseBingSearch)
+
+  return (
+    <Switch.Group as="div" className="flex items-center">
+      <Switch
+        checked={useBingSearch}
+        onChange={setUseBingSearch}
+        className={classNames(
+          useBingSearch ? 'bg-black' : 'bg-gray-200',
+          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2'
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={classNames(
+            useBingSearch ? 'translate-x-5' : 'translate-x-0',
+            'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+          )}
+        />
+      </Switch>
+      <Switch.Label as="span" className="ml-3 text-sm">
+        <span className="font-medium text-gray-900">Bing Search</span>{' '}
+      </Switch.Label>
+    </Switch.Group>
+  )
+}
+
+
 interface ChatState {
   messages: Message[]
   history: { content: string; role: string }[]
@@ -120,6 +156,8 @@ interface ChatState {
   addToSetDatasetIds: (id: string) => void
   removeDatasetId: (id: string) => void
   clearSelectedDatasetId: () => void
+  useBingSearch: boolean
+  setUseBingSearch: (useBingSearch: boolean) => void
 }
 
 export const useSmartChatStore = create<ChatState>((set) => ({
@@ -155,8 +193,10 @@ export const useSmartChatStore = create<ChatState>((set) => ({
       selectedDatasetIds: [],
     }))
   },
+  useBingSearch: false,
+  setUseBingSearch: (useBingSearch) => set(() => ({ useBingSearch })),
 }))
-//
+
 export interface Chat {
   id: string
   createdAt: Date
@@ -193,6 +233,7 @@ export default function SmartChat() {
   const firstApiKey = apiKey
   const system = useSmartChatStore((state) => state.systemMessage)
   const messageListRef = useRef(null)
+  const useBingSearch = useSmartChatStore((state) => state.useBingSearch)
   // Auto scroll chat to bottom
   useEffect(() => {
     const messageList = messageListRef.current
@@ -210,8 +251,8 @@ export default function SmartChat() {
       error instanceof Response && error.status === 401
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
         : error instanceof Response && error.status === 402
-        ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
-        : 'Oops! There seems to be an error. Please try again.'
+          ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
+          : 'Oops! There seems to be an error. Please try again.'
 
     addMessage({
       content: 'Oops! There seems to be an error. Please try again',
@@ -242,20 +283,31 @@ export default function SmartChat() {
       setLastMessage({ content: '', role: 'assistant' })
 
       // 2.a ask the context based on a query
-      const res: CreateContextResponse =
-        selectedDatasetIds.length > 0
-          ? await fetch('/api/createContext', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                prompt: userInput,
-                datasetIds: selectedDatasetIds,
-                apiKey: firstApiKey,
-              }),
-            }).then((res) => res.json())
-          : { chunkedContext: '', contexts: [] }
+      let res: CreateContextResponse = { chunkedContext: '', contexts: [] }
+      if (useBingSearch) {
+        res = await fetch('/api/createContextWithBingSearch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: userInput,
+            apiKey: firstApiKey,
+          }),
+        }).then((res) => res.json())
+      } else if (selectedDatasetIds.length > 0) {
+        res = await fetch('/api/createContext', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: userInput,
+            datasetIds: selectedDatasetIds,
+            apiKey: firstApiKey,
+          }),
+        }).then((res) => res.json())
+      }
 
       setStreaming(true)
       //3. Send user the questions and hisitory as well as the relevant dataset (in this case the github repo)
@@ -325,15 +377,24 @@ export default function SmartChat() {
         <div className="flex flex-col ">
           <SystemMessage />
         </div>
-        {/* wrapped checkboxes to select the datasets to use */}
-        <div className="flex flex-col">
-          <Label> Select datasets</Label>
+        <div className="flex flex-col ">
+          <Label>Use Bing Search</Label>
           <div className="mb-3 text-xs text-gray-500">
-            This lets embedbase know what data you want ChatGPT to use to create
-            answers. (select at least one)
+            This lets embedbase use Bing Search to help ChatGPT answering.
           </div>
-          <DatasetCheckboxes datasets={datasets} isLoading={false} />
+          <Toggle />
         </div>
+        {
+          !useBingSearch &&
+          <div className="flex flex-col">
+            <Label> Select datasets</Label>
+            <div className="mb-3 text-xs text-gray-500">
+              This lets embedbase know what data you want ChatGPT to use to create
+              answers. (select at least one)
+            </div>
+            <DatasetCheckboxes datasets={datasets} isLoading={false} />
+          </div>
+        }
       </div>
       <div className="col-span-3">
         <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">

@@ -97,7 +97,7 @@ export default async function sync(req: any, res: any) {
 
         console.log('PDF Content:', fixedPdf)
 
-        const promises: Promise<ClientAddData[]>[] = []
+        const promises: Promise<any>[] = []
         await splitText(fixedPdf).batch(100).forEach((batch) =>
           promises.push(embedbase.dataset(datasetId).batchAdd(
             batch.map((c) => ({ data: c.chunk, metadata: metadata }))
@@ -107,8 +107,7 @@ export default async function sync(req: any, res: any) {
         await Promise.all(promises)
 
         console.log(
-          `Synced to ${datasetId} in ${Date.now() - startTime
-          }ms`
+          `Synced to ${datasetId} in ${Date.now() - startTime}ms`
         )
         res.status(200).json({ message: 'File uploaded successfully' })
 
