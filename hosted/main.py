@@ -35,7 +35,7 @@ app = (
     )
 ).run()
 
-app.add_api_route("/v1/internet/search", internet_search, methods=["POST"])
+app.add_api_route("/v1/search/internet", internet_search, methods=["POST"])
 
 @app.exception_handler(Exception)
 async def custom_exception_handler(request: Request, exc: Exception):
