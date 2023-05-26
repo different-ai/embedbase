@@ -188,6 +188,44 @@ embedbase.dataset("your_dataset_name").search("your_query").where("source", "=="
 </Tabs>
 
 
+## Using Bing Search
+
+The point of internet search in embedbase is to combine your private information with latest public information.
+
+Also remember that AIs like ChatGPT have limited knowledge to a certain date, for example try to ask ChatGPT about GPT4 or about Sam Altman talk with the senate (which happened few days ago), it will not know about it.
+
+The recommended workflow is like this:
+
+1. search your question using internet endpoint
+2. (optional) add results to embedbase
+3. (optional) search embedbase with the question
+4. use .generate() to get your question answered
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```ts copy
+const data = await embedbase
+  // for example this is a very recent AI paper that LLM have no knowledge about
+  .internetSearch('qlora machine learning paper')
+console.log(data)
+// [
+//   {
+//     "title": "Qlora: ...",
+//     "description": "We present Qlora, ..."
+//     "url": "https://arxiv.org/abs/2104.07540",
+//   },
+//   ...
+// ]
+``` 
+  </Tab>
+  <Tab>
+
+This is not yet avaiable in the Python SDK, please ping louis030195 on [Discord](https://discord.gg/3X6xZtZ) if you need it
+and we will make it happen instantly!
+
+  </Tab>
+</Tabs>
+
 ### Adding Data
 
 <Tabs items={['TypeScript', 'Python']}>
