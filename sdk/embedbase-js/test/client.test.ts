@@ -350,3 +350,9 @@ test('should be able to update dataset', async () => {
   expect(searchResult[0].id).toEqual(result.id)
 }, TIMEOUT)
 
+test('should be able to search the internet', async () => {
+  const result = await embedbase.internetSearch('qlora paper')
+  expect(result).toBeDefined()
+  expect(result).toBeInstanceOf(Array)
+  expect(result.length).toBeGreaterThanOrEqual(1)
+})

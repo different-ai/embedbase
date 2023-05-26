@@ -3,12 +3,14 @@ import type {
   ClientContextData,
   ClientDatasets,
   ClientSearchData,
+  ClientSearchResponse,
   Document,
   GenerateOptions,
   Metadata,
   RangeOptions,
   SearchData,
   SearchOptions,
+  SearchResponse,
   UpdateDocument
 } from './types';
 import { CustomAsyncGenerator, camelize, getFetch, stream } from './utils';
@@ -284,6 +286,25 @@ export default class EmbedbaseClient {
     }.bind(this);
 
     return new CustomAsyncGenerator<string>(asyncGen());
+  }
+
+  async internetSearch(query: string): Promise<ClientSearchResponse[]> {
+    const url = `${this.embedbaseApiUrl}/search/internet`
+    const res: Response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        query: query,
+        engine: 'bing'
+      }),
+      headers: this.headers,
+    })
+    const data: SearchResponse = await res.json()
+    const searchResults: ClientSearchResponse[] = data.webPages.value.map((webPage) => ({
+        title: webPage.name,
+        url: webPage.url,
+        snippet: webPage.snippet,
+    }))
+    return searchResults
   }
 }
 

@@ -85,3 +85,48 @@ export interface UpdateDocument {
   data?: string
   metadata?: Metadata
 }
+
+interface WebAnswer {
+  id?: string;
+  someResultsRemoved: boolean;
+  totalEstimatedMatches: number;
+  value: WebPage[];
+  webSearchUrl: string;
+}
+
+interface WebPage {
+  about?: any[]
+  dateLastCrawled: string
+  contractualRules?: any[]
+  deepLinks?: WebPage[];
+  displayUrl: string
+  id?: string
+  isFamilyFriendly: boolean
+  isNavigational: boolean
+  language: string
+  malware?: Malware
+  name: string
+  mentions?: any
+  searchTags?: MetaTag[]
+  snippet: string
+  url: string
+}
+
+interface Malware {
+  // Malware specific properties go here
+}
+
+interface MetaTag {
+  name: string
+  content: string
+}
+
+export interface SearchResponse {
+  webPages: WebAnswer
+}
+
+export interface ClientSearchResponse {
+  title: string
+  url: string
+  snippet: string
+}
