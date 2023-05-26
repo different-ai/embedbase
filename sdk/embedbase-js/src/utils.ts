@@ -181,18 +181,31 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
    */
   async map<U>(fn: (value: T) => U): Promise<Array<U>> {
     const result: Array<U> = [];
-    let iterator
-    try {
-      iterator = await this.generator.next();
-    } catch (e) {
-      console.log(e)
-    }
+    let iterator = await this.generator.next();
     while (!iterator.done) {
       result.push(fn(iterator.value));
       iterator = await this.generator.next();
     }
     return result;
   }
+
+  /**
+   * **Example**
+   * ```ts
+   * const myResults = await generator.get()
+   * ```
+   * @param fn 
+   * @returns 
+   */
+    async get<U>(): Promise<Array<U>> {
+      const result: Array<U> = [];
+      let iterator = await this.generator.next();
+      while (!iterator.done) {
+        result.push(iterator.value);
+        iterator = await this.generator.next();
+      }
+      return result;
+    }
 
   /**
    * **Example**
@@ -233,7 +246,7 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
   /**
    * **Example**
    * ```ts
-   * await generator.batch(100).map((b) => console.log('do something with batch of 100 here'))
+   * await generator.batch(100).forEach((b) => console.log('do something with batch of 100 here'))
    * ```
    * 
    * Returns a CustomAsyncGenerator of batches of size `batchSize`

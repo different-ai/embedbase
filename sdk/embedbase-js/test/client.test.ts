@@ -245,15 +245,18 @@ test('should receive maxed out plan error', async () => {
 }, TIMEOUT)
 
 test('should be able to chat with map, foreach etc', async () => {
-  const outputs = await embedbase.generate('hello').map((res) => res)
+  const outputs = await embedbase.generate('1+1=').map((res) => res)
   expect(outputs).toBeDefined()
-  const noHello = await embedbase.generate('hello').filter((res) => res !== 'hello')
+  const noHello = await embedbase.generate('1+1=').filter((res) => res !== 'hello')
   expect(noHello).toBeDefined()
-  const aListOfHellos = await embedbase.generate('hello').batch(10).map((res) => res)
+  const aListOfHellos = await embedbase.generate('1+1=').batch(10).map((res) => res)
   expect(aListOfHellos).toBeInstanceOf(Array)
   let lastMessage = ''
-  await embedbase.generate('hello').forEach((res) => lastMessage = res)
+  await embedbase.generate('1+1=').forEach((res) => lastMessage = res)
   expect(lastMessage).toBeDefined()
+  const result = await embedbase.generate('1+1=').get<string>()
+  // should be a list of string
+  expect(result).toBeInstanceOf(Array)
 }, TIMEOUT)
 
 

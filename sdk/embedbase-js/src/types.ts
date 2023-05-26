@@ -72,6 +72,7 @@ type Chat = {
 }
 export interface GenerateOptions {
   history: Chat[]
+  url?: string
 }
 
 export interface RangeOptions {
