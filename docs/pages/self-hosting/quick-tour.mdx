@@ -62,6 +62,41 @@ pip install embedbase-client
   </Tab>
 </Tabs>
 
+Create the client:
+
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```ts copy
+import { createClient } from 'embedbase-js'
+
+const url = 'http://localhost:8000'
+
+const embedbase = createClient(url)
+```
+  </Tab>
+    <Tab>
+To get started, import the `EmbedbaseClient` class and create a new instance:
+
+```python copy
+from embedbase_client import EmbedbaseClient
+
+embedbase_url = "http://localhost:8000"
+embedbase = EmbedbaseClient(embedbase_url)
+```
+
+In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
+This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
+```python copy
+from embedbase_client import EmbedbaseAsyncClient
+```
+
+Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
+
+Learn more about asynchronous Python [here](https://docs.python.org/3/library/asyncio.html).
+  </Tab>
+</Tabs>
+
 Then you can add some things to your embedbase:
 
 <Tabs items={['TypeScript', 'Python']}>
