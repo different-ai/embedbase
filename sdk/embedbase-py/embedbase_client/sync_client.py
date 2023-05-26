@@ -476,7 +476,7 @@ class EmbedbaseClient(BaseClient):
         Returns:
             Generator[str, None, None]: A synchronous generator that yields generated text data in chunks.
         """
-        url = "https://app.embedbase.xyz/api/chat"
+        url = (options and options.get("url")) or f"https://app.embedbase.xyz/api/chat"
 
         options = options or {
             "history": [],

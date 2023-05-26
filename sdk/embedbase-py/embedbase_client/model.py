@@ -79,3 +79,4 @@ class Chat(BaseModel):
 
 class GenerateOptions(BaseModel):
     history: List[Chat]
+    url: Optional[str]
