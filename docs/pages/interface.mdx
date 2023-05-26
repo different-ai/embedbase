@@ -30,6 +30,24 @@ fetch(`${URL}/v1/${DATASET_ID}/search`, {
 })
 ```
 
+### Using Bing Search
+
+```ts
+const response = await fetch('https://api.embedbase.xyz/v1/internet-search', {
+    method: 'POST',
+    body: JSON.stringify({
+        query: question,
+        engine: 'bing'
+    }),
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
+const responseJson = await response.json()
+// interesting data is here:
+const results = responseJson.webPages.value
+```
+
 ### Inserting Data
 
 You can insert unstructured data into Embedbase to be indexed and searched.
