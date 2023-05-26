@@ -52,7 +52,7 @@ jobs:
       - name: Get the version
         if: ${{ steps.regex-match.outputs.match != '' }}
         id: get_version
-        run: echo "VERSION=$(echo version.txt)" >> $GITHUB_ENV
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         working-directory: hosted
 
       - name: Commit version bump
