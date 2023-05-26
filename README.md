@@ -50,21 +50,25 @@ const embedbase = createClient(
   'api-key')
 
 const context = await embedbase
-.dataset('embedbase-docs')
-.createContext('What can I do with Embedbase API?', { limit: 3 });
+.dataset('my-documentation')
+.createContext(question);
 
-console.log(context) 
-[
+console.log(context)
+/* [
   "Embedbase API allows to store unstructured data...",
   "Embedbase API has 3 main functions a) provides a plug and play solution to store embeddings b) makes it easy to connect to get the right data into llms c)..",
   "Embedabase API is self-hostable...",
-]
+] */
 
-// refer to https://github.com/openai/openai-node for the exact api
-openai.createCompletion(
-  `Write a response to question: ${question} 
-  based on the follwing context ${context.toString()}`
-)
+
+const prompt =
+`Based on the following context:\n${context.join()}\nAnswer the user's question: ${question}`
+
+// for await allows you to stream answers
+for await (const res of embedbase.generate(prompt)) {
+    console.log(res)
+    // You, can, use, ...
+}
 // answer:
 // You can use the Embedbase API to store unstructured data and then use the data to connect it to LLMs
 ```
