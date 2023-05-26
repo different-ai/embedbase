@@ -3,8 +3,8 @@
   "sdk": "👨‍💻 SDK",
   "interface": "📡 API",
   "tutorials": "❓ Tutorials",
-  "examples": "🤯 Self-hosting customization ",
   "self-hosting": "🚚 Self-hosting",
+  "examples": "🤯 Self-hosting customization ",
   "document-is-too-long": "API Errors",
   "login": {
     "title": "Login",

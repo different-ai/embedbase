@@ -1,0 +1,128 @@
+import { Tab, Tabs } from 'nextra-theme-docs'
+import Image from 'next/image'
+
+You can run Embedbase locally in Python like so:
+
+## Installation
+
+```bash copy
+virtualenv env
+source env/bin/activate
+pip install embedbase uvicorn
+```
+
+## Run
+
+This is the basic codebase to run embedbase in python:
+
+```py filename="main.py" copy
+# main.py
+import os
+import typing
+import uvicorn
+from embedbase import get_app
+# we also support postgres, supabase, qdrant, or implement your own
+# check an example https://github.com/different-ai/embedbase-qdrant
+from embedbase.database.memory_db import MemoryDatabase 
+from embedbase.embedding.openai import OpenAI
+
+app = (
+    get_app()
+    .use_embedder(OpenAI(os.environ["OPENAI_API_KEY"]))
+    .use_db(MemoryDatabase())
+    .run()
+)
+ 
+if __name__ == "__main__":
+    uvicorn.run(app)
+```
+
+Now start embedbase:
+
+```bash
+python3 main.py
+```
+
+<Image src="/embedbase-self-hosted-quick-tour.png" width={800} height={500} />
+
+## Using the SDK with your self-hosted embedbase
+
+To use the SDK with your self-hosted embedbase, you need to install one of the SDKs:
+
+<Tabs items={['Javascript', 'Python']}>
+  <Tab>
+```bash
+npm i embedbase-js
+```
+  </Tab>
+  <Tab>
+```bash
+pip install embedbase-client
+```
+  </Tab>
+</Tabs>
+
+Then you can add some things to your embedbase:
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```js copy
+const data =
+  await // embeddings are extremely good for retrieving unstructured data
+  // in this example we store an unparsable html string
+  embedbase.dataset('test-amazon-product-reviews').add(`
+  <div>
+    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
+`)
+
+console.log(data)
+//
+// {
+//   "id": "eiew823",
+//   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+//          Didn't put in dishwasher. Still perfect after many uses.",
+//   "embedding": [0.1, 0.2, 0.3, ...]
+// }
+```
+
+  </Tab>
+    <Tab>
+To add data to a dataset, call the `add` method on a `Dataset` object:
+
+```python copy
+data = embedbase.dataset("test-amazon-product-reviews").add("""
+  <div>
+    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
+  </div>
+""")
+print(data)
+# {
+#   "id": "eiew823",
+#   "data": "Lightweight. Telescopic. Easy zipper case for storage.
+#          Didn't put in dishwasher. Still perfect after many uses.",
+#   "embedding": [0.1, 0.2, 0.3, ...]
+# }
+```
+  </Tab>
+</Tabs>
+
+Now you can search by similarity:
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+
+```ts copy
+// fetching data
+const data = await embedbase
+  .dataset('test-amazon-product-reviews')
+  .search('best hot dogs accessories', { limit: 3 })
+```
+  </Tab>
+    <Tab>
+To search a dataset, call the `search` method on a `Dataset` object:
+
+```python copy
+data = embedbase.dataset("test-amazon-product-reviews").search("best hot dogs accessories", limit=3).get()
+```
+  </Tab>
+</Tabs>

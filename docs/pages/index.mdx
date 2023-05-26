@@ -28,7 +28,7 @@ Here is how to quickly use embedbase to hook your data to ChatGPT:
 import { createClient } from 'embedbase-js'
 const embedbase = createClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
 const ads = [
-    'Discover Harem Pants! Unique, stylish bohemian vibes with a dropped crotch & loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    'Discover Harem Pants! Unique, stylish bohemian vibes with loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
     'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
     'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
 ]
@@ -40,15 +40,21 @@ console.log(data)
 [
   {
     id: '9ced909f95e08e71a08bf6729be33dedc6793258c011989d5da9dd67b257509e',
-    status: 'success'
+    data: 'Discover Harem Pants! Unique, stylish bohemian vibes with loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   },
   {
     id: '2fd991008424b2eb0354b040cd65ca1b8dc4deae941ec3c0abe6987ab6b2c7d1',
-    status: 'success'
+    data: 'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   },
   {
     id: '4dcba3c9311b76cf90b9cc4bf68e1524802e7345e6ec20de73941b86f53a5e33',
-    status: 'success'
+    data: 'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   }
 ]
 ```
@@ -60,7 +66,7 @@ from embedbase_client.client import EmbedbaseClient
 embedbase = EmbedbaseClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
 
 ads = [
-    'Discover Harem Pants! Unique, stylish bohemian vibes with a dropped crotch & loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    'Discover Harem Pants! Unique, stylish bohemian vibes with loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
     'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
     'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
 ]
@@ -73,15 +79,21 @@ print(data)
 [
   {
     id: '9ced909f95e08e71a08bf6729be33dedc6793258c011989d5da9dd67b257509e',
-    status: 'success'
+    data: 'Discover Harem Pants! Unique, stylish bohemian vibes with loose legs. Comfy meets chic - elevate your wardrobe. Limited stock - shop now!.',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   },
   {
     id: '2fd991008424b2eb0354b040cd65ca1b8dc4deae941ec3c0abe6987ab6b2c7d1',
-    status: 'success'
+    data: 'Introducing our fabulous Fringe Skirt! Step out in style with eye-catching fringe detailing that adds flair and movement. Perfect for any occasion, create unforgettable memories with this chic piece.',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   },
   {
     id: '4dcba3c9311b76cf90b9cc4bf68e1524802e7345e6ec20de73941b86f53a5e33',
-    status: 'success'
+    data: 'Introducing the Gingham Dress: Timeless & Chic! 💕 Step into summer with this must-have, two-toned checkered dress. From picnics to parties, it\'s your go-to look. Shop now for unbeatable style!',
+    embedding: [0.1, 0.2, 0.3, ...]
+    ...
   }
 ]
 ```
@@ -103,7 +115,7 @@ for await (const res of embedbase.generate(prompt)) {
 }
 ```
 ```
-You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
+You might want to try our Harem Pants! They have loose legs for comfort,
 and their unique bohemian style can elevate your wardrobe for work.
 However, please note that they may not be the most suitable for climbing.
 ```
@@ -111,7 +123,6 @@ However, please note that they may not be the most suitable for climbing.
   <Tab>
 ```python copy {4}
 import os
-import openai
 question = 'im looking for a nice pant that is comfortable and i can both use for work and for climbing'
 context = embedbase.dataset(dataset_id).create_context(question)
 prompt = f'Based on the following context:\n{context}\nAnswer the user\'s question: {question}'
@@ -119,7 +130,7 @@ for result in embedbase.generate(prompt):
     print(result)
 ```
 ```
-You might want to try our Harem Pants! They have a dropped crotch and loose legs for comfort,
+You might want to try our Harem Pants! They have loose legs for comfort,
 and their unique bohemian style can elevate your wardrobe for work.
 However, please note that they may not be the most suitable for climbing.
 ```
@@ -146,10 +157,6 @@ First, create a virtual environment with the version of Python you're going to u
 pip install embedbase-client
 ```
 
-<Callout type="info" emoji="ℹ️">
-    For OpenAI installation, please refer to [their documentation](https://github.com/openai/openai-python).
-</Callout>
-
   </Tab>
 </Tabs>
 
@@ -162,6 +169,6 @@ pip install embedbase-client
 
 | Section | Description |
 |-|-|
-| [Javascript SDK](https://docs.embedbase.xyz/sdk) | The Embedbase Javascript SDK |
-| [Python SDK](https://docs.embedbase.xyz/sdk-py) | The Embedbase Python SDK |
+| [SDKs documentation](https://docs.embedbase.xyz/sdk) | The Embedbase Javascript SDK |
+| [Self-hosting quick tour](https://docs.embedbase.xyz/self-hosting/quick-tour) | Run embedbase locally in Python |
 
