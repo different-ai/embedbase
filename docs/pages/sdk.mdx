@@ -301,11 +301,11 @@ you can use the following method:
   <Tab>
 ```js copy
 const data =
-  await embedbase.dataset('test-amazon-product-reviews').update({
+  await embedbase.dataset('test-amazon-product-reviews').update([{
     // you get this id from add/batchAdd/search/list response
     id: 'eiew823',
     data: 'some new text',
-  })
+  }])
   console.log(data)
 // {
 //   "id": "eiew823",
