@@ -453,7 +453,7 @@ class EmbedbaseAsyncClient(BaseClient):
         Returns:
             CustomAsyncGenerator[str, None, None]: An asynchronous generator that yields generated text data in chunks.
         """
-        url = (options and options.get("url")) or f"https://app.embedbase.xyz/api/chat"
+        url = (options and options.get("url")) or "https://app.embedbase.xyz/api/chat"
 
         options = options or {
             "history": [],
