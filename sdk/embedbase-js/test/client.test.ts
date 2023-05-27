@@ -355,4 +355,43 @@ test('should be able to search the internet', async () => {
   expect(result).toBeDefined()
   expect(result).toBeInstanceOf(Array)
   expect(result.length).toBeGreaterThanOrEqual(1)
-})
+}, TIMEOUT)
+
+test('should be able to chunkAndBatchAdd', async () => {
+  // very long documents
+  const documents = [
+    {
+      data: Array(1000).fill('hello').join(' '),
+      metadata: {
+        hello: 'world'
+      }
+    },
+    {
+      data: Array(1000).fill('hella').join(' '),
+      metadata: {
+        hello: 'world'
+      }
+    }
+  ]
+  await embedbase.dataset(DATASET_NAME).clear()
+  const result = await embedbase.dataset(DATASET_NAME).chunkAndBatchAdd(documents)
+  expect(result).toBeDefined()
+}, TIMEOUT)
+
+test('should provide clear error message', async () => {
+  // very long documents
+  const documents = [
+    {
+      foo: 'bar'
+    }
+  ]
+  await embedbase.dataset(DATASET_NAME).clear()
+
+  try {
+    // @ts-ignore
+    const results = await embedbase.dataset(DATASET_NAME).batchAdd(documents)
+    expect(false).toBe(true)
+  } catch (error) {
+    expect(error.message).toBe('body.documents.0.data: field required')
+  }
+}, TIMEOUT)

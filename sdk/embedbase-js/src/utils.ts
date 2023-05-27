@@ -197,15 +197,15 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
    * @param fn 
    * @returns 
    */
-    async get<U>(): Promise<Array<U>> {
-      const result: Array<U> = [];
-      let iterator = await this.generator.next();
-      while (!iterator.done) {
-        result.push(iterator.value);
-        iterator = await this.generator.next();
-      }
-      return result;
+  async get<U>(): Promise<Array<U>> {
+    const result: Array<U> = [];
+    let iterator = await this.generator.next();
+    while (!iterator.done) {
+      result.push(iterator.value);
+      iterator = await this.generator.next();
     }
+    return result;
+  }
 
   /**
    * **Example**
@@ -235,10 +235,12 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
    * @param fn 
    * @returns 
    */
-  async forEach(fn: (value: T) => void): Promise<void> {
+  async forEach(fn: (value: T, index?: number) => void): Promise<void> {
+    let index = 0;
     let iterator = await this.generator.next();
     while (!iterator.done) {
-      fn(iterator.value);
+      fn(iterator.value, index);
+      index++;
       iterator = await this.generator.next();
     }
   }
@@ -274,5 +276,25 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
       yield batch;
     }
   }
+}
+
+
+
+export const batch = async <T, Z>(
+  list: T[],
+  fn: (chunk: T[]) => Promise<Z>,
+  size = 100
+) => {
+  const batchSize = size
+  return Promise.all(
+    list
+      .reduce((acc: T[][], _, i) => {
+        if (i % batchSize === 0) {
+          acc.push(list.slice(i, i + batchSize))
+        }
+        return acc
+      }, [])
+      .map(fn)
+  )
 }
 

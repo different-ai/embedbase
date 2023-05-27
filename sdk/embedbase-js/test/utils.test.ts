@@ -1,4 +1,5 @@
-import { camelize } from '../src/utils'
+import { expect, test } from '@jest/globals';
+import { batch, camelize } from '../src/utils';
 
 test('camelize should properly turn snake_case to camelCase', () => {
   const obj = {
@@ -42,4 +43,24 @@ test('camelize should properly turn snake_case to camelCase even in nested objec
     },
   }
   expect(camelize(obj)).toEqual(expected)
+})
+
+test('batch should properly return results', async () => {
+  const fn = async (arg: string[]) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        return resolve('foo' + arg.join(','))
+      }, Math.random() * 100)
+    })
+  }
+
+  const results = await batch(Array(10).fill('bar'), fn, 2)
+
+  expect(results).toEqual([
+    "foobar,bar",
+    "foobar,bar",
+    "foobar,bar",
+    "foobar,bar",
+    "foobar,bar",
+  ])
 })
