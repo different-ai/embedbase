@@ -240,6 +240,27 @@ In the meantime check [how to do it using REST](https://docs.embedbase.xyz/inter
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
+
+The simplest way to add data to embedbase is to use `chunkAndBatchAdd` which runs ideal parameters by default:
+
+```ts copy
+const documents = [
+  { data: 'This is a document' },
+  { data: 'This is another document' },
+  { data: 'This is a third document' },
+  { data: 'This is a fourth document' },
+  { data: 'This is a fifth document' },
+  { data: 'This is a sixth document' },
+  { data: 'This is a seventh document' },
+  { data: 'This is a eighth document' },
+  { data: 'This is a ninth document' },
+  { data: 'This is a tenth document' },
+]
+const data = await embedbase.dataset('test-amazon-product-reviews').chunkAndBatchAdd(documents)
+```
+
+You can also use `add`, or `batchAdd`:
+
 ```js copy
 const data =
   await // embeddings are extremely good for retrieving unstructured data
@@ -259,35 +280,7 @@ console.log(data)
 // }
 ```
 
-If you have many documents to add, you should use `batchAdd`:
 
-```ts copy
-embedbase.dataset(datasetId).batchAdd([{
-  data: 'some text',
-  // you can also add metadata
-  // metadata: {
-  //   path: 'google.com'
-  // }
-}])
-```
-
-For better performance, you can run these add in parallel. For example,
-you can use batches with `Promise.all`:
-
-```ts copy
-const batch = async (myList: any[], fn: (chunk: any[]) => Promise<any>) => {
-    const batchSize = 100;
-    return Promise.all(
-        myList.reduce((acc: BatchAddDocument[][], chunk, i) => {
-            if (i % batchSize === 0) {
-                acc.push(myList.slice(i, i + batchSize));
-            }
-            return acc;
-        }, []).map(fn)
-    )
-}
-batch(chunks, (chunk) => embedbase.dataset(datasetId).batchAdd(chunk))
-```
 
   </Tab>
     <Tab>
