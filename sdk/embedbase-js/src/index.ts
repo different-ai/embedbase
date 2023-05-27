@@ -14,4 +14,3 @@ export const createClient = (embedbaseUrl: string, embedbaseKey?: string) => {
 }
 
 export { merge, splitText } from './split'
-
