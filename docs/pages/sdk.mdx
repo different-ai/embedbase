@@ -113,9 +113,7 @@ Learn more about asynchronous Python [here](https://docs.python.org/3/library/as
 
 ### Searching datasets
 
-Vector databases are specialized databases designed to work efficiently with high-dimensional vectors, often used for representing data in machine learning applications. Examples of such data include embeddings, which are numerical representations of unstructured data such as text, images, and more. Vector databases enable efficient storage, search, and retrieval of similar items based on their embeddings.
-
-Embedbase is an open-source API and SDK that connects any data to ChatGPT using powerful embedding technology. It simplifies the process of working with embeddings and enables users to easily store, index, and search unstructured data. With Embedbase, even those without machine learning expertise can build recommendation engines, search engines, and Q&A engines, offering seamless integration from development to deployment for a wide variety of applications.
+You can search your dataset(s) using natural language queries. Embedbase will return the most similar items to your query, along with their similarity scores.
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
@@ -238,6 +236,12 @@ In the meantime check [how to do it using REST](https://docs.embedbase.xyz/inter
 
 ### Adding Data
 
+You can add data like text to your dataset(s), if you need to add images or other format like audio, please reach out on [Discord](https://discord.gg/3X6xZtZ) and we will make it happen instantly!
+
+You can also add metadata along the data. It can be useful, for example if you are feeding a LLM like ChatGPT,
+a typical best practice is to add the source of the text as metadata.
+For example an URL. Then you can ask the AI to add links or footnotes in it's output.
+
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
 
@@ -254,57 +258,46 @@ const documents = [
   { data: 'This is a seventh document' },
   { data: 'This is a eighth document' },
   { data: 'This is a ninth document' },
-  { data: 'This is a tenth document' },
+  { data: 'This is a tenth document', metadata: { path: 'https://google.com/abcd' }}
 ]
 const data = await embedbase.dataset('test-amazon-product-reviews').chunkAndBatchAdd(documents)
-```
-
-You can also use `add`, or `batchAdd`:
-
-```js copy
-const data =
-  await // embeddings are extremely good for retrieving unstructured data
-  // in this example we store an unparsable html string
-  embedbase.dataset('test-amazon-product-reviews').add(`
-  <div>
-    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
-`)
-
 console.log(data)
-//
-// {
-//   "id": "eiew823",
-//   "data": "Lightweight. Telescopic. Easy zipper case for storage.
-//          Didn't put in dishwasher. Still perfect after many uses.",
-//   "embedding": [0.1, 0.2, 0.3, ...]
-// }
+// [
+//   {
+//     "id": "eiew823",
+//     "data": "This is a document",
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   },
+//   {
+//     "id": "eiew823",
+//     "data": "This is another document",
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   },
+//   {
+//     "id": "eiew823",
+//     "data": "This is a third document",
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   },
+//   ...
+//   {
+//     "id": "eiew823",
+//     "data": "This is a tenth document",
+//     "metadata": {
+//       "path": "https://google.com/abcd"
+//     },
+//     "embedding": [0.1, 0.2, 0.3, ...]
+//   }
+// ]
 ```
 
-
+You can also use `add`, or `batchAdd`.
 
   </Tab>
     <Tab>
-To add data to a dataset, call the `add` method on a `Dataset` object:
+To add data to a dataset, call the `batch_add` method on a `Dataset` object:
 
 ```python copy
-data = embedbase.dataset(dataset_id).add("""
-  <div>
-    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
-  </div>
-""")
-print(data)
-# {
-#   "id": "eiew823",
-#   "data": "Lightweight. Telescopic. Easy zipper case for storage.
-#          Didn't put in dishwasher. Still perfect after many uses.",
-#   "embedding": [0.1, 0.2, 0.3, ...]
-# }
-```
-
-If you have many documents to add, you should use `batch_add`:
-
-```python copy
-embedbase.dataset(dataset_id).batch_add([
+data = embedbase.dataset(dataset_id).batch_add([
   {
     "data": "some text",
     # you can also add metadata
@@ -316,20 +309,21 @@ embedbase.dataset(dataset_id).batch_add([
     "data": "some more text",
   },
 ])
+print(data)
+# [
+#   {
+#       "id": "eiew823",
+#       "data": "some text",
+#       "embedding": [0.1, 0.2, 0.3, ...]
+#   },
+#   {
+#       "id": "eiew823",
+#       "data": "some more text",
+#       "embedding": [0.1, 0.2, 0.3, ...]
+#   },
+# ]
 ```
 
-For better performance, you can run these add in parallel. For example,
-you can use batches with `concurrent.futures`:
-
-```python copy
-from concurrent.futures import ThreadPoolExecutor
-
-def batch_add(chunk):
-    embedbase.dataset(dataset_id).batch_add(chunk)
-
-with ThreadPoolExecutor(max_workers=10) as executor:
-    executor.map(batch_add, chunks)
-```
   </Tab>
 </Tabs>
 
@@ -544,53 +538,6 @@ for r in embedbase.generate(prompt, history):
 ```
   </Tab>
 </Tabs>
-
-### Adding metadata
-
-Adding metadata can be useful, for example if you are feeding a LLM like ChatGPT,
-a typical best practice is to add the source of the text as metadata.
-For example an URL. Then you can ask the AI to add links or footnotes in it's output.
-
-<Tabs items={['TypeScript', 'Python']}>
-  <Tab>
-```js copy
-const data =
-  await
-  embedbase.dataset('test-amazon-product-reviews').add(`
-  <div>
-    <span>Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.</span>
-    // metadata can be anything you want that will appear in the search results later
-`, {path: 'https://www.amazon.com/dp/B00004OCNS'})
-
-console.log(data)
-//
-// {
-//   "id": "eiew823",
-//   "data": "Lightweight. Telescopic. Easy zipper case for storage.
-//          Didn't put in dishwasher. Still perfect after many uses.",
-//   "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
-//   "embedding": [0.1, 0.2, 0.3, ...]
-// }
-```
-  </Tab>
-    <Tab>
-```python copy
-data = embedbase.dataset(dataset_id).add(
-    "Lightweight. Telescopic. Easy zipper case for storage. Didn't put in dishwasher. Still perfect after many uses.",
-    {"path": "https://www.amazon.com/dp/B00004OCNS"}
-)
-print(data)
-# {
-#   "id": "eiew823",
-#   "data": "Lightweight. Telescopic. Easy zipper case for storage.
-#          Didn't put in dishwasher. Still perfect after many uses.",
-#   "metadata": {"path": "https://www.amazon.com/dp/B00004OCNS"},
-#   "embedding": [0.1, 0.2, 0.3, ...]
-# }
-```
-  </Tab>
-</Tabs>
-
 
 
 ### Listing datasets
