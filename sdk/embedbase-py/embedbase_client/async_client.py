@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional
 
+import asyncio
+import itertools
 import json
 from dataclasses import dataclass
 
@@ -7,11 +9,14 @@ import httpx
 from embedbase_client.base import BaseClient
 from embedbase_client.errors import EmbedbaseAPIException
 from embedbase_client.model import (
+    AddDocument,
     ClientDatasets,
     Document,
     GenerateOptions,
+    Metadata,
     SearchSimilarity,
 )
+from embedbase_client.split import split_text
 from embedbase_client.utils import CustomAsyncGenerator, async_stream
 
 
@@ -237,6 +242,25 @@ class AsyncDataset:
         """
         return AsyncListBuilder(self.client, self.dataset)
 
+    async def chunk_and_batch_add(self, documents: List[AddDocument]) -> List[Document]:
+        """
+        Chunk and add multiple documents to the specified dataset in a single batch asynchronously.
+
+        Args:
+            documents: A list of documents.
+
+        Returns:
+            A list of documents.
+
+        Example usage:
+            documents = [
+                {"data": "Python is a programming language.", metadata: {"topic": "programming"}},
+                {"data": "Java is also a programming language.", metadata: {"topic": "programming"}},
+            ]
+            results = await dataset.chunk_and_batch_add(documents)
+        """
+        return await self.client.chunk_and_batch_add(self.dataset, documents)
+
 
 class EmbedbaseAsyncClient(BaseClient):
     def dataset(self, dataset: str) -> AsyncDataset:
@@ -300,7 +324,7 @@ class EmbedbaseAsyncClient(BaseClient):
         return AsyncSearchBuilder(self, dataset, query, {"limit": limit})
 
     async def add(
-        self, dataset: str, document: str, metadata: Optional[Dict[str, Any]] = None
+        self, dataset: str, document: str, metadata: Optional[Metadata] = None
     ) -> Document:
         """
         Add a document to the specified dataset asynchronously.
@@ -335,7 +359,7 @@ class EmbedbaseAsyncClient(BaseClient):
         return Document(**data["results"][0])
 
     async def batch_add(
-        self, dataset: str, documents: List[Dict[str, Any]]
+        self, dataset: str, documents: List[AddDocument]
     ) -> List[Document]:
         """
         Add multiple documents to the specified dataset in a single batch asynchronously.
@@ -481,3 +505,54 @@ class EmbedbaseAsyncClient(BaseClient):
             self.headers,
         )
         return CustomAsyncGenerator(async_gen)
+
+    async def chunk_and_batch_add(
+        self, dataset: str, documents: List[AddDocument]
+    ) -> List[Document]:
+        """
+        Chunk and add multiple documents to the specified dataset in a single batch asynchronously.
+
+        Args:
+            dataset: The name of the dataset to add the documents to.
+            documents: A list of documents.
+
+        Returns:
+            A list of documents.
+
+        Example usage:
+            documents = [
+                {"data": "Python is a programming language.", metadata: {"topic": "programming"}},
+                {"data": "Java is also a programming language.", metadata: {"topic": "programming"}},
+            ]
+            results = await embedbase.batch_add("my_dataset", documents)
+        """
+        chunks = []
+        for document_index, document in enumerate(documents):
+            for chunk_index, chunk in enumerate(split_text(document["data"])):
+                chunks.append(
+                    {
+                        "data": chunk.chunk,
+                        "metadata": {
+                            **document["metadata"],
+                            "documentIndex": document_index,
+                            "chunkIndex": chunk_index,
+                            "chunkStart": chunk.start,
+                            "chunkEnd": chunk.end,
+                        },
+                    }
+                )
+
+        parallel_batch_size = 100
+
+        def batch_chunks(l, n):
+            for i in range(0, len(l), n):
+                yield l[i : i + n]
+
+        results = await asyncio.gather(
+            *[
+                self.batch_add(dataset, batch)
+                for batch in batch_chunks(chunks, parallel_batch_size)
+            ]
+        )
+
+        return list(itertools.chain.from_iterable(results))

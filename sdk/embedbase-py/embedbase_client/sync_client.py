@@ -1,18 +1,22 @@
 from typing import Any, Dict, Generator, List, Optional
 
+import itertools
 import json
 from dataclasses import dataclass
+from multiprocessing.pool import ThreadPool
 
 import requests
 from embedbase_client.base import BaseClient
 from embedbase_client.errors import EmbedbaseAPIException
 from embedbase_client.model import (
+    AddDocument,
     ClientDatasets,
     Document,
     GenerateOptions,
     Metadata,
     SearchSimilarity,
 )
+from embedbase_client.split import split_text
 from embedbase_client.utils import sync_stream
 
 
@@ -237,6 +241,25 @@ class Dataset:
         """
         return SyncListBuilder(self.client, self.dataset, {})
 
+    def chunk_and_batch_add(self, documents: List[AddDocument]) -> List[Document]:
+        """
+        Chunk and add multiple documents to the specified dataset in a single batch.
+
+        Args:
+            documents: A list of documents.
+
+        Returns:
+            A list of documents.
+
+        Example usage:
+            documents = [
+                {"data": "Python is a programming language.", metadata: {"topic": "programming"}},
+                {"data": "Java is also a programming language.", metadata: {"topic": "programming"}},
+            ]
+            results = dataset.chunk_and_batch_add(documents)
+        """
+        return self.client.chunk_and_batch_add(self.dataset, documents)
+
 
 class EmbedbaseClient(BaseClient):
     def __init__(
@@ -357,9 +380,7 @@ class EmbedbaseClient(BaseClient):
             **data["results"][0],
         )
 
-    def batch_add(
-        self, dataset: str, documents: List[Dict[str, Any]]
-    ) -> List[Document]:
+    def batch_add(self, dataset: str, documents: List[AddDocument]) -> List[Document]:
         """
         Add multiple documents to the specified dataset in a single batch.
 
@@ -504,3 +525,55 @@ class EmbedbaseClient(BaseClient):
             self.headers,
             self.timeout,
         )
+
+    def chunk_and_batch_add(
+        self, dataset: str, documents: List[AddDocument]
+    ) -> List[Document]:
+        """
+        Add multiple documents to the specified dataset in a single batch asynchronously.
+
+        Args:
+            dataset: The name of the dataset to add the documents to.
+            documents: A list of documents.
+
+        Returns:
+            A list of documents.
+
+        Example usage:
+            documents = [
+                {"data": "Python is a programming language.", metadata: {"topic": "programming"}},
+                {"data": "Java is also a programming language.", metadata: {"topic": "programming"}},
+            ]
+            results = await embedbase.batch_add("my_dataset", documents)
+        """
+        chunks = []
+        for document_index, document in enumerate(documents):
+            for chunk_index, chunk in enumerate(split_text(document["data"])):
+                chunks.append(
+                    {
+                        "data": chunk.chunk,
+                        "metadata": {
+                            **document["metadata"],
+                            "documentIndex": document_index,
+                            "chunkIndex": chunk_index,
+                            "chunkStart": chunk.start,
+                            "chunkEnd": chunk.end,
+                        },
+                    }
+                )
+
+        parallel_batch_size = 100
+
+        def batch_chunks(l, n):
+            for i in range(0, len(l), n):
+                yield l[i : i + n]
+
+        results = []
+
+        def add_batch(batch):
+            results.append(self.batch_add(dataset, batch))
+
+        with ThreadPool() as pool:
+            pool.map(add_batch, batch_chunks(chunks, parallel_batch_size))
+
+        return list(itertools.chain.from_iterable(results))

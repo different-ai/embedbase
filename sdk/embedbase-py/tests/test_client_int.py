@@ -5,7 +5,7 @@ import os
 import dotenv
 import pytest
 from embedbase_client import EmbedbaseAsyncClient, EmbedbaseClient
-from embedbase_client.model import Metadata
+from embedbase_client.model import Metadata, Document
 
 dotenv.load_dotenv("../../.env")
 base_url = "https://api.embedbase.xyz"
@@ -298,3 +298,45 @@ async def test_too_long_for_request():
     with pytest.raises(Exception) as e:
         await timeout_client.dataset(test_dataset).add("a" * 10000000)
     # todo handle use case error handling better
+
+
+@pytest.mark.asyncio
+async def test_async_chunk_and_batch_add():
+    documents = [
+        {
+            "data": " ".join(["hello"] * 1000),
+            "metadata": {"hello": "world"},
+        },
+        {
+            "data": " ".join(["hella"] * 1000),
+            "metadata": {"hello": "world"},
+        },
+    ]
+    await async_ds.clear()
+    result = await async_ds.chunk_and_batch_add(documents)
+    assert result is not None
+    # should be a list of document
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0].data == documents[0]["data"]
+    assert isinstance(result[0], Document)
+
+def test_chunk_and_batch_add():
+    documents = [
+        {
+            "data": " ".join(["hello"] * 1000),
+            "metadata": {"hello": "world"},
+        },
+        {
+            "data": " ".join(["hella"] * 1000),
+            "metadata": {"hello": "world"},
+        },
+    ]
+    ds.clear()
+    result = ds.chunk_and_batch_add(documents)
+    assert result is not None
+    # should be a list of document
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0].data == documents[0]["data"]
+    assert isinstance(result[0], Document)

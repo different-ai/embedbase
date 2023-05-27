@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Extra
 
 
@@ -39,14 +40,9 @@ class ClientDatasets:
     documents_count: int
 
 
-class ClientAddData(BaseModel):
-    id: Optional[str]
-    status: str
-
-
-class BatchAddDocument(BaseModel):
+class AddDocument(BaseModel):
     data: str
-    metadata: Optional[Dict[str, Any]]
+    metadata: Optional[Metadata]
 
 
 class SearchSimilarity(Document):
@@ -69,7 +65,6 @@ class AddDataResult(Document):
 class AddData(BaseModel):
     results: Optional[List[AddDataResult]]
     error: Optional[str]
-
 
 
 class Chat(BaseModel):

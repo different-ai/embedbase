@@ -33,7 +33,7 @@ Before you start, you need get a an API key at [app.embedbase.xyz](https://app.e
 
 ## Design philosophy
 
-- Simple
+- Dead simple
 - Open-source
 - Composable (integrates well with any AI providers, databases and LLM helpers)
 
@@ -294,36 +294,51 @@ You can also use `add`, or `batchAdd`.
 
   </Tab>
     <Tab>
-To add data to a dataset, call the `batch_add` method on a `Dataset` object:
+The simplest way to add data to embedbase is to use `chunk_and_batch_add` which runs ideal parameters by default:
 
 ```python copy
-data = embedbase.dataset(dataset_id).batch_add([
-  {
-    "data": "some text",
-    # you can also add metadata
-    # "metadata": {
-    #   "path": "google.com"
-    # }
-  },
-  {
-    "data": "some more text",
-  },
+data = embedbase.dataset("test-amazon-product-reviews").chunk_and_batch_add([
+  {"data": "This is a document"},
+  {"data": "This is another document"},
+  {"data": "This is a third document"},
+  {"data": "This is a fourth document"},
+  {"data": "This is a fifth document"},
+  {"data": "This is a sixth document"},
+  {"data": "This is a seventh document"},
+  {"data": "This is a eighth document"},
+  {"data": "This is a ninth document"},
+  {"data": "This is a tenth document", "metadata": {"path": "https://google.com/abcd"}}
 ])
 print(data)
 # [
 #   {
-#       "id": "eiew823",
-#       "data": "some text",
-#       "embedding": [0.1, 0.2, 0.3, ...]
+#     "id": "eiew823",
+#     "data": "This is a document",
+#     "embedding": [0.1, 0.2, 0.3, ...]
 #   },
 #   {
-#       "id": "eiew823",
-#       "data": "some more text",
-#       "embedding": [0.1, 0.2, 0.3, ...]
+#     "id": "eiew823",
+#     "data": "This is another document",
+#     "embedding": [0.1, 0.2, 0.3, ...]
 #   },
+#   {
+#     "id": "eiew823",
+#     "data": "This is a third document",
+#     "embedding": [0.1, 0.2, 0.3, ...]
+#   },
+#   ...
+#   {
+#     "id": "eiew823",
+#     "data": "This is a tenth document",
+#     "metadata": {
+#       "path": "https://google.com/abcd"
+#     },
+#     "embedding": [0.1, 0.2, 0.3, ...]
+#   }
 # ]
 ```
 
+You can also use `add`, or `batch_add`.
   </Tab>
 </Tabs>
 
@@ -365,7 +380,14 @@ In the meantime check [how to do it using REST](https://docs.embedbase.xyz/inter
   <Tab>
 AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
 We highly recommend using this function.
-To split and chunk large texts, use the `splitText` function:
+
+If you're just getting started we recommend using the abstraction `chunkAndBatchAdd` which runs ideal parameters by default:
+
+```js
+embedbase.chunkAndBatchAdd(...)
+```
+
+Otherwise, To split and chunk large texts, use the `splitText` function:
 
 ```js copy
 import { splitText } from 'embedbase-js';
@@ -383,7 +405,7 @@ const chunkSize = 500
 // cut off in the middle of a sentence.
 const chunkOverlap = 200
 splitText(text, { chunkSize, chunkOverlap }).map(({chunk}) =>
-    embedbase.dataset('some-data-set').add(chunk)
+    embedbase.dataset('some-data-set').batchAdd([{data: chunk}])
 )
 ```
 
@@ -394,7 +416,14 @@ Check [how we send our documentation to Embedbase](https://github.com/different-
 
 AI models are often limited in the amount of text they can process at once. Embedbase provides a utility function to split large texts into smaller chunks.
 We highly recommend using this function.
-To split and chunk large texts, use the `split_text` function from the `split` module:
+
+If you're just getting started we recommend using the abstraction `chunk_and_batch_add` which runs ideal parameters by default:
+
+```python copy
+embedbase.chunk_and_batch_add(...)
+```
+
+Otherwise, to split and chunk large texts, use the `split_text` function from the `split` module:
 
 ```python copy
 from embedbase_client.split import split_text
