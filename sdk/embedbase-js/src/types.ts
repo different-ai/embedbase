@@ -130,5 +130,3 @@ export interface ClientSearchResponse {
   url: string
   snippet: string
 }
-
-export interface Em
