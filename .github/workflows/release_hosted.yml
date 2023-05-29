@@ -44,19 +44,19 @@ jobs:
         working-directory: hosted
 
       - name: Bump version if necessary
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         run: |
           env/bin/python3 bump.py bump
         working-directory: hosted
 
       - name: Get the version
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         id: get_version
         run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
         working-directory: hosted
 
       - name: Commit version bump
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -68,17 +68,17 @@ jobs:
       # TODO: Add tests
 
       - id: auth
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY_PROD }}"
 
       - name: Authorize Docker push
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         run: gcloud auth configure-docker
 
       - name: Build and push
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         uses: docker/build-push-action@v2
         with:
           context: hosted
@@ -89,7 +89,7 @@ jobs:
             gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
             gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
       - name: Deploy to Cloud Run
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v0
         with:
@@ -102,7 +102,7 @@ jobs:
             SENTRY_RELEASE=${{ env.VERSION }}
   
       - uses: rickstaa/action-create-tag@v1
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         id: "tag_create"
         with:
           tag: hosted-${{ env.VERSION }}
@@ -110,7 +110,7 @@ jobs:
           message: ${{ github.event.head_commit.message }}
 
       - name: Create Release
-        if: ${{ steps.regex-match.outputs.match != '' }}
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         uses: softprops/action-gh-release@v1
         with:
           tag_name: hosted-${{ env.VERSION }}
