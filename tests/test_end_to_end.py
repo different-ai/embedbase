@@ -325,8 +325,12 @@ async def test_get_datasets_without_auth():
             assert response.status_code == 200
             json_response = response.json()
             # shouldn't have "unit_testing_dataset" in the list
-            ds_id = [e["dataset_id"] for e in json_response.get("datasets")]
-            assert unit_testing_dataset not in ds_id
+            ds_id = [
+                e
+                for e in json_response.get("datasets")
+                if e["dataset_id"] == unit_testing_dataset
+            ]
+            assert unit_testing_dataset not in ds_id or ds_id[0]["documents_count"] == 0
 
         d = [
             "The lion is the king of the jungle",

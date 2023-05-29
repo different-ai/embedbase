@@ -12,6 +12,7 @@ from embedbase.models import Document
 class Dataset(BaseModel):
     dataset_id: str
     documents_count: int
+    created_at: Optional[str]
 
 
 class SearchResponse(Document):

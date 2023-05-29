@@ -334,15 +334,16 @@ d = [
     },
 ]
 
+
 def pad_to_1536(x):
     return x + [0.0] * (1536 - len(x))
+
 
 @pytest.mark.asyncio
 async def test_search_with_where():
     """
     should not throw an error
     """
-
 
     for vector_database in vector_databases:
         if isinstance(vector_database, Postgres):
@@ -489,3 +490,87 @@ async def test_embeddings_are_array_of_float():
         # embedding should a list of float
         assert isinstance(results[0].embedding, list), f"failed for {db}"
         assert isinstance(results[0].embedding[0], float), f"failed for {db}"
+
+
+@pytest.mark.asyncio
+async def test_create_dataset_on_update_if_not_exist_and_update_count_automatically():
+    for vector_database in vector_databases:
+        if not isinstance(vector_database, Supabase):
+            continue
+
+        await vector_database.clear(unit_testing_dataset)
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+        assert data == [] or data[0]["documents_count"] == 0, "dataset should not exist"
+
+        data_to_add = [
+            {
+                "data": x["data"],
+                "embedding": pad_to_1536(model.encode(x["data"]).tolist()),
+                "id": str(uuid.uuid4()),
+                "metadata": x["metadata"],
+                "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+            }
+            for i, x in enumerate(d)
+        ]
+        
+        await vector_database.update(
+            pd.DataFrame(
+                data_to_add,
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        # check if table exists
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+
+        assert data != [] and data[0]["documents_count"] == 3, "dataset should exist"
+
+        # now delete a row and see if documents_count decreases
+
+        await vector_database.delete(
+            ids=[data_to_add[0]["id"]],
+            dataset_id=unit_testing_dataset,
+        )
+
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+
+        assert data != [] and data[0]["documents_count"] == 2, "dataset should have 2 documents"
+
+
+        # now add a row and see it increases
+
+        await vector_database.update(
+            pd.DataFrame(
+                [data_to_add[0]],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+
+        assert data != [] and data[0]["documents_count"] == 3, "dataset should have 3 documents"

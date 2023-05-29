@@ -87,7 +87,7 @@ begin
 end;
 $$;"""
             )
-            self.conn.execute(
+            self.conn.execute( # TODO. make this deprecated and use new api - see supabase_db
                 """
 CREATE OR REPLACE VIEW distinct_datasets AS
 SELECT dataset_id, user_id, COUNT(*) AS documents_count
