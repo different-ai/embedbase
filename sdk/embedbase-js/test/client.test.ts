@@ -395,3 +395,8 @@ test('should provide clear error message', async () => {
     expect(error.message).toBe('body.documents.0.data: field required')
   }
 }, TIMEOUT)
+
+test('should be able to chat in spanish', async () => {
+  const res = await embedbase.generate('hola ablos espanol').get()
+  expect(res).toBeDefined()
+}, TIMEOUT)

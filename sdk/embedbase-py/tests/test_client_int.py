@@ -202,6 +202,11 @@ def test_sync_client_generate():
     for result in client.generate("hello"):
         assert isinstance(result, str)
 
+def test_sync_client_generate_spanish():
+    results = ''.join([result for result in client.generate("hola ablos")])
+    print(results)
+
+
 
 @pytest.mark.asyncio
 async def test_async_client_generate_should_receive_maxed_out_plan_error():
