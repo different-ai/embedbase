@@ -14,7 +14,7 @@ const results = await embedbase.internetSearch(prompt)
 // merge helps make sure that your search result fits in your prompt!
 const chunkedContext = await merge(results.map(formatInternetResultsInPrompt))
 
-await embedbase.generate('${prompt} ${chunkedContext}') 
+await embedbase.generate('${prompt} ${chunkedContext}').get()
 // Sam Altman made his appearance in Germany on Thursday, 5/25/2023, at the Technical University of Munich (TUM) to speak about OpenAI and ChatGPT.
 
 ```
