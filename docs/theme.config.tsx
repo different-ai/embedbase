@@ -52,6 +52,9 @@ const config: DocsThemeConfig = {
   footer: {
     text: 'Embedbase Docs'
   },
+  sidebar: {
+    defaultMenuCollapseLevel: 0,
+  }
   search: {
     component: <SearchModal />
   }
