@@ -161,3 +161,36 @@ data = embedbase.dataset("test-amazon-product-reviews").search("best hot dogs ac
 ```
   </Tab>
 </Tabs>
+
+## What's next
+
+[You can deploy your embedbase to render.com in a click](https://github.com/different-ai/embedbase-render).
+
+Or use Google Cloud:
+
+```py filename="main.py" copy
+import os
+import uvicorn
+from embedbase import get_app
+
+from embedbase.database.memory_db import MemoryDatabase
+from embedbase.embedding.openai import OpenAI
+
+
+def main():
+    app = (
+        get_app()
+        .use_embedder(OpenAI(os.getenv("OPENAI_API_KEY")))
+        .use_db(MemoryDatabase())
+    ).run()
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+Make sure to install [gcloud](https://cloud.google.com/sdk/docs/install), then:
+
+```bash
+OPENAI_API_KEY=your-openai-key
+gcloud functions deploy embedbase --gen2 --region=us-central1 --runtime=python310 \
+ --source=. --trigger-http --set-env-vars OPENAI_API_KEY=$OPENAI_API_KEY \
+ --entry-point=main --allow-unauthenticated
+```
