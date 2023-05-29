@@ -54,6 +54,7 @@ jobs:
           poetry run pytest --cov-report=html --cov=embedbase --ignore=sdk --ignore=hosted;poetry run coverage-badge -o assets/images/coverage.svg -f;docker stop pgvector
 
       - name: Build package
+        if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           poetry build
 
