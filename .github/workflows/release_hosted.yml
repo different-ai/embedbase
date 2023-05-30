@@ -61,7 +61,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add version.txt
+          git add version.txt service.prod.yaml
           git commit -m "chore(hosted): bump to ${{ env.VERSION }}"
           git push
         working-directory: hosted
