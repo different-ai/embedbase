@@ -98,8 +98,6 @@ jobs:
           region: us-central1
           tag: ${{ env.VERSION }}
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
-          env_vars: |
-            SENTRY_RELEASE=${{ env.VERSION }}
   
       - uses: rickstaa/action-create-tag@v1
         if: steps.regex-match.outputs.match != '' || github.event.workflow_run
