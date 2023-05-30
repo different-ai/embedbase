@@ -27,7 +27,7 @@ settings = get_settings_from_file(os.path.join(SECRET_PATH, config_path))
 version = open("version.txt").read()
 
 sentry_sdk.init(
-    dsn=settings.sentry,
+    dsn="https://7da354091a684d008c5747511fcba0ec@o4504847298461696.ingest.sentry.io/4504847314386944",
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production,
@@ -36,6 +36,7 @@ sentry_sdk.init(
     _experiments={
         "profiles_sample_rate": 0.1,
     },
+    release=version,
 )
 
 app = (
