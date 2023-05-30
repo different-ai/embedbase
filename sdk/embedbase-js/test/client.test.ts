@@ -400,3 +400,48 @@ test('should be able to chat in spanish', async () => {
   const res = await embedbase.generate('hola ablos espanol').get()
   expect(res).toBeDefined()
 }, TIMEOUT)
+
+
+test('should be able to replace my documents', async () => {
+  const documents = [
+    {
+      data: 'Nietzsche - Thus Spoke Zarathustra - Man is a rope, tied between beast and overman — a rope over an abyss.',
+      metadata: {
+        source: 'notion.so',
+      },
+    },
+    {
+      data: 'Marcus Aurelius - Meditations - He who lives in harmony with himself lives in harmony with the universe',
+      metadata: {
+        source: 'notion.so',
+      },
+    }
+  ]
+  await embedbase.dataset(DATASET_NAME).clear()
+  let res = await embedbase.dataset(DATASET_NAME).chunkAndBatchAdd(documents)
+
+  expect(res).toBeDefined()
+  expect(res.length).toBe(2)
+  expect(res[0].data).toContain('Nietzsche')
+  expect(res[0].data).toContain('abyss')
+  expect(res[1].data).toContain('Marcus')
+
+  res = await embedbase.dataset(DATASET_NAME).replace([{
+    data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
+  }, {
+    data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
+  }], 'source', '==', 'notion.so')
+
+  expect(res).toBeDefined()
+  expect(res.length).toBe(2)
+  expect(res[0].data).toContain('Nietzsche')
+  expect(res[0].data).toContain('dancing')
+  expect(res[1].data).toContain('Marcus')
+  expect(res[1].data).toContain('thoughts')
+
+  res = await embedbase.dataset(DATASET_NAME).search('Nietzsche', { limit: 1 }).where('source', '==', 'notion.so')
+
+  expect(res).toBeDefined()
+  expect(res.length).toBe(1)
+  expect(res[0].data).toContain('dancing')
+}, TIMEOUT)

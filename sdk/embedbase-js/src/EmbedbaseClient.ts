@@ -497,6 +497,57 @@ export default class EmbedbaseClient {
      * await embedbase.dataset('my-dataset').chunkAndBatchAdd(documents)
      */
     chunkAndBatchAdd: (documents: BatchAddDocument[]) => Promise<Document[]>
+
+    /**
+     * Delete all documents at the given filter and add the given documents for this filter
+     *
+     * @param {BatchAddDocument[]} documents - An array of documents to add.
+     * @param {string} filterKey - The metadata key to filter on.
+     * @param {string} filterOperator - The operator to use for the filter (only '==' is supported for now).
+     * @param {any} filterValue - The value to filter on.
+     * @returns {Promise<Document[]>}
+     *
+     * 
+     * @example
+      * const documents = [
+      *  {
+      *    data: 'Nietzsche - Thus Spoke Zarathustra - Man is a rope, tied between beast and overman — a rope over an abyss.',
+      *    metadata: {
+      *      source: 'notion.so',
+      *   },
+      *  },
+      *  {
+      *    data: 'Marcus Aurelius - Meditations - He who lives in harmony with himself lives in harmony with the universe',
+      *    metadata: {
+      *      source: 'notion.so',
+      *    },
+      *  }
+      * ]
+      * await embedbase.dataset(DATASET_NAME).batchAdd(documents)
+      *
+      * res = await embedbase.dataset(DATASET_NAME).replace([{
+      *  data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
+      * }, {
+      *  data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
+      * }], 'source', '==', 'notion.so')
+      * console.log(res)
+      * // [
+      * //   {
+      * //     data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.',
+      * //     metadata: {
+      * //       source: 'notion.so',
+      * //     },
+      * //   },
+      * //   {
+      * //     data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.',
+      * //     metadata: {
+      * //       source: 'notion.so',
+      * //     },
+      * //   }
+      * // ]
+     */
+    replace(documents: BatchAddDocument[], filterKey: string, filterOperator: string, filterValue: string): Promise<Document[]>
+
   } {
     return {
       search: (query: string, options?: SearchOptions) =>
@@ -509,6 +560,7 @@ export default class EmbedbaseClient {
       clear: async () => this.clear(dataset),
       update: async (documents: UpdateDocument[]) => this.update(dataset, documents),
       chunkAndBatchAdd: async (documents: BatchAddDocument[]) => this.chunkAndBatchAdd(dataset, documents),
+      replace: async (documents: BatchAddDocument[], filterKey: string, filterOperator: string, filterValue: string) => this.replace(dataset, documents, filterKey, filterOperator, filterValue),
     }
   }
 
@@ -637,6 +689,83 @@ export default class EmbedbaseClient {
     const results = await batch(chunks, (batch) => this.batchAdd(dataset, batch), parallelBatchSize)
     return results.flat()
   }
+
+
+  /**
+   * Delete all documents at the given filter and add the given documents for this filter
+   *
+   * @param {string} dataset - The name of the dataset to add the documents to.
+   * @param {BatchAddDocument[]} documents - An array of documents to add.
+   * @param {string} filterKey - The metadata key to filter on.
+   * @param {string} filterOperator - The operator to use for the filter (only '==' is supported for now).
+   * @param {any} filterValue - The value to filter on.
+   * @returns {Promise<Document[]>}
+   *
+   * @example
+   * const documents = [
+   *  {
+   *    data: 'Nietzsche - Thus Spoke Zarathustra - Man is a rope, tied between beast and overman — a rope over an abyss.',
+   *    metadata: {
+   *      source: 'notion.so',
+   *   },
+   *  },
+   *  {
+   *    data: 'Marcus Aurelius - Meditations - He who lives in harmony with himself lives in harmony with the universe',
+   *    metadata: {
+   *      source: 'notion.so',
+   *    },
+   *  }
+   * ]
+   * await embedbase.dataset(DATASET_NAME).batchAdd(documents)
+   *
+   * res = await embedbase.dataset(DATASET_NAME).replace([{
+   *  data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
+   * }, {
+   *  data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
+   * }], 'source', '==', 'notion.so')
+   * console.log(res)
+   * // [
+   * //   {
+   * //     data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.',
+   * //     metadata: {
+   * //       source: 'notion.so',
+   * //     },
+   * //   },
+   * //   {
+   * //     data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.',
+   * //     metadata: {
+   * //       source: 'notion.so',
+   * //     },
+   * //   }
+   * // ]
+   */
+  public async replace(dataset: string, documents: BatchAddDocument[], filterKey: string, filterOperator: string, filterValue: string): Promise<Document[]> {
+
+    // only '==' operator is supported now
+    if (filterOperator !== '==') {
+      throw new Error('Only "==" operator is supported for now')
+    }
+
+    // fetch v1/datasetid/replace POST
+
+    const url = `${this.embedbaseApiUrl}/${dataset}/replace`
+    const res: Response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        where: {
+          [filterKey]: filterValue
+        },
+        documents: documents,
+      }),
+      headers: this.headers,
+    })
+
+    await this.handleError(res)
+
+    const data: { results: Document[] } = await res.json()
+    return data.results
+  }
 }
+
 
 

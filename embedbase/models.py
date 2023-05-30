@@ -48,6 +48,7 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 6
+    # todo add validation on metdata (create Metdata class as in sdk-py)
     where: Optional[Union[dict, List[dict]]] = None
 
 
@@ -58,4 +59,5 @@ class ReplaceDocument(BaseModel):
 
 class ReplaceRequest(BaseModel):
     documents: List[ReplaceDocument]
+    # todo add validation on metdata (create Metdata class as in sdk-py)
     where: Optional[Union[dict, List[dict]]] = None
