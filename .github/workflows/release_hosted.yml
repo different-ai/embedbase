@@ -48,13 +48,18 @@ jobs:
         if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         run: |
           env/bin/python3 bump.py bump
-          sed -i 's/gcr.io\/embedbase\/embedbase-hosted:.*$/gcr.io\/embedbase\/embedbase-hosted:$(cat version.txt)/g' service.prod.yaml
         working-directory: hosted
 
       - name: Get the version
         if: steps.regex-match.outputs.match != '' || github.event.workflow_run
         id: get_version
         run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+        working-directory: hosted
+
+      - name: Bump service version if necessary
+        if: steps.regex-match.outputs.match != '' || github.event.workflow_run
+        run: |
+          sed -i 's/gcr.io\/embedbase\/embedbase-hosted:.*$/gcr.io\/embedbase\/embedbase-hosted:${{ env.VERSION }}/g' service.prod.yaml
         working-directory: hosted
 
       - name: Commit version bump

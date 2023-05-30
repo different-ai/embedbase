@@ -190,20 +190,36 @@ class Supabase(VectorDatabase):
         req.execute()
 
     async def get_datasets(self, user_id: Optional[str] = None):
-        req = self.supabase.table("datasets").select(
-            "name", "documents_count", "created_at"
+        req = self.supabase.table("distinct_datasets").select(
+            "dataset_id", "documents_count"
         )
         if user_id:
-            req = req.eq("owner", user_id)
+            req = req.eq("user_id", user_id)
         data = req.execute().data
         return [
             Dataset(
-                dataset_id=row["name"],
+                dataset_id=row["dataset_id"],
                 documents_count=row["documents_count"],
-                created_at=row["created_at"],
             )
             for row in data
         ]
+    
+    # TODO: above old, below new, temporary hack
+    # async def get_datasets(self, user_id: Optional[str] = None):
+    #     req = self.supabase.table("datasets").select(
+    #         "name", "documents_count", "created_at"
+    #     )
+    #     if user_id:
+    #         req = req.eq("owner", user_id)
+    #     data = req.execute().data
+    #     return [
+    #         Dataset(
+    #             dataset_id=row["name"],
+    #             documents_count=row["documents_count"],
+    #             created_at=row["created_at"],
+    #         )
+    #         for row in data
+    #     ]
 
     async def list(
         self,
