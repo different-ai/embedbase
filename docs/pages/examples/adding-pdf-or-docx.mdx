@@ -42,7 +42,7 @@ pdf_content = read_pdf(pdf_file_path)
 docx_content = read_docx(docx_file_path)
 
 dataset_id = 'document-content'
-data = embedbase.dataset(dataset_id).batch_add([{'data': pdf_content}, {'data': docx_content}])
+data = embedbase.dataset(dataset_id).chunk_and_batch_add([{'data': pdf_content}, {'data': docx_content}])
 print(data)
 ```
 
