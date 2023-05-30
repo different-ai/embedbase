@@ -370,7 +370,7 @@ const documents = [
  ]
  await embedbase.dataset('library').batchAdd(documents)
 
- res = await embedbase.dataset(DATASET_NAME).replace([{
+ res = await embedbase.dataset('library').replace([{
   data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
  }, {
   data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
