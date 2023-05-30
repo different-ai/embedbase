@@ -26,7 +26,6 @@ app.post('/add-text', upload.single('file'), async (req, res) => {
   if (apiKey.length !== 36) {
     return res.status(401).send('Invalid API Key')
   }
-  console.log(apiKey)
   const embedbase = createClient(url, apiKey)
   // get api key from header
   const text = require('fs').readFileSync(req.file.path, 'utf8')
