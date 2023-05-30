@@ -4,7 +4,7 @@ PYTHON := python
 PYTHONPATH := `pwd`
 
 #* read Python SDK version from sdk/embedbase-py/pyproject.toml
-PYTHON_SDK_VERSION="$(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')"
+PYTHON_SDK_VERSION="$(shell cat pyproject.toml | grep "version" | head -n 1 | cut -d '"' -f 2)"
 
 release: ## [Local development] Release a new version of the API.
 	@echo "Releasing Embedbase Python SDK version ${PYTHON_SDK_VERSION}"; \
