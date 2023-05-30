@@ -344,11 +344,56 @@ You can also use `add`, or `batch_add`.
 
 ### Updating data
 
-To update data, you can either setup a process of inserting in a new dataset fresh data (maybe like git) or
-you can use the following method:
+
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
+
+To update data, embedbase offers multiple path:
+1. For example you have files that you add to embedbase, that sometimes change on your side and want to update it in embedbase
+in this situation, you should add a metadata key to identify each files, for example `name` and then use `replace`
+
+```js
+const documents = [
+  {
+    data: 'Nietzsche - Thus Spoke Zarathustra - Man is a rope, tied between beast and overman — a rope over an abyss.',
+    metadata: {
+      tag: 'philosophy',
+    },
+  },
+  {
+    data: 'Marcus Aurelius - Meditations - He who lives in harmony with himself lives in harmony with the universe',
+    metadata: {
+      tag: 'philosophy',
+    },
+  }
+ ]
+ await embedbase.dataset('library').batchAdd(documents)
+
+ res = await embedbase.dataset(DATASET_NAME).replace([{
+  data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
+ }, {
+  data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
+ }], 'tag', '==', 'philosophy')
+ console.log(res)
+ // [
+ //   {
+ //     data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.',
+ //     metadata: {
+ //       tag: 'philosophy',
+ //     },
+ //   },
+ //   {
+ //     data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.',
+ //     metadata: {
+ //       tag: 'philosophy',
+ //     },
+ //   }
+ // ]
+```
+
+2. You can also decide to store ids that are returned my most embedbase functions and use it to uddate your data:
+
 ```js copy
 const data =
   await embedbase.dataset('test-amazon-product-reviews').update([{
@@ -369,10 +414,14 @@ const data =
 //   "embedding": [0.1, 0.2, 0.3, ...]
 // }
 ``` 
+
+3. Lastly, you might just create a new dataset every time something change, that assume you always have access to all the data
+for example, a github repository.
+
   </Tab>
   <Tab>
 
-This is not yet avaiable in the Python SDK, please ping louis030195 on [Discord](https://discord.gg/3X6xZtZ) if you need it
+Update is not well maintained yet in the Python SDK, please ping louis030195 on [Discord](https://discord.gg/3X6xZtZ) if you need it
 and we will make it happen instantly!
 
 In the meantime check [how to do it using REST](https://docs.embedbase.xyz/interface#updating-data)
