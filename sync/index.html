@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Embedbase Upload</title>
+  </head>
+  <body>
+    <h1>Upload Text</h1>
+    <form
+      method="POST"
+      action="http://localhost:3000/add-text"
+      enctype="multipart/form-data"
+    >
+      <input type="file" name="file" />
+      <div>
+        <label>Embedbase API Key</label>
+        <input type="text" name="apiKey" placeholder="xxxx-xxx-x-xxx-xxxx" />
+      </div>
+
+      <div>
+        <label>Dataset ID</label>
+        <input type="text" name="dataset" placeholder="xxxx-xxx-x-xxx-xxxx" />
+      </div>
+      <button type="submit">Upload Text</button>
+    </form>
+  </body>
+</html>
