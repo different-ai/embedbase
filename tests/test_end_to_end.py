@@ -45,8 +45,12 @@ def init_databases():
         print("Supabase dependency not installed, skipping")
 
 
-async def run_around_tests(skip_db=[]):
+async def run_around_tests(skip_db=[], only_db=[]):
     for vector_database in vector_databases:
+        if len(only_db) > 0 and not any(
+            [isinstance(vector_database, db) for db in only_db]
+        ):
+            continue
         if len(skip_db) > 0 and any(
             [isinstance(vector_database, db) for db in skip_db]
         ):
@@ -646,3 +650,97 @@ async def test_add_without_data_shouldnt_crash():
                 text_response
                 == '{"detail":[{"loc":["body","documents",0,"data"],"msg":"data must not be empty","type":"assertion_error"}]}'
             )
+
+
+@pytest.mark.asyncio
+async def test_replace():
+    # given a list of documents and a filter, "updating" the documents
+    # the result expected is that all documents found later on this filter
+    # will be the given documents now
+
+    # 1. add
+    # 2. replace
+    # 3. search
+
+    # only supabase supported now
+    async for app in run_around_tests(only_db=[Supabase]):
+        # 1. add
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={"documents": d},
+            )
+            assert response.status_code == 200
+
+        # 2. update
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/replace",
+                json={
+                    "where": {
+                        "source": "github.com",
+                    },
+                    "documents": [
+                        {
+                            "data": "updated1",
+                        },
+                        {
+                            "data": "updated2",
+                        },
+                        {
+                            "data": "updated3",
+                            "metadata": {
+                                "new": "metadata",
+                            },
+                        },
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 3
+            # should be the given data
+            assert json_response.get("results")[0]["data"] == "updated1"
+            assert json_response.get("results")[1]["data"] == "updated2"
+            assert json_response.get("results")[2]["data"] == "updated3"
+            # should be the given metadata
+            assert json_response.get("results")[0]["metadata"] == {
+                "source": "github.com",
+            }
+            assert json_response.get("results")[1]["metadata"] == {
+                "source": "github.com",
+            }
+            assert json_response.get("results")[2]["metadata"] == {
+                "source": "github.com",
+                "new": "metadata",
+            }
+
+        # 3. search
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search",
+                json={
+                    "query": "updated1",
+                    "where": {
+                        "source": "github.com",
+                    },
+                    "top_k": 3,
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("similarities")) == 3
+            assert json_response.get("similarities")[0]["data"] == "updated1"
+            assert json_response.get("similarities")[1]["data"] == "updated2"
+            assert json_response.get("similarities")[2]["data"] == "updated3"
+            # should be the given metadata
+            assert json_response.get("similarities")[0]["metadata"] == {
+                "source": "github.com",
+            }
+            assert json_response.get("similarities")[1]["metadata"] == {
+                "source": "github.com",
+            }
+            assert json_response.get("similarities")[2]["metadata"] == {
+                "source": "github.com",
+                "new": "metadata",
+            }

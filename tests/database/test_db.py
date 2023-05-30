@@ -382,32 +382,10 @@ async def test_search_with_where():
 
 
 @pytest.mark.asyncio
-async def test_delete_with_where():
-    pass
-
-
-@pytest.mark.asyncio
-async def test_update_with_where():
-    d = [
-        {
-            "data": "Alice invited Bob at 6 PM",
-            "metadata": {"source": "notion.so", "path": "https://notion.so/alice"},
-        },
-        {
-            "data": "John invited Bob at 6 PM",
-            "metadata": {"source": "notion.so", "path": "https://notion.so/john"},
-        },
-        {
-            "data": "Paul invited John at 3 PM",
-            "metadata": {"source": "notion.so", "path": "https://notion.so/john"},
-        },
-    ]
+async def test_where():
     for vector_database in vector_databases:
-        if isinstance(vector_database, Postgres):
+        if not isinstance(vector_database, Supabase):
             continue
-        if isinstance(vector_database, MemoryDatabase):
-            continue
-
         # add documents
         await vector_database.clear(unit_testing_dataset)
         await vector_database.update(
@@ -426,26 +404,17 @@ async def test_update_with_where():
             ),
             unit_testing_dataset,
         )
-        results = await vector_database.update(
-            pd.DataFrame(
-                [
-                    {
-                        # lets replace PM by AM
-                        "data": x["data"].replace("PM", "AM"),
-                    }
-                    for i, x in enumerate(d)
-                ],
-                columns=["data", "embedding", "id", "hash", "metadata"],
-            ),
-            unit_testing_dataset,
-            where={"source": "notion.so"},
+        results = await vector_database.where(
+            dataset_id=unit_testing_dataset,
+            where={"source": "github.com"},
         )
-        assert results == 3, f"failed for {vector_database}"
-
-
-@pytest.mark.asyncio
-async def test_select_with_where():
-    pass
+        assert len(results) == 1, f"failed for {vector_database}"
+        assert (
+            results[0].metadata["source"] == "github.com"
+        ), f"failed for {vector_database}"
+        assert (
+            results[0].data == "John pushed code at 8 AM"
+        ), f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio

@@ -5,6 +5,7 @@ from embedbase.database.base import (
     SearchResponse,
     SelectResponse,
     VectorDatabase,
+    WhereResponse,
 )
 from embedbase.models import Document
 
@@ -197,4 +198,18 @@ class MemoryDatabase(VectorDatabase):
         offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
+        raise NotImplementedError
+
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
+        :return: list of documents
+        """
         raise NotImplementedError

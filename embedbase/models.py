@@ -39,8 +39,7 @@ class UpdateDocument(BaseModel):
 
 class UpdateRequest(BaseModel):
     documents: List[UpdateDocument]
-    where: Optional[Union[dict, List[dict]]] = None
-    # todo validator
+
 
 class DeleteRequest(BaseModel):
     ids: List[str]
@@ -49,4 +48,14 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 6
+    where: Optional[Union[dict, List[dict]]] = None
+
+
+class ReplaceDocument(BaseModel):
+    data: str = None
+    metadata: Optional[dict] = None
+
+
+class ReplaceRequest(BaseModel):
+    documents: List[ReplaceDocument]
     where: Optional[Union[dict, List[dict]]] = None

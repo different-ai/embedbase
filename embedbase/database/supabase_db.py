@@ -4,10 +4,11 @@ import ast
 import asyncio
 import itertools
 
+import pandas as pd
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
-from embedbase.database.base import Dataset, SearchResponse, SelectResponse
+from embedbase.database.base import Dataset, SearchResponse, SelectResponse, WhereResponse
 from embedbase.models import Document
 from embedbase.utils import BatchGenerator
 
@@ -101,11 +102,7 @@ class Supabase(VectorDatabase):
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
-        where: Optional[Union[dict, List[dict]]] = None,
     ):
-        if where:
-            # fill nan values with '' in order to filter out form the where
-            df = df.fillna("")
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
 
@@ -124,33 +121,6 @@ class Supabase(VectorDatabase):
                 if store_data:
                     data["data"] = row.data
                 return data
-
-            def _d_update(row: Series):
-                data = {}
-                if row.data:
-                    data["data"] = row.data.replace("\x00", "")
-                if row.metadata:
-                    data["metadata"] = row.metadata
-
-                # check that the dict has any keys
-                assert data, "no data to update"
-
-                return data
-
-            if where:
-                q = self.supabase.table("documents").update(
-                    [_d_update(row) for _, row in batch_df.iterrows()]
-                )
-                # update only for this user id and dataset id if given
-                if user_id:
-                    q = q.eq("user_id", user_id)
-                if dataset_id:
-                    q = q.eq("dataset_id", dataset_id)
-                metadata_keys = list(where.keys())
-                metadata_values = list(where.values())
-                for key, value in zip(metadata_keys, metadata_values):
-                    q = q.eq(f"metadata.{key}", value)
-                return q.execute()
 
             (
                 self.supabase.table("documents")
@@ -256,4 +226,41 @@ class Supabase(VectorDatabase):
                 dataset_ids=[row["dataset_id"]],
             )
             for row in data
+        ]
+
+
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
+        :return: list of documents
+        """
+        q = self.supabase.table("documents").select("*")
+        # update only for this user id and dataset id if given
+        if user_id:
+            q = q.eq("user_id", user_id)
+        if dataset_id:
+            q = q.eq("dataset_id", dataset_id)
+        metadata_keys = list(where.keys())
+        metadata_values = list(where.values())
+        for key, value in zip(metadata_keys, metadata_values):
+            q = q.eq(f"metadata->>{key}", value)
+
+        docs = q.execute().data
+        return [
+            WhereResponse(
+                id=row["id"],
+                data=row["data"],
+                embedding=ast.literal_eval(row["embedding"]),
+                hash=row["hash"],
+                metadata=row["metadata"],
+                dataset_ids=[row["dataset_id"]],
+            )
+            for row in docs
         ]

@@ -21,6 +21,9 @@ class SearchResponse(Document):
 class SelectResponse(Document):
     pass
 
+class WhereResponse(Document):
+    pass
+
 
 class VectorDatabase(ABC):
     """
@@ -57,7 +60,6 @@ class VectorDatabase(ABC):
         user_id: Optional[str] = None,
         batch_size: Optional[int] = 100,
         store_data: bool = True,
-        where: Optional[Union[dict, List[dict]]] = None,
     ) -> Coroutine:
         """
         :param df: dataframe
@@ -65,7 +67,6 @@ class VectorDatabase(ABC):
         :param user_id: user id
         :param batch_size: batch size
         :param store_data: store data in database?
-        :param where: where condition to filter which documents to update
         """
         raise NotImplementedError
 
@@ -129,6 +130,21 @@ class VectorDatabase(ABC):
         :param user_id: user id
         :param offset: offset
         :param limit: limit
+        :return: list of documents
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
         :return: list of documents
         """
         raise NotImplementedError

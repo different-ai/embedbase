@@ -18,7 +18,13 @@ from starlette.types import Scope
 from embedbase.database.base import VectorDatabase
 from embedbase.embedding.base import Embedder
 from embedbase.logging_utils import get_logger
-from embedbase.models import AddRequest, DeleteRequest, SearchRequest, UpdateRequest
+from embedbase.models import (
+    AddRequest,
+    DeleteRequest,
+    ReplaceRequest,
+    SearchRequest,
+    UpdateRequest,
+)
 from embedbase.settings import Settings
 from embedbase.utils import embedbase_ascii, get_user_id
 
@@ -170,9 +176,7 @@ class Embedbase:
 
         df_length = len(df)
 
-        self.logger.info(
-            f"Checking embeddings cache for {df_length} documents"
-        )
+        self.logger.info(f"Checking embeddings cache for {df_length} documents")
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
         existing_documents = await self.db.select(
@@ -274,7 +278,7 @@ class Embedbase:
                         + ", please see https://docs.embedbase.xyz/document-is-too-long"
                     },
                 )
-            if doc.id is not None or where is not None:
+            if where is not None or doc.id is not None:
                 filtered_data.append(doc.dict())
 
         df = DataFrame(
@@ -309,9 +313,7 @@ class Embedbase:
 
         # TODO: we can probably remove the embeddings part in update (unnecessary, embeddings always there?)
 
-        self.logger.info(
-            f"Checking embeddings cache for {df_length} documents"
-        )
+        self.logger.info(f"Checking embeddings cache for {df_length} documents")
         # get existing embeddings from database
         hashes_to_fetch = df.hash.tolist()
         existing_embeddings = await self.db.select(
@@ -494,6 +496,82 @@ class Embedbase:
             },
         )
 
+    async def replace(
+        self, request: Request, dataset_id: str, request_body: ReplaceRequest
+    ):
+        """
+        Given a list of documents and a filter, "updating" the documents.
+        The result expected is that all documents found later on this filter
+        will be the given documents now
+        """
+        # 1. need to fetch the existing documents
+        # 2. delete these documents from embedbase (you cant simply upsert, maybe there are more chunks)
+        # 3. upsert the updated documents
+
+        # 1. fetch existing documents
+        user_id = get_user_id(request)
+        documents = await self.db.where(dataset_id, user_id, request_body.where)
+
+        # 2. delete these documents from embedbase (you cant simply upsert, maybe there are more chunks)
+        ids = [d.id for d in documents]
+        await self.db.delete(ids=ids, dataset_id=dataset_id, user_id=user_id)
+
+        # add the metadata used to filter in the documents
+        for d in request_body.documents:
+            if d.metadata is None:
+                d.metadata = {}
+
+            d.metadata.update(request_body.where)
+
+        # 3. upsert the updated documents
+        return await self.add(
+            request, dataset_id, AddRequest(documents=request_body.documents)
+        )
+
+        # # fill nan values with '' in order to filter out form the where
+        # df = df.fillna("")
+        #     # supabase does not support multi row update
+        #     # https://github.com/supabase/postgrest-js/issues/174
+        #     # HACK:
+        #     # 1. need to fetch the existing documents
+        #     # 2. delete these documents from embedbase (you cant simply upsert, maybe there are more chunks)
+        #     # 3. upsert the updated documents
+
+        #     # 1. fetch existing documents
+        #     q = self.supabase.table("documents").select("*")
+        #     # update only for this user id and dataset id if given
+        #     if user_id:
+        #         q = q.eq("user_id", user_id)
+        #     if dataset_id:
+        #         q = q.eq("dataset_id", dataset_id)
+        #     metadata_keys = list(where.keys())
+        #     metadata_values = list(where.values())
+        #     for key, value in zip(metadata_keys, metadata_values):
+        #         q = q.eq(f"metadata->>{key}", value)
+
+        #     existing_docs = q.execute().data
+
+        #     existing_docs_df = DataFrame(existing_docs)
+        #     # 2. update the existing documents
+        #     df = df.data.apply(
+        #         lambda x: existing_docs_df.data[existing_docs_df.data == x].values[0]
+        #     )
+
+        #     # 3. delete the existing documents
+
+        #     q = self.supabase.table("documents")
+        #     if user_id:
+        #         q = q.eq("user_id", user_id)
+        #     if dataset_id:
+        #         q = q.eq("dataset_id", dataset_id)
+        #     metadata_keys = list(where.keys())
+        #     metadata_values = list(where.values())
+        #     for key, value in zip(metadata_keys, metadata_values):
+        #         q = q.eq(f"metadata->>{key}", value)
+        #     q.delete().execute()
+
+        #     # 4. below
+
     # health check endpoint
     def health(self, _: Request):
         """
@@ -532,9 +610,11 @@ class Embedbase:
         self.fastapi_app.add_api_route(
             "/v1/datasets", self.get_datasets, methods=["GET"]
         )
+        self.fastapi_app.add_api_route("/v1/{dataset_id}", self.list, methods=["GET"])
         self.fastapi_app.add_api_route(
-            "/v1/{dataset_id}", self.list, methods=["GET"]
+            "/v1/{dataset_id}/replace", self.replace, methods=["POST"]
         )
+
         self.fastapi_app.add_api_route("/health", self.health, methods=["GET"])
         print(embedbase_ascii)
 

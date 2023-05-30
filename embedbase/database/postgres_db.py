@@ -7,7 +7,12 @@ import json
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
-from embedbase.database.base import Dataset, SearchResponse, SelectResponse
+from embedbase.database.base import (
+    Dataset,
+    SearchResponse,
+    SelectResponse,
+    WhereResponse,
+)
 from embedbase.models import Document
 
 
@@ -327,4 +332,18 @@ where
         offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
+        raise NotImplementedError
+
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
+        :return: list of documents
+        """
         raise NotImplementedError
