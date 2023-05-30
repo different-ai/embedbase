@@ -7,3 +7,4 @@
 !middlewares/**/*.py
 !requirements.txt
 !main.py
+!version.txt

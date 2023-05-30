@@ -26,7 +26,6 @@ class Settings(YamlModel):
     
     log_level: str = "INFO"
     auth: typing.Optional[str] = None
-    sentry: typing.Optional[str] = None
     firebase_service_account_path: typing.Optional[str] = None
 
 @lru_cache()

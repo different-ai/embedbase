@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y git gcc && apt-get clean && \
 COPY ./middlewares/auth_api_key/auth_api_key.py /middlewares/auth_api_key/auth_api_key.py
 COPY main.py main.py
 COPY docker-entrypoint.sh docker/docker-entrypoint.sh
+COPY version.txt version.txt
 
 ENTRYPOINT ["docker/docker-entrypoint.sh"]
 CMD ["embedbase"]
