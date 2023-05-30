@@ -524,7 +524,7 @@ class EmbedbaseAsyncClient(BaseClient):
                 {"data": "Python is a programming language.", metadata: {"topic": "programming"}},
                 {"data": "Java is also a programming language.", metadata: {"topic": "programming"}},
             ]
-            results = await embedbase.batch_add("my_dataset", documents)
+            results = await embedbase.chunk_and_batch_add("my_dataset", documents)
         """
         chunks = []
         for document_index, document in enumerate(documents):
