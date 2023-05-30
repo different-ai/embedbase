@@ -1,9 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, Union
+
 from embedbase.database.base import (
     Dataset,
     SearchResponse,
     SelectResponse,
     VectorDatabase,
+    WhereResponse,
 )
 from embedbase.models import Document
 
@@ -44,8 +46,18 @@ class MemoryDatabase(VectorDatabase):
             raise ImportError("Please install numpy with `pip install numpy`")
 
     async def update(
-        self, df, dataset_id, user_id=None, store_data=True, batch_size=100
+        self,
+        df,
+        dataset_id,
+        user_id=None,
+        store_data=True,
+        batch_size=100,
+        where: Optional[Union[dict, List[dict]]] = None,
     ):
+        if where:
+            raise NotImplementedError(
+                "where is not implemented in memory db yet, if you need it, ping us on discord and we will ship instantly"
+            )
         for _, row in df.iterrows():
             doc_id = row.id
             self.storage[doc_id] = {
@@ -186,4 +198,18 @@ class MemoryDatabase(VectorDatabase):
         offset: int = 0,
         limit: int = 100,
     ) -> List[Document]:
+        raise NotImplementedError
+
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
+        :return: list of documents
+        """
         raise NotImplementedError

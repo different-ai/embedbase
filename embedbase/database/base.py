@@ -22,6 +22,9 @@ class SearchResponse(Document):
 class SelectResponse(Document):
     pass
 
+class WhereResponse(Document):
+    pass
+
 
 class VectorDatabase(ABC):
     """
@@ -128,6 +131,21 @@ class VectorDatabase(ABC):
         :param user_id: user id
         :param offset: offset
         :param limit: limit
+        :return: list of documents
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def where(
+        self,
+        dataset_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        where: Optional[Union[dict, List[dict]]] = None,
+    ) -> List[WhereResponse]:
+        """
+        :param dataset_id: dataset id
+        :param user_id: user id
+        :param where: where condition to filter results
         :return: list of documents
         """
         raise NotImplementedError

@@ -382,18 +382,39 @@ async def test_search_with_where():
 
 
 @pytest.mark.asyncio
-async def test_delete_with_where():
-    pass
-
-
-@pytest.mark.asyncio
-async def test_update_with_where():
-    pass
-
-
-@pytest.mark.asyncio
-async def test_select_with_where():
-    pass
+async def test_where():
+    for vector_database in vector_databases:
+        if not isinstance(vector_database, Supabase):
+            continue
+        # add documents
+        await vector_database.clear(unit_testing_dataset)
+        await vector_database.update(
+            pd.DataFrame(
+                [
+                    {
+                        "data": x["data"],
+                        "embedding": pad_to_1536(model.encode(x["data"]).tolist()),
+                        "id": str(uuid.uuid4()),
+                        "metadata": x["metadata"],
+                        "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+                    }
+                    for i, x in enumerate(d)
+                ],
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            unit_testing_dataset,
+        )
+        results = await vector_database.where(
+            dataset_id=unit_testing_dataset,
+            where={"source": "github.com"},
+        )
+        assert len(results) == 1, f"failed for {vector_database}"
+        assert (
+            results[0].metadata["source"] == "github.com"
+        ), f"failed for {vector_database}"
+        assert (
+            results[0].data == "John pushed code at 8 AM"
+        ), f"failed for {vector_database}"
 
 
 @pytest.mark.asyncio
