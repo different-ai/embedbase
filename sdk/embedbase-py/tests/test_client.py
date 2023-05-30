@@ -97,6 +97,26 @@ async def test_batch_add_documents():
         assert isinstance(result.id, str)
 
 
+@pytest.mark.asyncio
+async def test_list_datasets():
+    documents = [
+        {"data": "Document 1", "metadata": {"key": "value1"}},
+        {"data": "Document 2", "metadata": {"key": "value2"}},
+    ]
+
+    await ds.clear()
+    results = await ds.batch_add(documents)
+
+    assert len(results) == len(documents)
+    for result in results:
+        assert isinstance(result.id, str)
+
+    datasets = await client.datasets()
+    assert datasets is not None
+    assert isinstance(datasets, list)
+    assert len(datasets) >= 1
+
+
 @pytest.mark.skip(reason="somehow fail to connect")
 # @pytest.mark.asyncio
 async def test_search_documents():

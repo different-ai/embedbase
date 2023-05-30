@@ -35,7 +35,7 @@ class Document(BaseModel):
     metadata: Optional[Metadata]
 
 
-class ClientDatasets:
+class ClientDatasets(BaseModel):
     dataset_id: str
     documents_count: int
 
