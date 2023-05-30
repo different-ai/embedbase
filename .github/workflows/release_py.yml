@@ -34,22 +34,26 @@ jobs:
           regex: "^Release sdk-py ([^ ]+)"
 
       - name: Install Poetry
+        if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
 
       - name: Set up cache
+        if: ${{ steps.regex-match.outputs.match != '' }}
         uses: actions/cache@v2.1.6
         with:
           path: sdk/embedbase-py/.venv
           key: venv-${{ matrix.python-version }}-${{ hashFiles('sdk/embedbase-py/pyproject.toml') }}-${{ hashFiles('sdk/embedbase-py/poetry.lock') }}
       
       - name: Install dependencies
+        if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           poetry config virtualenvs.in-project true
           poetry install
         working-directory: sdk/embedbase-py
   
       - name: Run tests
+        if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           make test
         env:
@@ -60,6 +64,7 @@ jobs:
         working-directory: sdk/embedbase-py
   
       - name: Build package
+        if: ${{ steps.regex-match.outputs.match != '' }}
         run: |
           poetry build
         working-directory: sdk/embedbase-py
