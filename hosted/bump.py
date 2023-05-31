@@ -1,7 +1,9 @@
+import os
+
 import fire
 import semantic_version
 
-version = open("version.txt").read()
+version = open(os.path.join(os.path.dirname(__file__), "version.txt")).read().strip()
 v = semantic_version.Version(version)
 
 
@@ -12,7 +14,7 @@ def get_next_version():
 
 def bump_version():
     new_v = get_next_version()
-    with open("version.txt", "w") as f:
+    with open(os.path.join(os.path.dirname(__file__), "version.txt"), "w") as f:
         f.write(str(new_v))
 
 

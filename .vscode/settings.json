@@ -4,7 +4,7 @@
     "python.testing.pytestArgs": [
         ".",
         "--ignore=sdk/embedbase-js",
-        "--ignore=hosted"
+        "--ignore=hosted/scripts"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

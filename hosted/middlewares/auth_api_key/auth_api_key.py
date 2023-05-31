@@ -1,14 +1,17 @@
-import os
-import yaml
 from typing import Tuple
+
+import os
+import re
 import warnings
+
+import posthog
+import yaml
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from firebase_admin import initialize_app, credentials, firestore, auth
-import posthog
+from firebase_admin import auth, credentials, firestore, initialize_app
 from starlette.middleware.base import BaseHTTPMiddleware
-from supabase import create_client, Client, PostgrestAPIError
 
+from supabase import Client, PostgrestAPIError, create_client
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 SECRET_PATH = "/secrets" if os.path.exists("/secrets") else ".."
@@ -46,9 +49,12 @@ posthog.debug = ENVIRONMENT == "development"
 
 if not os.path.exists(SECRET_FIREBASE_PATH + "/svc.prod.json"):
     SECRET_FIREBASE_PATH = "."
-cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
-initialize_app(cred)
-fc = firestore.client()
+try:
+    cred = credentials.Certificate(SECRET_FIREBASE_PATH + "/svc.prod.json")
+    initialize_app(cred)
+    fc = firestore.client()
+except Exception as e:
+    print(e)
 
 
 class DetailedError(Exception):
@@ -137,6 +143,35 @@ async def check_api_key(scope: dict) -> Tuple[str, str]:
     return user, api_key
 
 
+search_pattern = re.compile(r"^/v1/.+/search$")
+add_pattern = re.compile(r"^/v1/[^/]+$")
+internet_search_pattern = re.compile(r"^/v1/search/internet$")
+replace_pattern = re.compile(r"^/v1/.+/replace$")
+
+
+def get_event_from_request(request: Request):
+    # remove trailing slash
+    path = request.scope["path"].rstrip("/")
+    # method = request.scope["method"]
+    # POST /v1/{vault_id}/search
+    if re.match(search_pattern, path):
+        return "search"
+
+    # POST /v1/{vault_id}
+    if re.match(add_pattern, path):
+        return "add"
+
+    # POST /v1/internet/search
+    if re.match(internet_search_pattern, path):
+        return "internet-search"
+
+    # POST /v1/{dataset_id}/replace
+    if re.match(replace_pattern, path):
+        return "replace"
+
+    return None
+
+
 class AuthApiKey(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Tuple[str, str]:
         """ """
@@ -151,7 +186,6 @@ class AuthApiKey(BaseHTTPMiddleware):
         ):
             return await call_next(request)
 
-        path_segments = request.scope["path"].split("/")
         try:
             user, api_key = await check_api_key(request.scope)
             posthog.identify(
@@ -160,16 +194,7 @@ class AuthApiKey(BaseHTTPMiddleware):
                     "email": user["email"],
                 },
             )
-            event = None
-            # POST /v1/{vault_id}/search
-            if "search" == path_segments[-1]:
-                event = "search"
-            # POST /v1/{vault_id}
-            elif request.scope["method"] == "POST":
-                event = "add"
-            # POST /v1/internet/search
-            elif ''.join(path_segments) == "v1internetsearch":
-                event = "internet-search"
+            event = get_event_from_request(request)
             # otherwise we don't track
             if event:
                 posthog.capture(

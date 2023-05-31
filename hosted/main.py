@@ -24,7 +24,8 @@ if not os.path.exists(os.path.join(SECRET_PATH, config_path)):
 
 settings = get_settings_from_file(os.path.join(SECRET_PATH, config_path))
 
-version = open("version.txt").read()
+version = open(os.path.join(os.path.dirname(__file__), "version.txt")).read().strip()
+
 
 sentry_sdk.init(
     dsn="https://7da354091a684d008c5747511fcba0ec@o4504847298461696.ingest.sentry.io/4504847314386944",
