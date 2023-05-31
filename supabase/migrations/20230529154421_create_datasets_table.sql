@@ -5,7 +5,8 @@ CREATE TABLE datasets (
   name TEXT,
   created_at TIMESTAMP WITH TIME ZONE NULL DEFAULT NOW(),
   owner TEXT NULL,
-  documents_count INTEGER DEFAULT 0
+  documents_count INTEGER DEFAULT 0,
+  public boolean not null default false
 );
 
 -- HACK: disabled as doing this in python feels more testable/reliable

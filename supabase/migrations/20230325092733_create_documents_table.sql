@@ -6,5 +6,6 @@ create table documents (
     dataset_id text,
     user_id text,
     metadata json,
-    created_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    public boolean not null default false
 );

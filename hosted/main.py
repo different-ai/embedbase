@@ -40,6 +40,9 @@ sentry_sdk.init(
     release=version,
 )
 
+if os.environ.get("ENVIRONMENT", "development") == "development":
+    sentry_sdk.init()
+
 app = (
     get_app(settings)
     .use_embedder(OpenAI(settings.openai_api_key, settings.openai_organization))
