@@ -15,7 +15,7 @@ spec:
       serviceAccountName: embedbase-cloud-run@embedbase.iam.gserviceaccount.com
       containerConcurrency: 80
       containers:
-        image: gcr.io/embedbase/embedbase-hosted:0.5.6
+        image: gcr.io/embedbase/embedbase-hosted:0.5.7
         startupProbe:
           httpGet:
             path: /health
