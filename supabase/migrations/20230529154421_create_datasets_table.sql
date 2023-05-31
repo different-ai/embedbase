@@ -8,19 +8,21 @@ CREATE TABLE datasets (
   documents_count INTEGER DEFAULT 0
 );
 
-CREATE OR REPLACE FUNCTION create_dataset_if_not_exists() RETURNS TRIGGER AS $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM datasets WHERE name = NEW.dataset_id) THEN
-    INSERT INTO datasets (name, owner) VALUES (NEW.dataset_id, NEW.user_id);
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- HACK: disabled as doing this in python feels more testable/reliable
+-- (even though we lose the advantage of SQL transactions)
+-- CREATE OR REPLACE FUNCTION create_dataset_if_not_exists() RETURNS TRIGGER AS $$
+-- BEGIN
+--   IF NOT EXISTS (SELECT 1 FROM datasets WHERE name = NEW.dataset_id AND NEW.user_id) THEN
+--     INSERT INTO datasets (name, owner) VALUES (NEW.dataset_id, NEW.user_id);
+--   END IF;
+--   RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER check_dataset_existence
-BEFORE INSERT ON documents
-FOR EACH ROW
-EXECUTE FUNCTION create_dataset_if_not_exists();
+-- CREATE TRIGGER check_dataset_existence
+-- BEFORE INSERT ON documents
+-- FOR EACH ROW
+-- EXECUTE FUNCTION create_dataset_if_not_exists();
 
 CREATE OR REPLACE FUNCTION update_documents_count() RETURNS TRIGGER AS $$
 BEGIN

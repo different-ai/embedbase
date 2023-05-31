@@ -539,7 +539,7 @@ async def test_create_dataset_on_update_if_not_exist_and_update_count_automatica
             }
             for i, x in enumerate(d)
         ]
-        
+
         await vector_database.update(
             pd.DataFrame(
                 data_to_add,
@@ -573,8 +573,9 @@ async def test_create_dataset_on_update_if_not_exist_and_update_count_automatica
             .data
         )
 
-        assert data != [] and data[0]["documents_count"] == 2, "dataset should have 2 documents"
-
+        assert (
+            data != [] and data[0]["documents_count"] == 2
+        ), "dataset should have 2 documents"
 
         # now add a row and see it increases
 
@@ -594,4 +595,82 @@ async def test_create_dataset_on_update_if_not_exist_and_update_count_automatica
             .data
         )
 
-        assert data != [] and data[0]["documents_count"] == 3, "dataset should have 3 documents"
+        assert (
+            data != [] and data[0]["documents_count"] == 3
+        ), "dataset should have 3 documents"
+
+
+@pytest.mark.asyncio
+async def test_create_dataset_on_add_with_existing_in_other_account():
+    """
+    use case: Bob has a dataset 'dogs'
+    Alice has a dataset 'dogs'
+
+    When John add some element to a dataset 'dogs' it should properly create the dataset
+    in the datasets table
+    """
+
+    for vector_database in vector_databases:
+        if not isinstance(vector_database, Supabase):
+            continue
+
+        await vector_database.clear(unit_testing_dataset)
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+        assert data == [] or data[0]["documents_count"] == 0, "dataset should not exist"
+
+        data_to_add = [
+            {
+                "data": x["data"],
+                "embedding": pad_to_1536(model.encode(x["data"]).tolist()),
+                "id": str(uuid.uuid4()),
+                "metadata": x["metadata"],
+                "hash": hashlib.sha256(x["data"].encode()).hexdigest(),
+            }
+            for i, x in enumerate(d)
+        ]
+
+        await vector_database.update(
+            pd.DataFrame(
+                data_to_add,
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            dataset_id=unit_testing_dataset,
+            user_id="bob",
+        )
+        # check if table exists
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+
+        assert data != [] and data[0]["documents_count"] == 3, "dataset should exist"
+
+        # now add documents in Alice dataset
+
+        await vector_database.update(
+            pd.DataFrame(
+                data_to_add,
+                columns=["data", "embedding", "id", "hash", "metadata"],
+            ),
+            dataset_id=unit_testing_dataset,
+            user_id="alice",
+        )
+        # check if table exists
+        data = (
+            vector_database.supabase.table("datasets")
+            .select("*")
+            .eq("name", unit_testing_dataset)
+            .execute()
+            .data
+        )
+
+        assert data != [] and data[0]["documents_count"] == 3, "dataset should exist"

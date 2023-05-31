@@ -8,7 +8,12 @@ import pandas as pd
 from pandas import DataFrame, Series
 
 from embedbase.database import VectorDatabase
-from embedbase.database.base import Dataset, SearchResponse, SelectResponse, WhereResponse
+from embedbase.database.base import (
+    Dataset,
+    SearchResponse,
+    SelectResponse,
+    WhereResponse,
+)
 from embedbase.models import Document
 from embedbase.utils import BatchGenerator
 
@@ -106,6 +111,20 @@ class Supabase(VectorDatabase):
         df_batcher = BatchGenerator(batch_size)
         batches = [batch_df for batch_df in df_batcher(df)]
 
+        # create dataset in datasets table if not exist
+
+        q = self.supabase.table("datasets").select("*").eq("name", dataset_id)
+        if user_id:
+            q = q.eq("owner", user_id)
+        data = q.execute().data
+        if not data:
+            self.supabase.table("datasets").insert(
+                {
+                    "name": dataset_id,
+                    "owner": user_id,
+                }
+            ).execute()
+
         async def _insert(batch_df: DataFrame):
             def _d(row: Series):
                 data = {
@@ -189,37 +208,37 @@ class Supabase(VectorDatabase):
             req = req.eq("user_id", user_id)
         req.execute()
 
-    async def get_datasets(self, user_id: Optional[str] = None):
-        req = self.supabase.table("distinct_datasets").select(
-            "dataset_id", "documents_count"
-        )
-        if user_id:
-            req = req.eq("user_id", user_id)
-        data = req.execute().data
-        return [
-            Dataset(
-                dataset_id=row["dataset_id"],
-                documents_count=row["documents_count"],
-            )
-            for row in data
-        ]
-    
-    # TODO: above old, below new, temporary hack
     # async def get_datasets(self, user_id: Optional[str] = None):
-    #     req = self.supabase.table("datasets").select(
-    #         "name", "documents_count", "created_at"
+    #     req = self.supabase.table("distinct_datasets").select(
+    #         "dataset_id", "documents_count"
     #     )
     #     if user_id:
-    #         req = req.eq("owner", user_id)
+    #         req = req.eq("user_id", user_id)
     #     data = req.execute().data
     #     return [
     #         Dataset(
-    #             dataset_id=row["name"],
+    #             dataset_id=row["dataset_id"],
     #             documents_count=row["documents_count"],
-    #             created_at=row["created_at"],
     #         )
     #         for row in data
     #     ]
+
+    # TODO: above old, below new, temporary hack
+    async def get_datasets(self, user_id: Optional[str] = None):
+        req = self.supabase.table("datasets").select(
+            "name", "documents_count", "created_at"
+        )
+        if user_id:
+            req = req.eq("owner", user_id)
+        data = req.execute().data
+        return [
+            Dataset(
+                dataset_id=row["name"],
+                documents_count=row["documents_count"],
+                created_at=row["created_at"],
+            )
+            for row in data
+        ]
 
     async def list(
         self,
@@ -244,7 +263,6 @@ class Supabase(VectorDatabase):
             )
             for row in data
         ]
-
 
     async def where(
         self,
