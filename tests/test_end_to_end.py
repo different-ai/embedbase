@@ -238,6 +238,7 @@ async def test_health_properly_forward_headers():
                 assert response.status_code == 200
 
 
+# TODO: confusing names, here we just check if embeddings cache works (badly)
 @pytest.mark.asyncio
 async def test_adding_twice_the_same_data_is_ignored():
     async for app in run_around_tests():
