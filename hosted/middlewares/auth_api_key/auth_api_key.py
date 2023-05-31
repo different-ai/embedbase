@@ -167,6 +167,9 @@ class AuthApiKey(BaseHTTPMiddleware):
             # POST /v1/{vault_id}
             elif request.scope["method"] == "POST":
                 event = "add"
+            # POST /v1/internet/search
+            elif ''.join(path_segments) == "v1internetsearch":
+                event = "internet-search"
             # otherwise we don't track
             if event:
                 posthog.capture(
