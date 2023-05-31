@@ -374,6 +374,8 @@ const documents = [
   data: 'Nietzsche - Thus Spoke Zarathustra - One must have chaos within oneself, to give birth to a dancing star.'
  }, {
   data: 'Marcus Aurelius - Meditations - The happiness of your life depends upon the quality of your thoughts.'
+ }, {
+  data: 'Lao Tzu - Tao Te Ching - When I let go of what I am, I become what I might be.'
  }], 'tag', '==', 'philosophy')
  console.log(res)
  // [
@@ -388,9 +390,17 @@ const documents = [
  //     metadata: {
  //       tag: 'philosophy',
  //     },
+ //   },
+ //   {
+ //     data: 'Lao Tzu - Tao Te Ching - When I let go of what I am, I become what I might be.',
+ //     metadata: {
+ //       tag: 'philosophy',
+ //     },
  //   }
  // ]
 ```
+
+Note that here it will replace all documents tagged `philosophy` with the given documents (keeping the previous `metadata`).
 
 2. You can also decide to store ids that are returned my most embedbase functions and use it to uddate your data:
 
