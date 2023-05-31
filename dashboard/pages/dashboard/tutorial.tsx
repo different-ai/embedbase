@@ -1,13 +1,13 @@
-import {  CreateAPIKey } from '../../components/APIKeys'
-import Dashboard from '../../components/Dashboard'
-import remarkGfm from 'remark-gfm'
+import { useAppStore } from '@/lib/store'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { useEffect } from 'react'
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown'
+import remarkGfm from 'remark-gfm'
+import { CreateAPIKey } from '../../components/APIKeys'
+import Dashboard from '../../components/Dashboard'
 import { PlaygroundAddToCollection } from '../../playgrounds/AddToCollection'
 import { PlagroundSearchCollection } from '../../playgrounds/SearchCollection'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { getApiKeys } from './explorer/[datasetId]'
-import { useAppStore } from '@/lib/store'
-import { useEffect } from 'react'
 
 const IntroText = `
 Embedbase allows you to create amazing search experience using embeddings. 
@@ -24,7 +24,7 @@ export const Markdown = ({ children }: MarkdownProps) => {
   return <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
 }
 
-export default function Index({apiKey}) {
+export default function Index({ apiKey }) {
   const setApiKey = useAppStore((state) => state.setApiKey)
   useEffect(() => {
     setApiKey(apiKey)
@@ -80,13 +80,6 @@ export const getServerSideProps = async (ctx) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (!session)
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    }
 
   let apiKey: string = ''
 

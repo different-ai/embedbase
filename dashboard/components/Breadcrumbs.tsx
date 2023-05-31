@@ -23,8 +23,6 @@ function Breadcrumbs() {
       const current = index === currentPath.length - 1
 
       // Remove everything after ? in the url
-      // Dashboard#access_token=eyJhbGciOiJIUzI1NiIsInR5cCI…sh_token=z8Izv7fmMoGTWZUe120KIQ&token_type=bearer
-      // Or Playground?ofkofr3k
       // regex to remove everywtihng after dashboarrd
       const regex = /Dashboard.*/g
       const formattedName = name
