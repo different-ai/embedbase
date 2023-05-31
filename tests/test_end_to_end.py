@@ -1,10 +1,10 @@
 """
 Tests at the end-to-end abstraction level.
 """
-
 from typing import List
 
 import math
+import os
 from random import randint
 
 import numpy as np
@@ -19,9 +19,12 @@ from embedbase.database.postgres_db import Postgres
 from embedbase.database.supabase_db import Supabase
 from embedbase.embedding.openai import OpenAI
 from embedbase.settings import get_settings_from_file
-from tests.test_utils import unit_testing_dataset
 
 vector_databases: List[VectorDatabase] = []
+
+unit_testing_dataset = (
+    os.environ.get("UNIT_TESTING_DATASET", "unit_test") + "_end_to_end"
+)
 
 
 # before running any test initialize the databases

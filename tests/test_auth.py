@@ -1,12 +1,15 @@
+import os
+
 import pytest
 from httpx import AsyncClient
-from embedbase.api import get_app
-from embedbase.embedding.openai import OpenAI
 
+from embedbase.api import get_app
+from embedbase.database.memory_db import MemoryDatabase
+from embedbase.embedding.openai import OpenAI
 from embedbase.firebase_auth import enable_firebase_auth
 from embedbase.settings import get_settings_from_file
-from embedbase.database.memory_db import MemoryDatabase
-from tests.test_utils import unit_testing_dataset
+
+unit_testing_dataset = os.environ.get("UNIT_TESTING_DATASET", "unit_test") + "_auth"
 
 
 @pytest.mark.asyncio

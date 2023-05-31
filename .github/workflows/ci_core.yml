@@ -37,6 +37,7 @@ jobs:
       - name: Read EMBEDBASE_TEST_CONFIG JSON secret and write it to config.yaml
         env:
           EMBEDBASE_TEST_CONFIG: ${{ secrets.EMBEDBASE_TEST_CONFIG }}
+          UNIT_TESTING_DATASET: ci_core
         run: |
           wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
           chmod +x yq
