@@ -1,6 +1,6 @@
 'use client'
 
-import { createPagesBrowserClient } from '@/lib/supabase-browser'
+import { createBrowserClient } from '@/lib/supabase-browser'
 import type { Session, SupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { createContext, useContext, useState } from 'react'
 
