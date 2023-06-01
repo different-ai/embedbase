@@ -21,7 +21,7 @@ export default function SupabaseProvider({
   children: React.ReactNode
   session: MaybeSession
 }) {
-  const [supabase] = useState(() => createPagesBrowserClient())
+  const [supabase] = useState(() => createBrowserClient())
 
   return (
     <Context.Provider value={{ supabase, session }}>
