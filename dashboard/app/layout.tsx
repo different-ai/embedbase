@@ -1,4 +1,5 @@
-import './globals.css';
+import Navbar from '@/components/Navbar'
+import './globals.css'
 
 export default function RootLayout({
   // Layouts must accept a children prop.
@@ -15,7 +16,6 @@ export default function RootLayout({
 }
 
 export const metadata = {
-    title: 'Embedbase | Missing link between your data an LLMs',
-    description: 'Welcome to [embed]base',
-  };
-  
+  title: 'Embedbase | Missing link between your data an LLMs',
+  description: 'Welcome to [embed]base',
+}

@@ -1,26 +1,19 @@
-import {
-  createServerComponentSupabaseClient,
-} from '@supabase/auth-helpers-nextjs'
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
 
 import Chat from './PublicChat'
 // just an example to test app dir
 async function getAppName(appId) {
-
-  const supabase = createServerComponentSupabaseClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    headers: () => headers().get('authorization'),
-    cookies: () => cookies(),
-  })
+  const supabase = createServerActionClient({ cookies })
 
   const { data } = await supabase
     .from('apps')
     .select('name')
     .eq('public_api_key', appId)
+    .limit(1)
     .single()
   console.log(data)
-  return data.name
+  return data?.name
 }
 
 export default async function Dashboard(ctx) {
@@ -28,10 +21,13 @@ export default async function Dashboard(ctx) {
   const appName = await getAppName(appId)
 
   // const projects = await getProjects()
+  if (!appName) {
+    return <div>Chat not found</div>
+  }
 
   return (
-    <div className='w-full mt-10'>
-      <div className='text-md'>{appName}</div>
+    <div className="mt-10 w-full">
+      <div className="text-md">{appName}</div>
       <Chat />
     </div>
   )
