@@ -54,9 +54,7 @@ function cleanPath(path) {
     return path.replace(/\/\//g, '/')
 }
 function Breadcrumbs() {
-    const searchParams = useSearchParams()!;
     const pathname = usePathname();
-    const router = useRouter();
     // Get current path
     const currentPath = pathname.split('/')
 
@@ -69,10 +67,6 @@ function Breadcrumbs() {
             const href = cleanPath('/' + currentPath.slice(0, index + 1).join('/'))
 
             const current = index === currentPath.length - 1
-
-            // Remove everything after ? in the url
-            // regex to remove everywtihng after dashboarrd
-
 
             return {
                 name: name,
@@ -108,13 +102,19 @@ function Breadcrumbs() {
                                 <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
                             </svg>
 
-                            <Link
+                            {/* TODO: href shitty */}
+                            {/* <Link
                                 href={page.href}
                                 className={`ml-4 text-sm font-medium text-gray-500 ${page.current ? 'underline' : 'hover:text-gray-700'
                                     }`}
                             >
                                 {page.name}
-                            </Link>
+                            </Link> */}
+                            <p
+                                className={`ml-4 text-sm font-medium text-gray-500`}
+                            >
+                                {page.name}
+                            </p>
                         </div>
                     </li>
                 ))}
@@ -162,7 +162,7 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
                                         <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
                                             {/* underline with link to docs.embedbase.xyz/sdk that open a new tab */}
                                             How to load this dataset directly with the {' '}
-                                            <a href="https://docs.embedbase.xyz" className="underline" rel="noreferrer" target="_blank">Embedbase SDK</a>
+                                            <a href="https://docs.embedbase.xyz/sdk" className="underline" rel="noreferrer" target="_blank">Embedbase SDK</a>
                                         </Dialog.Title>
                                         <div className="mt-2">
                                             <Markdown>
