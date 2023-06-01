@@ -8,7 +8,7 @@ import {
     HomeIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 
 import Markdown from '@/components/Markdown';
@@ -54,10 +54,11 @@ function cleanPath(path) {
     return path.replace(/\/\//g, '/')
 }
 function Breadcrumbs() {
-    const router = useRouter()
-
+    const searchParams = useSearchParams()!;
+    const pathname = usePathname();
+    const router = useRouter();
     // Get current path
-    const currentPath = window.location.pathname.split('/')
+    const currentPath = pathname.split('/')
 
     // Build pages array using forEach loop
     const pages = currentPath
@@ -187,9 +188,6 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
 
 const pageSize = 25;
 export default function DataTable({ documents, page, count, datasetId, datasetName }) {
-    const handleCopyToClipboard = (text) => {
-        navigator.clipboard.writeText(text)
-    }
     const [open, setOpen] = useState(false)
 
     return (
@@ -197,10 +195,8 @@ export default function DataTable({ documents, page, count, datasetId, datasetNa
             {/* TODO: move to layout? */}
             <Toaster />
             <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
-            {/* <div className="mt-4">
-                <Breadcrumbs />
-            </div> */}
-            <div className="mb-3 flex justify-between items-center gap-3">
+            <Breadcrumbs />
+            <div className="mt-4 mb-3 flex justify-between items-center gap-3">
                 <div className="flex items-center gap-3">
                     {/* previous */}
                     <Link href={`/datasets/${datasetId}/?page=${page - 1}`}>
