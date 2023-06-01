@@ -10,12 +10,15 @@ export default function ChatLayout({
   return (
     <>
       <Navbar />
-      <div className="m-auto flex w-full max-w-4xl">{children}</div>
+    <div className="m-auto flex w-full max-w-5xl">
+      {children}
+    </div>
     </>
   )
 }
 
 export const metadata = {
-  title: 'Embedbase Chat',
-  description: 'Welcome to Embedbase Chat',
+  title: 'Vector Hub',
+  description:
+    'This contains a list of public datasets, that you can use to start building your app, remix or just play around with.',
 }

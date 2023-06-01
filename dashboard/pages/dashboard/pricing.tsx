@@ -230,13 +230,7 @@ export const getServerSideProps = async (ctx) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (!session)
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    }
+
 
   // todo limit to 30 days
   let { data, status, error } = await supabase

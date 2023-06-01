@@ -4,6 +4,8 @@ import { EMBEDBASE_CLOUD_URL } from '../utils/constants'
 export interface Dataset {
   id: string
   documentsCount: number
+  public?: boolean
+  createdAt?: string
 }
 
 export function useDatasets(): { datasets: Dataset[]; isLoading: boolean } {

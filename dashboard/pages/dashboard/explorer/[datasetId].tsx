@@ -1,74 +1,121 @@
-import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import toast from 'react-hot-toast'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import Dashboard from '../../../components/Dashboard'
-import { PrimaryButton, SecondaryButton } from '../../../components/Button'
-import { useApiKeys } from '../../../components/APIKeys'
-import TextField from '../../../components/TextField'
-import Card from '../../../components/Card'
-import { EMBEDBASE_CLOUD_URL } from '../../../utils/constants'
-import { useRouter } from 'next/router'
 import {
   ArrowLeftCircleIcon,
   ArrowRightCircleIcon,
+  ShareIcon,
 } from '@heroicons/react/24/outline'
+import { SupabaseClient, User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { SecondaryButton } from '../../../components/Button'
+import Dashboard from '../../../components/Dashboard'
+import { EMBEDBASE_CLOUD_URL } from '../../../utils/constants'
 
-const url = 'https://api.embedbase.xyz'
-
-interface DatasetsProps {
-  selectedDataset: string
-  setSelectedDataset: (dataset: string) => void
-}
-interface Dataset {
-  id: string
-  documentsCount: number
-}
-
-interface Similarity {
-  data: string
-  score: number
-}
-interface SearchResponse {
-  similarities: Similarity[]
-}
 
 const pageSize = 25;
-const DataTable = ({ documents, page, count, datasetId }) => {
+const DataTable = ({ documents, page, count, datasetId, userId }) => {
+  const supabase = useSupabaseClient()
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
     toast('Copied to clipboard!')
   }
   const router = useRouter()
+  const [isPublic, setIsPublic] = useState(documents[0].public === true);
+
+  const onShareDataset = async () => {
+    console.log(`making dataset ${userId}:${datasetId} ${!isPublic ? 'public' : 'private'}`);
+
+    let res = await supabase
+      .from('documents')
+      .update({ public: !isPublic })
+      .eq('dataset_id', datasetId)
+      .eq('user_id', userId)
+
+    console.log(res);
+
+    if (res.error) {
+      console.log(res.error);
+      return toast.error(res.error.message);
+    }
+
+    res = await supabase.from('datasets').update({ public: !isPublic })
+      .eq('name', datasetId)
+      .eq('owner', userId)
+    console.log(res);
+
+    if (res.error) {
+      console.log(res.error);
+      return toast.error(res.error.message);
+    }
+
+    setIsPublic(!isPublic);
+
+    console.log(`dataset ${datasetId} is now ${!isPublic ? 'public' : 'private'}`);
+    toast(`dataset ${datasetId} is now ${!isPublic ? 'public' : 'private'}`);
+    return res;
+  }
 
   return (
     <div className="rounded-md px-4">
-      <div className="mb-3 flex items-center gap-3">
-        {/* previous */}
-        <SecondaryButton
-          className="flex gap-1"
-          onClick={() =>
-            router.push(`/dashboard/explorer/${datasetId}/?page=${page - 1}`)
-          }
-          disabled={page === 0}
-        >
-          <ArrowLeftCircleIcon className="h-5 w-5" />
-          Previous
-        </SecondaryButton>
-        {/* next */}
-        <SecondaryButton
-          className="flex gap-1"
-          onClick={() =>
-            router.push(`/dashboard/explorer/${datasetId}/?page=${page + 1}`)
-          }
-          disabled={page * pageSize + pageSize >= count}
-        >
-          Next
-          <ArrowRightCircleIcon className="h-5 w-5" />
-        </SecondaryButton>
-        {/* dispaly count */}
-        <div className="text-gray-500">
-          {page * pageSize} - {page * pageSize + pageSize} of {count}
+      <div className="flex justify-between items-center gap-3">
+        <div className="flex items-center gap-3">
+          {/* previous */}
+          <SecondaryButton
+            className="flex gap-1"
+            onClick={() =>
+              router.push(`/dashboard/explorer/${datasetId}/?page=${page - 1}`)
+            }
+            disabled={page === 0}
+          >
+            <ArrowLeftCircleIcon className="h-5 w-5" />
+            Previous
+          </SecondaryButton>
+          {/* next */}
+          <SecondaryButton
+            className="flex gap-1"
+            onClick={() =>
+              router.push(`/dashboard/explorer/${datasetId}/?page=${page + 1}`)
+            }
+            disabled={page * pageSize + pageSize >= count}
+          >
+            Next
+            <ArrowRightCircleIcon className="h-5 w-5" />
+          </SecondaryButton>
+          {/* dispaly count */}
+          <div className="text-gray-500">
+            {page * pageSize} - {page * pageSize + pageSize} of {count}
+          </div>
+          {/* public or not */}
+          <div>
+            <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+              {
+                isPublic ? 'Public' : 'Private'
+              }
+            </span>
+
+          </div>
+        </div>
+
+        <div className="flex-col justify-end">
+
+          <SecondaryButton
+            onClick={onShareDataset}
+            className="gap-1 flex-1"
+          >
+            <ShareIcon height={18} width={18} />
+            Make {
+              isPublic ? 'Private' : 'Public'
+            }
+          </SecondaryButton>
+          {/* show small message beneath explaining what it implies aligned to the end  */}
+          <div className="text-gray-500 text-xs text-right">
+            {
+              isPublic ?
+                <p>This dataset is currently public. Anyone on the internet can read and search this dataset.<br /> Only you can add and write to this dataset.</p> :
+                <p>This dataset is currently private.<br /> Only you can read and write to this dataset.</p>
+            }
+          </div>
         </div>
       </div>
 
@@ -100,136 +147,24 @@ const DataTable = ({ documents, page, count, datasetId }) => {
   )
 }
 
-export function SearchSection({ datasetId }) {
-  const { apiKeys } = useApiKeys()
-  const firstApiKey = apiKeys?.length > 0 && apiKeys[0].id
 
-  const [searchResults, setSearchResults] = useState<SearchResponse>(undefined)
-  const [isLoading, setIsLoading] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  const search = async (searchInput: string, datasetId: string) => {
-    setIsLoading(true)
-    const p = fetch(url + '/v1/' + datasetId + '/search', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + firstApiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: searchInput,
-      }),
-    })
 
-    toast.promise(p, {
-      loading: 'Searching...',
-      success: <b>Search results!</b>,
-      error: <b>Could not search.</b>,
-    })
-    p.then((res) => res.json())
-      .then((data) => {
-        setSearchResults(data)
-        return data
-      })
-      .finally(() => setIsLoading(false))
-  }
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // get value from inputref
-    const query = searchInputRef.current.value
-    search(query, datasetId)
-  }
-
-  return (
-    // a left and right panel, left panel is the search bar, right panel is tips to add data
-    <div className="flex w-full flex-row gap-6">
-      {/* vertical list, left panel, minimum 70% width */}
-
-      <div className="flex w-3/4 flex-col gap-6">
-        <div className="w-full rounded-2xl bg-gray-100 py-5 px-5">
-          <div className="mt-6">
-            <div>
-              <div className="mb-6 gap-6 space-y-1">
-                <h1 className="mb-5 text-2xl font-medium leading-6 text-gray-900">
-                  Explorer
-                </h1>
-                <p className="mb-3 max-w-2xl text-sm text-gray-500">
-                  Hi! This is the Embedbase dataset explorer. You can use it to
-                  search your datasets. If you want to know how to create a
-                  dataset look at the tutorial
-                  <Link href="/dashboard/tutorial" className="mx-1 underline">
-                    here.
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col">
-            <form
-              className="flex flex-row items-end gap-6"
-              onSubmit={handleSubmit}
-            >
-              <div className="flex w-full flex-col">
-                <label
-                  htmlFor="query"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Search something inside your dataset
-                </label>
-                <div className="relative mt-1 rounded-md shadow-sm">
-                  <TextField
-                    placeholder="e.g. Breakfast food"
-                    ref={searchInputRef}
-                  />
-                </div>
-              </div>
-              {/* a search button aligned on the bottom */}
-              <div className="flex h-full flex-col">
-                <PrimaryButton
-                  type="submit"
-                  disabled={
-                    isLoading || !datasetId || !searchInputRef?.current?.value
-                  }
-                  className="min-h-[42px] w-full px-8 font-bold"
-                >
-                  Search
-                </PrimaryButton>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <div className="flex flex-col justify-around">
-            <div className="mt-1">
-              <div className="flex flex-col space-y-6 rounded-md text-sm text-gray-500 shadow-sm">
-                {searchResults?.similarities?.map((similarity, i) => {
-                  return (
-                    <ul key={i} role="list" className="">
-                      <Card>{similarity.data}</Card>
-                    </ul>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* a vertical line separating left and right panels */}
-    </div>
-  )
-}
-
-export default function Index({ datasetId, documents, page, count }) {
+export default function Index({ datasetId, documents, page, count, user }: {
+  datasetId: string
+  documents: any[],
+  page: number,
+  count: number,
+  user: User,
+}) {
   return (
     <Dashboard>
       <div className="py-8">
-        {/* <SearchSection datasetId={datasetId} /> */}
         <DataTable
           documents={documents}
           page={page}
           count={count}
           datasetId={datasetId}
+          userId={user.id}
         />
       </div>
     </Dashboard>
@@ -258,7 +193,7 @@ const getDatasets = async (apiKey: string) => {
   return formattedDatasets
 }
 
-export const getApiKeys = async (supabase: any, userId) => {
+export const getApiKeys = async (supabase: SupabaseClient, userId) => {
   const { data, status, error } = await supabase
     .from('api-keys')
     .select()
@@ -277,7 +212,7 @@ export const getApiKeys = async (supabase: any, userId) => {
 }
 
 const getDocuments = async (
-  supabase: any,
+  supabase: SupabaseClient,
   datasetId: string,
   userId: string,
   range: { from: number; to: number }
@@ -310,13 +245,6 @@ export const getServerSideProps = async (ctx) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (!session)
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    }
 
   let apiKey: string = ''
   let formattedDatasets: any = []

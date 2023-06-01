@@ -11,6 +11,7 @@ import {
   UserCircleIcon,
   PlusCircleIcon,
   QuestionMarkCircleIcon,
+  CircleStackIcon,
 } from '@heroicons/react/24/outline'
 
 import Link from 'next/link'
@@ -62,6 +63,13 @@ const navigation = [
     path: '/dashboard/tutorial',
     name: 'Quickstart',
     icon: Bars2Icon,
+    current: false,
+    color: 'text-yellow-500', // Adding text-yellow-300 class for yellow background
+  },
+  {
+    path: '/datasets',
+    name: 'Dataset Hub',
+    icon: CircleStackIcon,
     current: false,
     color: 'text-yellow-500', // Adding text-yellow-300 class for yellow background
   },
