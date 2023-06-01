@@ -1,5 +1,5 @@
 import { usePostHog } from 'next-use-posthog'
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import '../styles/globals.css'
 
@@ -12,7 +12,7 @@ export default function App({ Component, pageProps }) {
   usePostHog('phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp', {
     api_host: 'https://app.posthog.com',
   })
-  const [supabase] = useState(() => createBrowserSupabaseClient())
+  const [supabase] = useState(() => createPagesBrowserClient())
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
