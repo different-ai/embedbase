@@ -33,7 +33,8 @@ export default async function Index() {
         <span className="text-md text-gray-500">{datasets?.length || 0}</span>
       </h3>
       <div className="rounded-2xl bg-gray-50 py-5 px-5">
-        <p className="mb-3 text-gray-500">You can use public datasets here.</p>
+        <p className="mb-3 text-gray-500">You can use public datasets here. You can make any of your dataset publicly readable from {' '}
+          <a className="underline" href='https://app.embedbase.xyz/signup'>Embedbase&apos;s explorer.</a></p>
       </div>
       <div className="w-full flex flex-wrap gap-3">
         {datasets?.map((dataset) => (
