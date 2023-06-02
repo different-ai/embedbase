@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { ClientAddData, createClient } from 'embedbase-js'
+import { createClient } from 'embedbase-js'
 import { splitText } from 'embedbase-js/dist/main/split'
 import fs from 'fs'
 import pdfParse from 'pdf-parse'
