@@ -8,10 +8,11 @@ import {
   HomeIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 import Markdown from '@/components/Markdown'
 import { Dialog, Transition } from '@headlessui/react'
+import { Document } from 'embedbase-js'
 import { Fragment, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -200,8 +201,25 @@ export const UseInSdkButton = ({ datasetName }) => {
     </>
   )
 }
+interface DataTableProps {
+  documents: Document[]
+  page: number
+  count: number
+  datasetId: string
+  userId: string
+}
+export default function DataTable({ documents, page, count, datasetId }: DataTableProps) {
+  const [activeDocument, setActiveDocument] = useState(null);
 
-export default function DataTable({ documents, page, count, datasetId }) {
+  const handleDoubleClick = (document) => {
+    setActiveDocument((prevDocument) =>
+      prevDocument && prevDocument.id === document?.id ? null : document
+    );
+  };
+  const handleCopyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    toast('Copied to clipboard!')
+  }
   return (
     <div className="rounded-md px-4">
       {/* TODO: move to layout? */}
@@ -220,31 +238,46 @@ export default function DataTable({ documents, page, count, datasetId }) {
         <table className="min-w-full  bg-gray-100 ">
           <tbody className="space-y flex flex-col bg-gray-100">
             {documents.map((document) => (
-              <tr
-                key={document.id}
-                className="border-1 border-t border-gray-300 odd:bg-white even:bg-gray-50 "
-              >
-                {/* copy to clipboard on click */}
-                <td
-                  className="font-mono cursor-context-menu px-4 py-1 text-xs	text-gray-500"
-                  // onClick={() => handleCopyToClipboard(document.id)}
+              <Fragment key={document.id}>
+                <tr
+                  className="border-1 border-t border-gray-300 odd:bg-white even:bg-gray-50 "
+                  onDoubleClick={() => handleDoubleClick(document)}
                 >
-                  {document.id.slice(0, 10)}
-                </td>
-                <td>
-                  <div className="max-h-[100px] px-3 py-1 text-left text-xs text-gray-900">
-                    {/* only keep first 15 chars */}
-                    {document.data.slice(0, 100)}...
-                  </div>
-                </td>
-              </tr>
+                  {/* copy to clipboard on click */}
+                  <td
+                    className="select-none font-mono cursor-context-menu px-4 py-1 text-xs	text-gray-500"
+                    onClick={() => handleCopyToClipboard(document.id)}
+                  >
+                    {document.id.slice(0, 10)}
+                  </td>
+                  <td>
+                    <div className="select-none max-h-[100px] px-3 py-1 text-left text-xs text-gray-900">
+                      {/* only keep first 15 chars */}
+                      {document.data.slice(0, 100)}...
+                    </div>
+                  </td>
+                </tr>
+                {activeDocument && activeDocument.id === document.id && (
+                  <tr
+                    onDoubleClick={() => handleDoubleClick(null)}
+                  >
+                    <td colSpan={2}>
+                      <div className="px-3 py-3">
+                        <Markdown>
+                          {activeDocument.data}
+                        </Markdown>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
       </div>
 
       <DataTableController datasetId={datasetId} page={page} count={count} />
-    </div>
+    </div >
   )
 }
 function DataTableController({

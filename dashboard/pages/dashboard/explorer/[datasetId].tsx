@@ -33,7 +33,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
   }
   const handleDoubleClick = (document) => {
     setActiveDocument((prevDocument) =>
-      prevDocument && prevDocument.id === document.id ? null : document
+      prevDocument && prevDocument.id === document?.id ? null : document
     );
   };
   const router = useRouter()
@@ -156,13 +156,15 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
                 </td>
               </tr>
               {activeDocument && activeDocument.id === document.id && (
-                <tr>
+                <tr
+                  onDoubleClick={() => handleDoubleClick(null)}
+                >
                   <td colSpan={2}>
-                    {/* <div className="px-3 py-3.5 text-left text-sm text-gray-900"> */}
-                    <Markdown>
-                      {activeDocument.data}
-                    </Markdown>
-                    {/* </div> */}
+                    <div className="px-3 py-3">
+                      <Markdown>
+                        {activeDocument.data}
+                      </Markdown>
+                    </div>
                   </td>
                 </tr>
               )}
