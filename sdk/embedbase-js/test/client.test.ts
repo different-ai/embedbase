@@ -220,7 +220,7 @@ test('should be able to chat', async () => {
   }
 }, TIMEOUT)
 
-test('should receive maxed out plan error', async () => {
+test.skip('should receive maxed out plan error', async () => {
   // TODO: automatically make this key bankrupt on month start or mock http error
   const bankruptBase = createClient(URL, process.env.BANKRUPT_EMBEDBASE_KEY)
 
