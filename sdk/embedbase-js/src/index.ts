@@ -1,11 +1,7 @@
 import EmbedbaseClient from './EmbedbaseClient'
 
 export { default as EmbedbaseClient } from './EmbedbaseClient'
-export type {
-  BatchAddDocument, ClientAddData,
-  ClientContextData,
-  ClientDatasets, ClientSearchData, SearchOptions
-} from './types'
+export type * from './types'
 /**
  * Creates a new Embedbase Client.
  */

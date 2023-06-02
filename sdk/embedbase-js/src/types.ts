@@ -45,6 +45,7 @@ export interface Document {
   embedding: number[]
   hash: string
   metadata?: Metadata
+  public: boolean
 }
 export interface AddData {
   results?: Document[]
@@ -54,14 +55,11 @@ export interface AddData {
 export type ClientContextData = string[]
 
 export type ClientSearchData = SearchSimilarity[]
-export interface ClientAddData {
-  id?: string
-  status: 'success' | 'error'
-}
 
 export interface ClientDatasets {
   datasetId: string
   documentsCount: number
+  public: boolean
 }
 
 
