@@ -41,8 +41,8 @@ export default async function Index(ctx) {
         datasetId={datasetId}
       />
 
-      {/* align center */}
-      <div className="flex flex-col items-center justify-center gap-3">
+      {/* hide on mobile */}
+      <div className="flex flex-col items-center justify-center gap-3 sm:block hidden">
         <UseInSdkButton datasetName={datasetName} />
         <DisabledChatSkelton />
       </div>

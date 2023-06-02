@@ -264,7 +264,7 @@ export default function DataTable({ documents, page, count, datasetId }: DataTab
                       {/* <div className="px-3 py-3"> */}
                       {/* TODO: markdown incorrect crashes client */}
                       {/* <Markdown> */}
-                      <div className="px-3 py-3.5 text-left text-sm text-gray-900">
+                      <div className="px-3 py-3.5 text-left text-sm text-gray-900 max-w-[700px] overflow-auto">
                         {activeDocument.data}
                         {/* </Markdown> */}
                       </div>

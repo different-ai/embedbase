@@ -116,7 +116,8 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
 
           <SecondaryButton
             onClick={onShareDataset}
-            className="gap-1 flex-1"
+            // smaller on mobile
+            className="gap-1 flex-1 sm:flex-none"
           >
             <ShareIcon height={18} width={18} />
             Make {
@@ -124,7 +125,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
             }
           </SecondaryButton>
           {/* show small message beneath explaining what it implies aligned to the end  */}
-          <div className="text-gray-500 text-xs text-right">
+          <div className="text-gray-500 text-xs text-right sm:block hidden">
             {
               isPublic ?
                 <p>This dataset is currently public. Anyone on the internet can read and search this dataset.<br /> Only you can add and write to this dataset.</p> :
@@ -140,6 +141,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
             <Fragment key={document.id}>
               <tr
                 className="cursor-pointer rounded-lg border border-gray-300 bg-white"
+                // TODO onDoubleClick does not work on mobile
                 onDoubleClick={() => handleDoubleClick(document)}
               >
                 <td
