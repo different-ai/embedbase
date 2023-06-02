@@ -43,7 +43,8 @@ const prompt =
     \`Based on the following context:\n\${context}\nAnswer the user's question: \${question}\`
 for await (const res of embedbase.generate(prompt)) {
     console.log(res)
-} \`\`\``
+} 
+\`\`\``
 }
 
 function cleanPath(path) {
