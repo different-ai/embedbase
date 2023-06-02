@@ -261,11 +261,14 @@ export default function DataTable({ documents, page, count, datasetId }: DataTab
                     onDoubleClick={() => handleDoubleClick(null)}
                   >
                     <td colSpan={2}>
-                      <div className="px-3 py-3">
-                        <Markdown>
-                          {activeDocument.data}
-                        </Markdown>
+                      {/* <div className="px-3 py-3"> */}
+                      {/* TODO: markdown incorrect crashes client */}
+                      {/* <Markdown> */}
+                      <div className="px-3 py-3.5 text-left text-sm text-gray-900">
+                        {activeDocument.data}
+                        {/* </Markdown> */}
                       </div>
+                      {/* </div> */}
                     </td>
                   </tr>
                 )}
