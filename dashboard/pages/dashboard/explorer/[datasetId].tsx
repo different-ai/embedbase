@@ -97,7 +97,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }) => {
           </div>
         </div>
 
-        <div className="flex-col justify-end">
+        <div className="flex flex-col items-end justify-end">
 
           <SecondaryButton
             onClick={onShareDataset}
