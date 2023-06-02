@@ -206,7 +206,6 @@ interface DataTableProps {
   page: number
   count: number
   datasetId: string
-  userId: string
 }
 export default function DataTable({ documents, page, count, datasetId }: DataTableProps) {
   const [activeDocument, setActiveDocument] = useState(null);
@@ -240,7 +239,7 @@ export default function DataTable({ documents, page, count, datasetId }: DataTab
             {documents.map((document) => (
               <Fragment key={document.id}>
                 <tr
-                  className="border-1 border-t border-gray-300 odd:bg-white even:bg-gray-50 "
+                  className="cursor-pointer border-1 border-t border-gray-300 odd:bg-white even:bg-gray-50 "
                   onDoubleClick={() => handleDoubleClick(document)}
                 >
                   {/* copy to clipboard on click */}
