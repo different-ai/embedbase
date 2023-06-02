@@ -1,3 +1,4 @@
+import Markdown from '@/components/Markdown'
 import {
   ArrowLeftCircleIcon,
   ArrowRightCircleIcon,
@@ -5,8 +6,9 @@ import {
 } from '@heroicons/react/24/outline'
 import { SupabaseClient, User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { Document } from 'embedbase-js'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import toast from 'react-hot-toast'
 import { SecondaryButton } from '../../../components/Button'
 import Dashboard from '../../../components/Dashboard'
@@ -14,12 +16,26 @@ import { EMBEDBASE_CLOUD_URL } from '../../../utils/constants'
 
 
 const pageSize = 25;
-const DataTable = ({ documents, page, count, datasetId, userId }) => {
+interface DataTableProps {
+  documents: Document[]
+  page: number
+  count: number
+  datasetId: string
+  userId: string
+}
+const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps) => {
+  const [activeDocument, setActiveDocument] = useState(null);
+
   const supabase = useSupabaseClient()
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
     toast('Copied to clipboard!')
   }
+  const handleDoubleClick = (document) => {
+    setActiveDocument((prevDocument) =>
+      prevDocument && prevDocument.id === document.id ? null : document
+    );
+  };
   const router = useRouter()
   const [isPublic, setIsPublic] = useState(documents[0].public === true);
 
@@ -119,30 +135,42 @@ const DataTable = ({ documents, page, count, datasetId, userId }) => {
         </div>
       </div>
 
-      <table className="min-w-full  ">
+      <table className="min-w-full">
         <tbody className="space-y flex flex-col space-y-4">
-          {documents.map((document) => (
-            <tr
-              key={document.id}
-              className="rounded-lg border border-gray-300 bg-white"
-            >
-              {/* copy to clipboard on click */}
-              <td
-                className=" cursor-context-menu px-4 py-4 text-xs	text-gray-500"
-                onClick={() => handleCopyToClipboard(document.id)}
+          {documents.map((document, index) => (
+            <Fragment key={document.id}>
+              <tr
+                className="cursor-pointer rounded-lg border border-gray-300 bg-white"
+                onDoubleClick={() => handleDoubleClick(document)}
               >
-                {document.id.slice(0, 10)}
-              </td>
-              <td>
-                <div className="max-h-[100px] px-3 py-3.5 text-left text-sm text-gray-900">
-                  {/* only keep first 15 chars */}
-                  {document.data.slice(0, 100)}...
-                </div>
-              </td>
-            </tr>
+                <td
+                  className="select-none cursor-context-menu px-4 py-4 text-xs text-gray-500"
+                  onClick={() => handleCopyToClipboard(document.id)}
+                >
+                  {document.id.slice(0, 10)}
+                </td>
+                <td>
+                  <div className="select-none max-h-[100px] px-3 py-3.5 text-left text-sm text-gray-900">
+                    {document.data.slice(0, 100)}...
+                  </div>
+                </td>
+              </tr>
+              {activeDocument && activeDocument.id === document.id && (
+                <tr>
+                  <td colSpan={2}>
+                    {/* <div className="px-3 py-3.5 text-left text-sm text-gray-900"> */}
+                    <Markdown>
+                      {activeDocument.data}
+                    </Markdown>
+                    {/* </div> */}
+                  </td>
+                </tr>
+              )}
+            </Fragment>
           ))}
         </tbody>
       </table>
+
     </div>
   )
 }
