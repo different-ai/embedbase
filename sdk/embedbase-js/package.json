@@ -29,13 +29,11 @@
     "types-generate": "dts-gen -m 'embedbase-js' -s",
     "test": "jest ",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch --verbose false --silent false",
-    "docs": "typedoc --entryPoints src/index.ts --out docs/v1 --includes src/**/*.ts",
-    "docs:json": "typedoc --entryPoints src/index.ts --includes src/**/*.ts --json docs/v1/spec.json --excludeExternals"
+    "test:watch": "jest --watch --verbose false --silent false"
   },
   "optionalDependencies": {
-    "js-tiktoken": "^1.0.6",
-    "cross-fetch": "^3.1.5"
+    "cross-fetch": "^3.1.5",
+    "js-tiktoken": "^1.0.6"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
@@ -49,7 +47,6 @@
     "ts-jest": "^29.0.5",
     "ts-loader": "^8.0.11",
     "ts-node": "^10.9.1",
-    "typedoc": "^0.22.16",
-    "typescript": "^4.5.5"
+    "typescript": "^5.1.3"
   }
 }
