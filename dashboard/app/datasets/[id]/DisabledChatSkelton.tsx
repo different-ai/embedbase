@@ -16,7 +16,7 @@ export function DisabledChatSkelton() {
         </div>
         <div>
             <div className="rounded-b-lg bg-gray-50 p-8 ">
-                <form className="flex">
+                <form className="flex-col">
                     <TextArea
                         disabled={true}
                         rows={4}
@@ -28,7 +28,7 @@ export function DisabledChatSkelton() {
                     <PrimaryButton
                         type="submit"
                         disabled={true}
-                        className="ml-3 rounded-md bg-black px-4 py-2"
+                        className="flex rounded-md bg-black px-4 py-2"
                     >
                         <SubmitIcon />
                     </PrimaryButton>
