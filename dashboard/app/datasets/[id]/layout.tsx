@@ -1,17 +1,15 @@
-import Navbar from '@/components/Navbar'
-
-export default function ChatLayout({
+export default function DatasetLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
   children,
 }: {
   children: React.ReactNode
 }) {
-  console.log(children)
   return (
     <>
-      <Navbar />
-      <div className="m-auto flex w-full  max-w-7xl px-4">{children}</div>
+      <div className="m-auto flex w-full ">
+        <div className="w-full">{children}</div>
+      </div>
     </>
   )
 }

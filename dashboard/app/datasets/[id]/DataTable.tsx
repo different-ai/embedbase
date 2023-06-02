@@ -185,80 +185,101 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
 }
 
 const pageSize = 25
-export default function DataTable({
-  documents,
-  page,
-  count,
-  datasetId,
-  datasetName,
-}) {
+
+export const UseInSdkButton = ({ datasetName }) => {
   const [open, setOpen] = useState(false)
 
+  return (
+    <>
+      <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
+      <SecondaryButton onClick={() => setOpen(true)} className="flex-1 gap-1">
+        <CodeBracketIcon height={18} width={18} />
+        Remix for your app
+      </SecondaryButton>
+    </>
+  )
+}
+
+export default function DataTable({ documents, page, count, datasetId }) {
   return (
     <div className="rounded-md px-4">
       {/* TODO: move to layout? */}
       <Toaster />
-      <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
-      <Breadcrumbs />
-      <div className="mt-4 mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {/* previous */}
-          <Link href={`/datasets/${datasetId}/?page=${page - 1}`}>
-            <SecondaryButton className="flex gap-1" disabled={page === 0}>
-              <ArrowLeftCircleIcon className="h-5 w-5" />
-              Previous
-            </SecondaryButton>
-          </Link>
-          {/* next */}
-          <Link href={`/datasets/${datasetId}/?page=${page + 1}`}>
-            <SecondaryButton
-              className="flex gap-1"
-              disabled={page * pageSize + pageSize >= count}
-            >
-              Next
-              <ArrowRightCircleIcon className="h-5 w-5" />
-            </SecondaryButton>
-          </Link>
-          {/* dispaly count */}
-          <div className="text-gray-500">
-            {page * pageSize} - {page * pageSize + pageSize} of {count}
-          </div>
-        </div>
-        <div className="flex-col justify-end">
-          <SecondaryButton
-            onClick={() => setOpen(true)}
-            className="flex-1 gap-1"
-          >
-            <CodeBracketIcon height={18} width={18} />
-            Remix for your app
-          </SecondaryButton>
+      {/* <Breadcrumbs /> */}
+      {/* add a header that says dataset preview */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <h1 className="text-lg font-semibold text-gray-700">
+            Dataset Preview
+          </h1>
         </div>
       </div>
 
-      <table className="min-w-full  ">
-        <tbody className="space-y flex flex-col space-y-4">
-          {documents.map((document) => (
-            <tr
-              key={document.id}
-              className="rounded-lg border border-gray-300 bg-white"
-            >
-              {/* copy to clipboard on click */}
-              <td
-                className=" cursor-context-menu px-4 py-4 text-xs	text-gray-500"
-                // onClick={() => handleCopyToClipboard(document.id)}
+      <div className="relative max-h-96 overflow-auto border-t">
+        <table className="min-w-full  bg-gray-100 ">
+          <tbody className="space-y flex flex-col bg-gray-100">
+            {documents.map((document) => (
+              <tr
+                key={document.id}
+                className="border-1 border-t border-gray-300 odd:bg-white even:bg-gray-50 "
               >
-                {document.id.slice(0, 10)}
-              </td>
-              <td>
-                <div className="max-h-[100px] px-3 py-3.5 text-left text-sm text-gray-900">
-                  {/* only keep first 15 chars */}
-                  {document.data.slice(0, 100)}...
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {/* copy to clipboard on click */}
+                <td
+                  className="font-mono cursor-context-menu px-4 py-1 text-xs	text-gray-500"
+                  // onClick={() => handleCopyToClipboard(document.id)}
+                >
+                  {document.id.slice(0, 10)}
+                </td>
+                <td>
+                  <div className="max-h-[100px] px-3 py-1 text-left text-xs text-gray-900">
+                    {/* only keep first 15 chars */}
+                    {document.data.slice(0, 100)}...
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <DataTableController datasetId={datasetId} page={page} count={count} />
+    </div>
+  )
+}
+function DataTableController({
+  datasetId,
+  page,
+  count,
+}: {
+  datasetId: string
+  page: number
+  count: number
+}) {
+  return (
+    <div className="mt-4 mb-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        {/* previous */}
+        <Link href={`/datasets/${datasetId}/?page=${page - 1}`}>
+          <SecondaryButton className="flex gap-1 text-x" disabled={page === 0}>
+            <ArrowLeftCircleIcon className="h-3 w-3" />
+            Previous
+          </SecondaryButton>
+        </Link>
+        {/* next */}
+        <Link href={`/datasets/${datasetId}/?page=${page + 1}`}>
+          <SecondaryButton
+            className="flex gap-1 text-xs"
+            disabled={page * pageSize + pageSize >= count}
+          >
+            Next
+            <ArrowRightCircleIcon className="h-3 w-3" />
+          </SecondaryButton>
+        </Link>
+        {/* dispaly count */}
+        <div className="text-gray-500">
+          {page * pageSize} - {page * pageSize + pageSize} of {count}
+        </div>
+      </div>
     </div>
   )
 }

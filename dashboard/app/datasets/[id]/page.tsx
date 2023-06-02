@@ -3,7 +3,8 @@ import {
   createServerActionClient,
 } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
-import DataTable from './DataTable'
+import DataTable, { UseInSdkButton } from './DataTable'
+import { DisabledChatSkelton } from './DisabledChatSkelton'
 const pageSize = 25
 
 export default async function Index(ctx) {
@@ -32,14 +33,18 @@ export default async function Index(ctx) {
     console.log(error)
   }
   return (
-    <div className="py-8 ">
+    <div className="flex">
       <DataTable
         documents={documents}
         page={parseInt(page)}
         count={count}
         datasetId={datasetId}
-        datasetName={datasetName}
       />
+
+      <div>
+        <UseInSdkButton datasetName={datasetName} />
+        <DisabledChatSkelton />
+      </div>
     </div>
   )
 }

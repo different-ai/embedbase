@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { Input } from '@/components/Input'
+import { Input, TextArea } from '@/components/Input'
 import { SearchSimilarity } from 'embedbase-js/dist/module/types'
 
 import { posthog } from 'posthog-js'
@@ -233,7 +233,7 @@ export default function SmartChat() {
       </div>
       <div className="rounded-b-lg bg-gray-50 p-8 ">
         <form onSubmit={handleSubmit} className="flex">
-          <Input
+          <TextArea
             disabled={loading}
             rows={4}
             type="text"
@@ -242,6 +242,11 @@ export default function SmartChat() {
             placeholder={
               loading ? 'Waiting for response...' : 'Type your question...'
             }
+            onKeyDown={(event) => {
+              if (event.metaKey && event.key === 'Enter') {
+                handleSubmit(event)
+              }
+            }}
             ref={inputRef}
             className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
           />

@@ -145,7 +145,6 @@ function Toggle() {
   )
 }
 
-
 interface ChatState {
   messages: Message[]
   history: { content: string; role: string }[]
@@ -251,8 +250,8 @@ export default function SmartChat() {
       error instanceof Response && error.status === 401
         ? 'Playground is disabled for free-tier please go to "Account" on the left to upgrade to pro.'
         : error instanceof Response && error.status === 402
-          ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
-          : 'Oops! There seems to be an error. Please try again.'
+        ? 'You reached your monthly limit. Please upgrade to continue using the playground.'
+        : 'Oops! There seems to be an error. Please try again.'
 
     addMessage({
       content: 'Oops! There seems to be an error. Please try again',
@@ -384,17 +383,16 @@ export default function SmartChat() {
           </div>
           <Toggle />
         </div>
-        {
-          !useBingSearch &&
+        {!useBingSearch && (
           <div className="flex flex-col">
             <Label> Select datasets</Label>
             <div className="mb-3 text-xs text-gray-500">
-              This lets embedbase know what data you want ChatGPT to use to create
-              answers. (select at least one)
+              This lets embedbase know what data you want ChatGPT to use to
+              create answers. (select at least one)
             </div>
             <DatasetCheckboxes datasets={datasets} isLoading={false} />
           </div>
-        }
+        )}
       </div>
       <div className="col-span-3">
         <div className="gap-4 rounded-t-lg bg-gray-50 p-2 ">
