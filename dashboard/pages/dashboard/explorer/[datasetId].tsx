@@ -164,7 +164,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
                     {/* <div className="px-3 py-3"> */}
                     {/* TODO: markdown incorrect crashes client */}
                     {/* <Markdown> */}
-                    <div className="px-3 py-3.5 text-left text-sm text-gray-900">
+                    <div className="px-3 py-3.5 text-left text-sm text-gray-900 max-w-[80%] overflow-auto">
                       {activeDocument.data}
                       {/* </Markdown> */}
                     </div>
