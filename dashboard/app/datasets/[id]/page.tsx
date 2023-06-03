@@ -3,7 +3,8 @@ import {
   createServerActionClient,
 } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
-import DataTable, { UseInSdkButton } from './DataTable'
+import DataTable from './DataTable'
+import { UseInSdkButton } from './UseInSdkModal'
 import { DisabledChatSkelton } from './DisabledChatSkelton'
 const pageSize = 25
 
@@ -33,18 +34,27 @@ export default async function Index(ctx) {
     console.log(error)
   }
   return (
-    <div className="flex">
-      <DataTable
-        documents={documents}
-        page={parseInt(page)}
-        count={count}
-        datasetId={datasetId}
-      />
+    <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
+      <div className="sm:col-span-6">
+        <div className="mb-3">
+          <UseInSdkButton datasetName={datasetName} />
+        </div>
+        <DataTable
+          documents={documents}
+          page={parseInt(page)}
+          count={count}
+          datasetId={datasetId}
+        />
+      </div>
 
-      {/* hide on mobile */}
-      <div className="flex flex-col items-center justify-center gap-3">
-        <UseInSdkButton datasetName={datasetName} />
-        <DisabledChatSkelton />
+      <div className="flex flex-col gap-3 sm:col-span-3">
+        <div className="rounded-md border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-700 p-4">
+            Chat Playground
+          </h3>
+
+          <DisabledChatSkelton />
+        </div>
       </div>
     </div>
   )

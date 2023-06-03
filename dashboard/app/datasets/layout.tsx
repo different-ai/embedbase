@@ -11,7 +11,7 @@ export default function ChatLayout({
   return (
     <>
       <Navbar />
-      <div className="m-auto flex w-full  max-w-7xl px-4">{children}</div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
     </>
   )
 }

@@ -28,14 +28,11 @@ export default async function Index() {
 
   return (
     <div className="mt-6 flex w-full flex-col gap-3">
-      <h3 className="text-2xl font-semibold">
-        Datasets{' '}
-        <span className="text-md text-gray-500">{datasets?.length || 0}</span>
-      </h3>
+      <h3 className="text-2xl font-semibold">Datasets</h3>
       <div className="rounded-2xl bg-gray-50 py-5 px-5">
         <p className="mb-3 text-gray-500">
-          This contains a list of public datasets, that you can use to start
-          building your app, remix or just play around with.
+          {`Here you'll find a list of public datasets, that you can use to start
+          building your app, remix or just play around with.`}
         </p>
       </div>
       <div className="flex w-full flex-wrap gap-3">
