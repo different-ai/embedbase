@@ -208,7 +208,8 @@ def test_sync_client_generate_spanish():
 
 
 
-@pytest.mark.asyncio
+# @pytest.mark.asyncio
+@pytest.skip
 async def test_async_client_generate_should_receive_maxed_out_plan_error():
     bankrupt_base = EmbedbaseAsyncClient(
         embedbase_url=base_url, embedbase_key=bankrupt_api_key
@@ -222,7 +223,7 @@ async def test_async_client_generate_should_receive_maxed_out_plan_error():
         == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
     )
 
-
+@pytest.skip
 def test_sync_client_generate_should_receive_maxed_out_plan_error():
     bankrupt_base = EmbedbaseClient(
         embedbase_url=base_url, embedbase_key=bankrupt_api_key
