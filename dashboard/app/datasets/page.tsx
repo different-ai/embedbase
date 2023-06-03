@@ -33,10 +33,12 @@ export default async function Index() {
         <span className="text-md text-gray-500">{datasets?.length || 0}</span>
       </h3>
       <div className="rounded-2xl bg-gray-50 py-5 px-5">
-        <p className="mb-3 text-gray-500">You can use public datasets here. You can make any of your dataset publicly readable from {' '}
-          <a className="underline" href='https://app.embedbase.xyz/signup'>Embedbase&apos;s explorer.</a></p>
+        <p className="mb-3 text-gray-500">
+          This contains a list of public datasets, that you can use to start
+          building your app, remix or just play around with.
+        </p>
       </div>
-      <div className="w-full flex flex-wrap gap-3">
+      <div className="flex w-full flex-wrap gap-3">
         {datasets?.map((dataset) => (
           <Link key={dataset.id} href={`/datasets/${dataset.id}`}>
             <Card className="flex h-[130px] w-[300px] max-w-xs flex-1 items-center justify-center rounded-md ">
