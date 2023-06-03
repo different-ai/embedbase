@@ -553,7 +553,7 @@ class EmbedbaseClient(BaseClient):
                     {
                         "data": chunk.chunk,
                         "metadata": {
-                            **document["metadata"],
+                            **document.get("metadata", {}),
                             "documentIndex": document_index,
                             "chunkIndex": chunk_index,
                             "chunkStart": chunk.start,
