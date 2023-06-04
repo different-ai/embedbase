@@ -131,7 +131,7 @@ export default function DataTable({
 }: DataTableProps) {
   const [activeDocument, setActiveDocument] = useState(null)
 
-  const handleDoubleClick = (document) => {
+  const handleExpandRow = (document) => {
     setActiveDocument((prevDocument) =>
       prevDocument && prevDocument.id === document?.id ? null : document
     )
@@ -157,38 +157,25 @@ export default function DataTable({
           <tbody className="space-y flex flex-col bg-gray-100">
             {documents.map((document) => (
               <Fragment key={document.id}>
-                <tr
-                  className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 "
-                  onDoubleClick={() => handleDoubleClick(document)}
-                >
+                <tr className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 ">
                   {/* copy to clipboard on click */}
-                  <td
-                    className="cursor-context-menu select-none px-4 py-1 font-mono text-xs	text-gray-500"
-                    onClick={() => handleCopyToClipboard(document.id)}
-                  >
-                    {document.id.slice(0, 10)}
-                  </td>
-                  <td>
-                    <div className="max-h-[100px] select-none px-3 py-1 text-left text-xs text-gray-900">
-                      {/* only keep first 15 chars */}
-                      {document.data.slice(0, 100)}...
-                    </div>
-                  </td>
-                </tr>
-                {activeDocument && activeDocument.id === document.id && (
-                  <tr onDoubleClick={() => handleDoubleClick(null)}>
-                    <td colSpan={2}>
-                      {/* <div className="px-3 py-3"> */}
-                      {/* TODO: markdown incorrect crashes client */}
-                      {/* <Markdown> */}
-                      <div className="max-w-[700px] overflow-auto px-3 py-3.5 text-left text-sm text-gray-900">
-                        {activeDocument.data}
-                        {/* </Markdown> */}
-                      </div>
-                      {/* </div> */}
+
+                  <>
+                    <td
+                      className="cursor-context-menu select-none px-4 py-1 font-mono text-xs	text-gray-500"
+                      onClick={() => handleCopyToClipboard(document.id)}
+                    >
+                      {document.id.slice(0, 8)}
                     </td>
-                  </tr>
-                )}
+                    <td onClick={() => handleExpandRow(document)}>
+                      <div className="max-h-[100px] select-none px-3 py-1 text-left text-xs text-gray-900">
+                        {activeDocument?.id !== document.id &&
+                          `${document.data.slice(0, 100)}...`}
+                        {activeDocument?.id === document.id && document.data}
+                      </div>
+                    </td>
+                  </>
+                </tr>
               </Fragment>
             ))}
           </tbody>
@@ -209,11 +196,11 @@ function DataTableController({
   count: number
 }) {
   return (
-    <div className="mt-4 mb-3 flex items-center justify-between gap-3 text-2xs sm:text-md px-1 sm:px-4">
+    <div className="sm:text-md mt-4 mb-3 flex items-center justify-between gap-3 px-1 text-2xs sm:px-4">
       <div className="flex items-center gap-1 sm:gap-3">
         {/* previous */}
         <Link href={`/datasets/${datasetId}/?page=${page - 1}`}>
-          <SecondaryButton className="text-xs flex gap-1" disabled={page === 0}>
+          <SecondaryButton className="flex gap-1 text-xs" disabled={page === 0}>
             <ArrowLeftCircleIcon className="h-3 w-3" />
             Previous
           </SecondaryButton>
