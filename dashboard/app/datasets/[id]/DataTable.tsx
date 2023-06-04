@@ -209,11 +209,11 @@ function DataTableController({
   count: number
 }) {
   return (
-    <div className="mt-4 mb-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
+    <div className="mt-4 mb-3 flex items-center justify-between gap-3 text-2xs sm:text-md px-1 sm:px-4">
+      <div className="flex items-center gap-1 sm:gap-3">
         {/* previous */}
         <Link href={`/datasets/${datasetId}/?page=${page - 1}`}>
-          <SecondaryButton className="text-x flex gap-1" disabled={page === 0}>
+          <SecondaryButton className="text-xs flex gap-1" disabled={page === 0}>
             <ArrowLeftCircleIcon className="h-3 w-3" />
             Previous
           </SecondaryButton>

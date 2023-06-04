@@ -10,18 +10,18 @@ export default function Navbar() {
       {/* When the mobile menu is open, add `overflow-hidden` to the `body` element to prevent double scrollbars */}
 
       <>
-        <div className="mx-auto h-[70px] max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto h-[100px] max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
             <div className="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">
               <div className="flex flex-shrink-0 items-center">
-                <a href="#">
+                <Link href="/">
                   <Image
                     src="/logo-transparent.svg"
                     alt="Logo"
                     width={150}
                     height={100}
                   />
-                </a>
+                </Link>
               </div>
             </div>
             <div className="min-w-0 flex-1 md:px-8 lg:px-0 xl:col-span-6">

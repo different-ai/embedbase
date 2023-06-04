@@ -1,5 +1,7 @@
-import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
 import { getRedirectURL } from '@/lib/redirectUrl'
+import { cookies } from 'next/headers'
+
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set')
 }
@@ -42,20 +44,24 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     )
   }
 
-  const supabase = createMiddlewareSupabaseClient(
+  console.log('before supabase')
+  const supabase = createServerActionClient(
+    { cookies },
     // @ts-ignore
-    { req, res },
     {
       supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     }
   )
+  console.log('after supabase')
 
+  console.log('before session')
   const {
     data: { session },
     error: errorSession,
   } = await supabase.auth.getSession()
 
+  console.log('after session')
   // Check if we have a session
   if (!session || errorSession) {
     return new Response(
@@ -67,6 +73,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
   }
   const userId = session.user.id
 
+  console.log('before select apps')
   const { data, error } = await supabase
     .from('apps')
     .insert({
@@ -77,14 +84,17 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     })
     .select('public_api_key')
     .single()
-  console.log(data)
 
+  console.log('after select apps')
+
+  console.log('reaching data', data)
   if (!data) {
     return new Response(JSON.stringify({ error: 'No data returned' }), {
       status: 500,
     })
   }
 
+  console.log('reaching errors', error)
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
