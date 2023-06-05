@@ -29,6 +29,7 @@ export default function SignupForm() {
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
+
     })
 
     if (error) {
@@ -41,7 +42,7 @@ export default function SignupForm() {
     posthog.capture('sign up', {
       email: data.user?.email,
     })
-    router.push('/onboarding/create-api-key')
+    router.push('/verify-email')
   }
 
   const signInWithGitHub = async () => {
