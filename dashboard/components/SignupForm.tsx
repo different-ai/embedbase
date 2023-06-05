@@ -41,14 +41,14 @@ export default function SignupForm() {
     posthog.capture('sign up', {
       email: data.user?.email,
     })
-    toast.success('Check your email for the confirmation link!')
+    router.push('/onboarding/create-api-key')
   }
 
   const signInWithGitHub = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${getRedirectURL()}/auth/callback`,
+        redirectTo: `${getRedirectURL()}/onboarding/create-api-key`,
       },
     })
 

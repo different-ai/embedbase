@@ -12,6 +12,5 @@ export async function GET(req: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-
-  return NextResponse.redirect(new URL('/onboarding/create-api-key', req.url))
+  return NextResponse.redirect(new URL('/dashboard', req.url))
 }
