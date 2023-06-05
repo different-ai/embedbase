@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import posthog from 'posthog-js'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'react-hot-toast'
 import { getRedirectURL } from '../lib/redirectUrl'
 import { PrimaryButton } from './Button'
 import { Input, Label } from './Input'
@@ -40,14 +41,14 @@ export default function SignupForm() {
     posthog.capture('sign up', {
       email: data.user?.email,
     })
-    await router.push('/onboarding/create-api-key')
+    toast.success('Check your email for the confirmation link!')
   }
 
   const signInWithGitHub = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${getRedirectURL()}/onboarding/create-api-key`,
+        redirectTo: `${getRedirectURL()}/auth/callback`,
       },
     })
 
