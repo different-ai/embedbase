@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from 'react'
+import { ReactNode } from 'react'
 
 interface CardTitleProps {
   className?: string
@@ -15,6 +15,24 @@ export const CardTitle = ({
     >
       {children}
     </h3>
+  )
+}
+
+interface CardSubtitleProps {
+  className?: string
+  children: ReactNode
+}
+
+export const CardSubtitle = ({
+  className,
+  children,
+}: CardSubtitleProps): JSX.Element => {
+  return (
+    <p
+      className={`mt-1 max-w-2xl text-sm text-gray-500 ${className}`}
+    >
+      {children}
+    </p>
   )
 }
 

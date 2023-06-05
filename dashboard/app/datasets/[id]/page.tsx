@@ -21,7 +21,6 @@ export default async function Index(ctx) {
     const {
       documents: d,
       datasetName: n,
-      datasetOwner,
       count: c,
     } = await getDocuments(supabase, datasetId, {
       from,
@@ -76,7 +75,7 @@ const getDocuments = async (
   const { from, to } = range
 
   const res = await supabase
-    .from('datasets')
+    .from('public_dataset_view')
     .select('name,owner')
     .eq('id', datasetId)
     .single()
@@ -102,6 +101,5 @@ const getDocuments = async (
     documents: res2.data,
     count: res2.count,
     datasetName: res.data.name,
-    datasetOwner: res.data.owner,
   }
 }

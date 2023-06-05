@@ -39,9 +39,32 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
   const [isPublic, setIsPublic] = useState(documents[0].public === true);
 
   const onShareDataset = async () => {
-    console.log(`making dataset ${userId}:${datasetId} ${!isPublic ? 'public' : 'private'}`);
+    // if the user has no username, send him to /dashboard/account with a toast
+    // explaining why
 
     let res = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single()
+
+    if (res.error) {
+      console.log(res.error);
+      return toast.error(res.error.message);
+    }
+
+    if (!res.data.username) {
+      console.log('no username');
+      toast.error('You need to set a username before sharing datasets. Redirecting you to account page');
+      // wait 2 sec and then push
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return router.push('/dashboard/account');
+    }
+
+
+    console.log(`making dataset ${userId}:${datasetId} ${!isPublic ? 'public' : 'private'}`);
+
+    res = await supabase
       .from('documents')
       .update({ public: !isPublic })
       .eq('dataset_id', datasetId)

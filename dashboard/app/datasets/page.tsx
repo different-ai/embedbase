@@ -1,8 +1,8 @@
 import { camelize } from '@/utils/helpers'
 
-import Card, { CardTitle } from '@/components/Card'
+import Card, { CardSubtitle, CardTitle } from '@/components/Card'
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 
 export default async function Index() {
@@ -14,9 +14,8 @@ export default async function Index() {
   // } = await supabase.auth.getSession()
 
   let { data, status, error } = await supabase
-    .from('datasets')
+    .from('public_dataset_view')
     .select('*')
-    .eq('public', true)
 
   if (error) {
     console.log(error)
@@ -42,6 +41,9 @@ export default async function Index() {
               <CardTitle className="flex items-center text-lg font-normal text-gray-600">
                 {dataset.name}
               </CardTitle>
+              <CardSubtitle className="flex items-center text-sm font-normal text-gray-400">
+                {dataset.ownerUsername}
+              </CardSubtitle>
             </Card>
           </Link>
         ))}

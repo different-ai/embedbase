@@ -16,8 +16,8 @@ module.exports = {
   },
   experimental: {
     appDir: true,
+    serverActions: true,
   }
-
 }
 
 module.exports = withSentryConfig(

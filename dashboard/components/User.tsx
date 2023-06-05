@@ -1,8 +1,9 @@
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { useSession, useSupabaseClient, } from '@supabase/auth-helpers-react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { classNames } from '../lib/utils'
 import { useSubscription } from '../pages/dashboard/pricing'
 import { tiers } from './PricingSection'
@@ -14,6 +15,21 @@ export function User() {
   const router = useRouter()
   const supabase = useSupabaseClient()
   const { subscription } = useSubscription()
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select(`username, website, avatar_url`)
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => data && setProfile(data))
+  }, [user])
+
+  if (!user) {
+    return null
+  }
 
   const subscriptionBadgeText =
     // price id matches pro "pro"
@@ -41,7 +57,7 @@ export function User() {
               <span className="flex min-w-0 flex-1">
 
                 <span className="truncate text-sm text-gray-700">
-                  {user?.email}
+                  {profile?.username || user?.email}
                 </span>
 
 
@@ -69,6 +85,21 @@ export function User() {
         leaveTo="transform opacity-0 scale-95"
       >
         <Menu.Items className="absolute right-0 left-0 z-10 mx-3 mt-1 origin-top divide-y divide-gray-200 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <div className="py-1">
+            <Menu.Item>
+              {({ active }) => (
+                <Link
+                  href="/dashboard/account"
+                  className={classNames(
+                    active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                    'block px-4 py-2 text-sm'
+                  )}
+                >
+                  Account
+                </Link>
+              )}
+            </Menu.Item>
+          </div>
           <div className="py-1">
             <Menu.Item>
               {({ active }) => (
