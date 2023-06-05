@@ -15,7 +15,7 @@ const Index = ({ apiKey }) => {
   const handleNext = async () => {
     setLoading(true)
     await insertTestData()
-    await router.push('/dashboard')
+    await router.push('/onboarding/create-username')
     setLoading(false)
   }
   const insertTestData = async () => {
