@@ -1,10 +1,10 @@
 'use client'
-import { SecondaryButton } from '@/components/Button';
-import { CodeBracketIcon } from '@heroicons/react/24/outline';
-import Markdown from '@/components/Markdown';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
-import { datasetToSdkUsage, CopyButton } from './DataTable';
+import { SecondaryButton } from '@/components/Button'
+import { CodeBracketIcon } from '@heroicons/react/24/outline'
+import Markdown from '@/components/Markdown'
+import { Dialog, Transition } from '@headlessui/react'
+import { Fragment, useState } from 'react'
+import { CopyButton } from './DataTable'
 
 function UseInSdkModal({ datasetName, open, setOpen }) {
   return (
@@ -33,7 +33,7 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 text-left transition-all sm:my-8 sm:w-full sm:max-w-xl sm:p-6 border border-gray-100">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg border border-gray-100 bg-white px-4 pb-4 text-left transition-all sm:my-8 sm:w-full sm:max-w-xl sm:p-6">
                 <div>
                   <div className="">
                     <Dialog.Title
@@ -62,19 +62,19 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
                 </div>
                 <CopyButton
                   className="mt-5 inline-flex w-full justify-center px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                  textToCopy={datasetToSdkUsage(datasetName)} />
+                  textToCopy={datasetToSdkUsage(datasetName)}
+                />
               </Dialog.Panel>
             </Transition.Child>
           </div>
         </div>
       </Dialog>
     </Transition.Root>
-  );
+  )
 }
 
-
 export const UseInSdkButton = ({ datasetName }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <>
@@ -84,5 +84,27 @@ export const UseInSdkButton = ({ datasetName }) => {
         Remix for your app
       </SecondaryButton>
     </>
-  );
-};
+  )
+}
+
+
+export const datasetToSdkUsage = (datasetName) => {
+  return ` \`\`\`js
+const { createClient } = require("embedbase-js");
+
+const embedbase = createClient('https://api.embedbase.xyz', '<grab the api key here https://app.embedbase.xyz/>')
+const question =
+  "replace this with a query to dataset e.g. what can I use for improved sequence segmentation and labeling";
+
+(async () => {
+  console.log("retrieving data...");
+  const context = await embedbase.dataset(${datasetName}).createContext(question);
+
+  console.log("generating data");
+  const response = await embedbase.generate(\`\${context} \${question}\`).get();
+  console.log(response.join(""));
+})();
+
+
+\`\`\``
+}

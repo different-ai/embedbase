@@ -31,19 +31,7 @@ export const CopyButton = ({ className, textToCopy }) => {
     </SecondaryButton>
   )
 }
-export const datasetToSdkUsage = (datasetName) => {
-  return ` \`\`\`js 
-import { createClient } from 'embedbase-js'
-const embedbase = createClient('https://api.embedbase.xyz', '<grab the api key here https://app.embedbase.xyz/>')
-const question = 'ask something!'
-const context = await embedbase.dataset('${datasetName}').createContext(question)
-const prompt = 
-    \`Based on the following context:\n\${context}\nAnswer the user's question: \${question}\`
-for await (const res of embedbase.generate(prompt)) {
-    console.log(res)
-} 
-\`\`\``
-}
+
 
 function cleanPath(path) {
   return path.replace(/\/\//g, '/')
@@ -159,7 +147,6 @@ export default function DataTable({
               <Fragment key={document.id}>
                 <tr className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 ">
                   {/* copy to clipboard on click */}
-
                   <>
                     <td
                       className="cursor-context-menu select-none px-4 py-1 font-mono text-xs	text-gray-500"
