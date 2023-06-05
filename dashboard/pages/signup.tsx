@@ -76,15 +76,11 @@ export const getServerSideProps = async (ctx) => {
     }
   }
 
-  
   if (session) {
     const hasKey = await hasApiKey()
     return {
       redirect: {
-        destination: 
-          !hasKey ?
-          '/onboarding/create-api-key' :
-          '/dashboard',
+        destination: !hasKey ? '/onboarding/create-api-key' : '/dashboard',
         permanent: false,
       },
     }

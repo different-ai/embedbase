@@ -15,7 +15,7 @@ export default async function Index({ searchParams }) {
             </h3>
             <p className="mt-1 text-gray-500">{email}</p>
             <div className="mt-6 flex items-center justify-center">
-              Check your emails
+              Check your inbox
             </div>
           </div>
         </div>
