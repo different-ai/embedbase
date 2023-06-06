@@ -110,6 +110,7 @@ interface DataTableProps {
   page: number
   count: number
   datasetId: string
+  datasetName: string
 }
 export default function DataTable({
   documents,
