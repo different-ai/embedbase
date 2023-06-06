@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Input } from './Input'
-import { PrimaryButton } from './Button'
+import { PrimaryButton, SecondaryButton } from './Button'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -10,7 +10,7 @@ export default function Navbar() {
       {/* When the mobile menu is open, add `overflow-hidden` to the `body` element to prevent double scrollbars */}
 
       <>
-        <div className="mx-auto h-[100px] max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+        <div className="mx-auto h-[100px] max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
             <div className="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">
               <div className="flex flex-shrink-0 items-center">
@@ -47,6 +47,9 @@ export default function Navbar() {
               {/* Mobile menu button */}
             </div>
             <div className="flex items-center justify-end xl:col-span-4">
+              <Link href="/signup">
+                <SecondaryButton className="ml-3">Signup</SecondaryButton>
+              </Link>
               <Link href="/signup">
                 <PrimaryButton className="ml-3">New App</PrimaryButton>
               </Link>

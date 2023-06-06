@@ -5,54 +5,47 @@ import {
 import { cookies, headers } from 'next/headers'
 import DataTable from './DataTable'
 import { UseInSdkButton } from './UseInSdkModal'
-import { DisabledChatSkelton } from './DisabledChatSkelton'
+import { Sandpack } from '@codesandbox/sandpack-react'
+
+import { NewChat } from './NewChat'
 const pageSize = 25
 
-export default async function Index(ctx) {
+export default async function Index(context) {
   const supabase = createServerActionClient({ cookies })
-  const { page = 0, size } = ctx.searchParams || {}
+  const { page = 0, size } = context.searchParams || {}
   const { from, to } = getPagination(page, pageSize)
-  const datasetId = ctx?.params?.id
+  const datasetId = context?.params?.id
+  // const { setName } = useDataSetItemStore((state) => state)
 
-  let documents: any = []
-  let count: number = 0
-  let datasetName = ''
-  try {
-    const {
-      documents: d,
-      datasetName: n,
-      count: c,
-    } = await getDocuments(supabase, datasetId, {
+  const { documents, datasetName,  count } : {documents: any[], datasetName: string, count: number} = await getDocuments(
+    supabase,
+    datasetId,
+    {
       from,
       to,
-    })
-    datasetName = n
-    documents = d
-    count = c
-  } catch (error) {
-    console.log(error)
-  }
+    }
+  )
   return (
     <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
       <div className="sm:col-span-6">
-        <div className="mb-3">
-          <UseInSdkButton datasetName={datasetName} />
-        </div>
         <DataTable
           documents={documents}
           page={parseInt(page)}
           count={count}
+          datasetName={datasetName}
           datasetId={datasetId}
         />
       </div>
 
       <div className="flex flex-col gap-3 sm:col-span-3">
         <div className="rounded-md border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-700 p-4">
-            Chat Playground
-          </h3>
-
-          <DisabledChatSkelton />
+          <div className="flex items-center justify-between">
+            <h3 className="p-4 text-lg font-semibold text-gray-700">
+              Chat Playground
+            </h3>
+            <UseInSdkButton datasetName={datasetName} />
+          </div>
+          <NewChat />
         </div>
       </div>
     </div>
@@ -74,6 +67,24 @@ const getDocuments = async (
 ) => {
   const { from, to } = range
 
+  const res = await getDataset(supabase, datasetId)
+  const res2 = await getDatasetDocuments(
+    supabase,
+    res.data.name,
+    res.data.owner,
+    from,
+    to
+  )
+
+  return {
+    documents: res2.data,
+    count: res2.count,
+    datasetName: res.data.name,
+    datasetOwner: res.data.owner,
+  }
+}
+
+const getDataset = async (supabase: SupabaseClient, datasetId: string) => {
   const res = await supabase
     .from('public_dataset_view')
     .select('name,owner')
@@ -85,11 +96,21 @@ const getDocuments = async (
     throw res.error
   }
 
+  return res
+}
+
+const getDatasetDocuments = async (
+  supabase: SupabaseClient,
+  datasetName: string,
+  datasetOwner: string,
+  from: number,
+  to: number
+) => {
   const res2 = await supabase
     .from('documents')
     .select('*', { count: 'exact' })
-    .eq('dataset_id', res.data.name)
-    .eq('user_id', res.data.owner)
+    .eq('dataset_id', datasetName)
+    .eq('user_id', datasetOwner)
     .eq('public', true)
     .range(from, to)
 
@@ -97,9 +118,5 @@ const getDocuments = async (
     console.log(res2)
     throw res2.error
   }
-  return {
-    documents: res2.data,
-    count: res2.count,
-    datasetName: res.data.name,
-  }
+  return res2
 }

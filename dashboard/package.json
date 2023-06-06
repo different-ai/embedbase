@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@codesandbox/sandpack-react": "^2.4.4",
+    "@codesandbox/sandpack-react": "^2.6.7",
     "@dqbd/tiktoken": "^1.0.7",
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",

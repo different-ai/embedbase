@@ -79,14 +79,13 @@ export const UseInSdkButton = ({ datasetName }) => {
   return (
     <>
       <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
-      <SecondaryButton onClick={() => setOpen(true)} className="flex-1 gap-1">
-        <CodeBracketIcon height={18} width={18} />
+      <SecondaryButton onClick={() => setOpen(true)} className="gap-1 max-w-max mr-2 text-xs">
+        <CodeBracketIcon height={12} width={12} />
         Remix for your app
       </SecondaryButton>
     </>
   )
 }
-
 
 export const datasetToSdkUsage = (datasetName) => {
   return ` \`\`\`js

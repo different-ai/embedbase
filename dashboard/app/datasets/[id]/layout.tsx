@@ -1,3 +1,5 @@
+import { SandPackCSS } from '@/components/sandpack-styles'
+
 export default function DatasetLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
@@ -7,6 +9,7 @@ export default function DatasetLayout({
 }) {
   return (
     <>
+      <SandPackCSS />
       <div className="m-auto flex w-full ">
         <div className="w-full">{children}</div>
       </div>

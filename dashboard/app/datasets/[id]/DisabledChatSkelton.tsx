@@ -1,6 +1,5 @@
 import { PrimaryButton } from '@/components/Button'
 import { ChatBox } from '@/components/ChatBox'
-import { Footer } from '@/components/Footer'
 import { Input, TextArea } from '@/components/Input'
 import { SubmitIcon } from '@/components/SubmitIcon'
 

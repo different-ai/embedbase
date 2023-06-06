@@ -10,8 +10,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Document } from 'embedbase-js'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
+import { useDataSetItemStore } from './store'
 
 export const CopyButton = ({ className, textToCopy }) => {
   const handleCopy = () => {
@@ -31,7 +32,6 @@ export const CopyButton = ({ className, textToCopy }) => {
     </SecondaryButton>
   )
 }
-
 
 function cleanPath(path) {
   return path.replace(/\/\//g, '/')
@@ -116,8 +116,13 @@ export default function DataTable({
   page,
   count,
   datasetId,
+  datasetName,
 }: DataTableProps) {
+  const setName = useDataSetItemStore((state) => state.setName)
   const [activeDocument, setActiveDocument] = useState(null)
+  useEffect(() => {
+    setName(datasetName)
+  }, [])
 
   const handleExpandRow = (document) => {
     setActiveDocument((prevDocument) =>
@@ -145,7 +150,7 @@ export default function DataTable({
           <tbody className="space-y flex flex-col bg-gray-100">
             {documents.map((document) => (
               <Fragment key={document.id}>
-                <tr className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 ">
+                <tr className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 hover:bg-gray-100 ">
                   {/* copy to clipboard on click */}
                   <>
                     <td
