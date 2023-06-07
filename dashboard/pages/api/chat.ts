@@ -11,11 +11,6 @@ export const config = {
   runtime: 'edge',
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': '*',
-}
-
 interface RequestPayload {
   prompt: string
   history: Chat[]
@@ -28,17 +23,10 @@ type Chat = {
   content: string
 }
 const handler = async (req: Request, res: Response): Promise<Response> => {
-  // Handle CORS
-  if (req.method === 'OPTIONS') {
-    console.log('req.method ', req.method)
-    return new Response('ok', { headers: corsHeaders })
-  }
-
   const { prompt, history, system } = (await req.json()) as RequestPayload
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
       status: 400,
-      headers: corsHeaders,
     })
   }
 
@@ -62,13 +50,11 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     const stream = await OpenAIStream(payload)
     return new Response(stream, {
       status: 200,
-      headers: corsHeaders,
     })
   } catch (error) {
     Sentry.captureException(error)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: corsHeaders,
     })
   }
 }
