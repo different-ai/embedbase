@@ -29,6 +29,12 @@ type Chat = {
   content: string
 }
 const handler = async (req: Request, res: Response): Promise<Response> => {
+  // Handle CORS
+  if (req.method === 'OPTIONS') {
+    console.log('req.method ', req.method)
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   const { prompt, history, system } = (await req.json()) as RequestPayload
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
