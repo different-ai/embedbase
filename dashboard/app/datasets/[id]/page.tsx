@@ -111,7 +111,8 @@ const getDatasetDocuments = async (
     .select('*', { count: 'exact' })
     .eq('dataset_id', datasetName)
     .eq('user_id', datasetOwner)
-    .eq('public', true)
+    // HACK: unnecessary I think - even if someone tries to use private id policy will fail
+    // .eq('public', true)
     .range(from, to)
 
   if (res2.error && res2.status !== 406) {
