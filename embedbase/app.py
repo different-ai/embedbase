@@ -526,50 +526,6 @@ class Embedbase:
             request, dataset_id, AddRequest(documents=request_body.documents)
         )
 
-        # # fill nan values with '' in order to filter out form the where
-        # df = df.fillna("")
-        #     # supabase does not support multi row update
-        #     # https://github.com/supabase/postgrest-js/issues/174
-        #     # HACK:
-        #     # 1. need to fetch the existing documents
-        #     # 2. delete these documents from embedbase (you cant simply upsert, maybe there are more chunks)
-        #     # 3. upsert the updated documents
-
-        #     # 1. fetch existing documents
-        #     q = self.supabase.table("documents").select("*")
-        #     # update only for this user id and dataset id if given
-        #     if user_id:
-        #         q = q.eq("user_id", user_id)
-        #     if dataset_id:
-        #         q = q.eq("dataset_id", dataset_id)
-        #     metadata_keys = list(where.keys())
-        #     metadata_values = list(where.values())
-        #     for key, value in zip(metadata_keys, metadata_values):
-        #         q = q.eq(f"metadata->>{key}", value)
-
-        #     existing_docs = q.execute().data
-
-        #     existing_docs_df = DataFrame(existing_docs)
-        #     # 2. update the existing documents
-        #     df = df.data.apply(
-        #         lambda x: existing_docs_df.data[existing_docs_df.data == x].values[0]
-        #     )
-
-        #     # 3. delete the existing documents
-
-        #     q = self.supabase.table("documents")
-        #     if user_id:
-        #         q = q.eq("user_id", user_id)
-        #     if dataset_id:
-        #         q = q.eq("dataset_id", dataset_id)
-        #     metadata_keys = list(where.keys())
-        #     metadata_values = list(where.values())
-        #     for key, value in zip(metadata_keys, metadata_values):
-        #         q = q.eq(f"metadata->>{key}", value)
-        #     q.delete().execute()
-
-        #     # 4. below
-
     # health check endpoint
     def health(self, _: Request):
         """
