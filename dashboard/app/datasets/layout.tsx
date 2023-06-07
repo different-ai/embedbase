@@ -7,7 +7,6 @@ export default function DatasetsLayout({
 }: {
   children: React.ReactNode
 }) {
-  console.log(children)
   return (
     <>
       <Navbar />

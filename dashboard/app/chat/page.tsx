@@ -12,7 +12,6 @@ async function getAppName(appId) {
     .eq('public_api_key', appId)
     .limit(1)
     .single()
-  console.log(data)
   return data?.name
 }
 

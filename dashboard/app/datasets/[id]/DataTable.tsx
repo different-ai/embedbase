@@ -121,6 +121,7 @@ export default function DataTable({
 }: DataTableProps) {
   const setName = useDataSetItemStore((state) => state.setName)
   const [activeDocument, setActiveDocument] = useState(null)
+  // initialize dataset item store
   useEffect(() => {
     setName(datasetName)
   }, [])
@@ -146,7 +147,7 @@ export default function DataTable({
         </div>
       </div>
 
-      <div className="relative max-h-96 overflow-auto border-b">
+      <div className="relative max-h-[calc(100vh-230px)] overflow-auto border-b ">
         <table className="min-w-full  bg-gray-100 ">
           <tbody className="space-y flex flex-col bg-gray-100">
             {documents.map((document) => (

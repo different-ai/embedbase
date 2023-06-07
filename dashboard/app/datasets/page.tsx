@@ -23,7 +23,6 @@ export default async function Index() {
 
   const datasets: any[] = camelize(data)
 
-  // console.log(data, session.user.id)
 
   return (
     <div className="mt-6 flex w-full flex-col gap-3">
