@@ -75,7 +75,7 @@ const ChatForm = () => {
     const context = await embedbase.dataset(datasetName).createContext(question)
 
     for await (const chunk of embedbase.generate(`${context} ${question}`, {
-      url: `${getRedirectURL()}/api/chat/`,
+      url: `${getRedirectURL()}api/chat`,
       history: [],
     })) {
       appendChunkToLastMessage(chunk)

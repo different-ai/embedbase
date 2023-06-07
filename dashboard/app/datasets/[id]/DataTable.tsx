@@ -112,6 +112,49 @@ interface DataTableProps {
   datasetId: string
   datasetName: string
 }
+
+const Table = ({ documents }) => {
+  const [activeDocument, setActiveDocument] = useState(null)
+
+  const handleExpandRow = (document) => {
+    setActiveDocument((prevDocument) =>
+      prevDocument && prevDocument.id === document?.id ? null : document
+    )
+  }
+
+  const handleCopyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    toast('Copied to clipboard!')
+  }
+
+  return (
+    <table className="min-w-full bg-gray-100">
+      <tbody className="space-y flex flex-col bg-gray-100">
+        {documents.map((document) => (
+          <tr
+            key={document.id}
+            className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+          >
+            <td
+              className="cursor-context-menu select-none px-4 py-1 font-mono text-xs text-gray-500"
+              onClick={() => handleCopyToClipboard(document.id)}
+            >
+              {document.id.slice(0, 8)}
+            </td>
+            <td onClick={() => handleExpandRow(document)}>
+              <div className="max-h-[100px] px-3 py-1 text-left text-xs text-gray-900">
+                {activeDocument?.id === document.id
+                  ? document.data
+                  : document.data.slice(0, 100) + '...'}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 export default function DataTable({
   documents,
   page,
@@ -120,24 +163,13 @@ export default function DataTable({
   datasetName,
 }: DataTableProps) {
   const setName = useDataSetItemStore((state) => state.setName)
-  const [activeDocument, setActiveDocument] = useState(null)
   // initialize dataset item store
   useEffect(() => {
     setName(datasetName)
   }, [])
 
-  const handleExpandRow = (document) => {
-    setActiveDocument((prevDocument) =>
-      prevDocument && prevDocument.id === document?.id ? null : document
-    )
-  }
-  const handleCopyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    toast('Copied to clipboard!')
-  }
   return (
     <div className="p w-full rounded-md border border-gray-100">
-      {/* TODO: move to layout? */}
       <Toaster />
       <div className="flex items-center justify-between border-gray-100 p-4 ">
         <div className="flex items-center">
@@ -148,32 +180,7 @@ export default function DataTable({
       </div>
 
       <div className="relative max-h-[calc(100vh-230px)] overflow-auto border-b ">
-        <table className="min-w-full  bg-gray-100 ">
-          <tbody className="space-y flex flex-col bg-gray-100">
-            {documents.map((document) => (
-              <Fragment key={document.id}>
-                <tr className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 hover:bg-gray-100 ">
-                  {/* copy to clipboard on click */}
-                  <>
-                    <td
-                      className="cursor-context-menu select-none px-4 py-1 font-mono text-xs	text-gray-500"
-                      onClick={() => handleCopyToClipboard(document.id)}
-                    >
-                      {document.id.slice(0, 8)}
-                    </td>
-                    <td onClick={() => handleExpandRow(document)}>
-                      <div className="max-h-[100px] select-none px-3 py-1 text-left text-xs text-gray-900">
-                        {activeDocument?.id !== document.id &&
-                          `${document.data.slice(0, 100)}...`}
-                        {activeDocument?.id === document.id && document.data}
-                      </div>
-                    </td>
-                  </>
-                </tr>
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
+        <Table documents={documents} />
       </div>
 
       <DataTableController datasetId={datasetId} page={page} count={count} />
