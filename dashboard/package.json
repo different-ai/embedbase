@@ -51,6 +51,7 @@
     "@types/node": "^18.15.11",
     "@types/pdf-parse": "^1.1.1",
     "@types/react": "18.0.26",
+    "@types/uuid": "^9.0.1",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.20",
     "prettier-plugin-tailwindcss": "^0.2.3",
