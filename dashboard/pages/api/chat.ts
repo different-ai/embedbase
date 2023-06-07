@@ -1,6 +1,8 @@
-import { OpenAIStream, OpenAIPayload } from '../../lib/utils'
+
 import { defaultChatSystem } from '../../utils/constants'
 import * as Sentry from '@sentry/nextjs'
+import cors from '@/utils/cors'
+import { OpenAIStream, OpenAIPayload } from '@/lib/utils'
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set')
@@ -47,12 +49,13 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   try {
     const stream = await OpenAIStream(payload)
-    return new Response(stream)
+    return cors(req, new Response(stream))
   } catch (error) {
     Sentry.captureException(error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    })
+    return cors(
+      req,
+      new Response(JSON.stringify({ error: error.message }), { status: 500 })
+    )
   }
 }
 export default handler
