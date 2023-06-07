@@ -1,4 +1,3 @@
-
 import { defaultChatSystem } from '../../utils/constants'
 import * as Sentry from '@sentry/nextjs'
 import cors from '@/utils/cors'
@@ -10,6 +9,12 @@ if (!process.env.OPENAI_API_KEY) {
 
 export const config = {
   runtime: 'edge',
+}
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 }
 
 interface RequestPayload {
@@ -28,6 +33,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
       status: 400,
+      headers: corsHeaders,
     })
   }
 
@@ -49,13 +55,16 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   try {
     const stream = await OpenAIStream(payload)
-    return cors(req, new Response(stream))
+    return new Response(stream, {
+      status: 200,
+      headers: corsHeaders,
+    })
   } catch (error) {
     Sentry.captureException(error)
-    return cors(
-      req,
-      new Response(JSON.stringify({ error: error.message }), { status: 500 })
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: corsHeaders,
+    })
   }
 }
 export default handler
