@@ -12,18 +12,27 @@ function Logo() {
   )
 }
 
+export const SimpleNavbar = ({ children }) => {
+  return (
+    <>
+      <div className="max-w-7xl mx-auto h-[80px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="relative flex">
+          <Logo />
+          {children}
+        </div>
+      </div>
+    </>
+  )
+}
 
 export default function Navbar() {
   return (
     <>
-      <div className="mx-auto h-[100px] max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="relative flex justify-between ">
-          <Logo />
-          <div>
-            <AuthButtons />
-          </div>
+      <SimpleNavbar>
+        <div className="flex flex-1 justify-end w-full">
+          <AuthButtons />
         </div>
-      </div>
+      </SimpleNavbar>
     </>
   )
 }

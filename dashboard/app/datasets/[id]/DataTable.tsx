@@ -145,7 +145,10 @@ const Table = ({ documents }) => {
               <div className="max-h-[100px] px-3 py-1 text-left text-xs text-gray-900">
                 {activeDocument?.id === document.id
                   ? document.data
-                  : document.data.slice(0, 100) + '...'}
+                  : document.data.slice(0, 100)}
+                {document.data.length > 100 &&
+                  document.id !== activeDocument?.id &&
+                  '...'}
               </div>
             </td>
           </tr>

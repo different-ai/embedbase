@@ -58,7 +58,6 @@ const ChatForm = () => {
     }
     const apiKey = await getApiKeys(supabase, session.user.id)
 
-    console.log(apiKey)
     const embedbase = createClient(
       'https://api.embedbase.xyz',
       apiKey
@@ -72,12 +71,21 @@ const ChatForm = () => {
     appendMessage('')
 
     const question = userInput
-    const context = await embedbase.dataset(datasetName).createContext(question)
+    const context = await embedbase
+      .dataset(datasetName)
+      .createContext(question, { limit: 20 })
+    console.log(context)
+    setUserInput('')
 
-    for await (const chunk of embedbase.generate(`${context} ${question}`, {
-      url: `${getRedirectURL()}api/chat`,
-      history: [],
-    })) {
+    for await (const chunk of embedbase.generate(
+      `Provide a list of points that summarize the following:  ${context.join(
+        ''
+      )} `,
+      {
+        url: `${getRedirectURL()}/api/chat/`,
+        history: [],
+      }
+    )) {
       appendChunkToLastMessage(chunk)
     }
   }
