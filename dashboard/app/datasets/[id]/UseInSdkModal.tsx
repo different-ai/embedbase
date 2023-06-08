@@ -97,7 +97,7 @@ const question =
 
 (async () => {
   console.log("retrieving data...");
-  const context = await embedbase.dataset(${datasetName}).createContext(question);
+  const context = await embedbase.dataset('${datasetName}').createContext(question);
 
   console.log("generating data");
   const response = await embedbase.generate(\`\${context} \${question}\`).get();
