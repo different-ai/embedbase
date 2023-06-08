@@ -3,6 +3,7 @@ import { Input } from './Input'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AuthButtons } from './AuthButtons'
+import { CircleStackIcon } from '@heroicons/react/24/outline'
 
 function Logo() {
   return (
@@ -15,7 +16,7 @@ function Logo() {
 export const SimpleNavbar = ({ children }) => {
   return (
     <>
-      <div className="max-w-7xl mx-auto h-[80px] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto h-[80px] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="relative flex">
           <Logo />
           {children}
@@ -29,7 +30,13 @@ export default function Navbar() {
   return (
     <>
       <SimpleNavbar>
-        <div className="flex flex-1 justify-end w-full">
+        <div className="flex w-full flex-1 justify-end items-center">
+          <Link href="/datasets">
+            <div className="flex text-gray-600">
+              <CircleStackIcon className="h-6 w-6 " />
+              Community Hub
+            </div>
+          </Link>
           <AuthButtons />
         </div>
       </SimpleNavbar>
