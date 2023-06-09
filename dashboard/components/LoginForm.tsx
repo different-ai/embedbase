@@ -144,11 +144,11 @@ export default function LoginForm() {
       {/* center child */}
       <div className="mt-6 flex items-center justify-center">
         <div className="flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-[#912ee8] border-opacity-25" />
         </div>
         <div className="mx-2 text-gray-500">Or continue with</div>
         <div className="flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-[#912ee8] border-opacity-25" />
         </div>
       </div>
 

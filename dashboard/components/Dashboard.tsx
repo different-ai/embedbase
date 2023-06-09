@@ -72,7 +72,7 @@ const navigation = [
 // We update the className property in the Link component to use the color value defined in the navigation array
 const DesktopSidebar = ({ current }) => {
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4">
+    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[#912ee8] lg:border-opacity-25 lg:pt-5 lg:pb-4">
       <div className="flex justify-center">
         <Image
           height={100}
@@ -95,9 +95,9 @@ const DesktopSidebar = ({ current }) => {
                 className={classNames(
                   item.path === current
                     ? `bg-[#912ee8]  text-white`
-                    : `text-gray-600 hover:bg-[#f4e9fe] `,
+                    : `text-gray-900 hover:bg-[#f4e9fe] `,
                   // Using template literals to add the color value defined in the navigation array
-                  'group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm'
+                  'group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm font-medium tracking-wide	'
                 )}
                 aria-current={item.current ? 'page' : undefined}
               >
@@ -105,7 +105,7 @@ const DesktopSidebar = ({ current }) => {
                   className={classNames(
                     item.path === current
                       ? `text-white`
-                      : 'text-gray-600 group-hover:text-gray-700',
+                      : 'text-gray-900 group-hover:text-gray-700',
                     'mr-3 h-6 w-6 flex-shrink-0 stroke-2 font-bold'
                   )}
                   aria-hidden="true"
@@ -194,7 +194,7 @@ export default function Dashboard({ children }) {
                               item.path === current
                                 ? 'bg-gray-100 text-gray-900'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                              'group flex cursor-pointer items-center rounded-md px-2 py-2 text-base font-medium leading-5'
+                              'group flex cursor-pointer items-center rounded-md px-2 py-2 text-base font-bold leading-5 '
                             )}
                             aria-current={item.current ? 'page' : undefined}
                           >
@@ -225,10 +225,10 @@ export default function Dashboard({ children }) {
         {/* Main column */}
         <div className="flex flex-col lg:pl-64">
           {/* Search header */}
-          <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-gray-200 bg-white lg:hidden">
+          <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-[#912ee8] border-opacity-25 bg-white lg:hidden">
             <button
               type="button"
-              className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black lg:hidden"
+              className="border-r border-[#912ee8] border-opacity-25 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black lg:hidden"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>

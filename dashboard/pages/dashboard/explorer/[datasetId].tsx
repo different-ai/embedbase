@@ -163,7 +163,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
           {documents.map((document, index) => (
             <Fragment key={document.id}>
               <tr
-                className="cursor-pointer rounded-lg border border-gray-300 bg-white"
+                className="cursor-pointer rounded-lg border border-[#912ee8] border-opacity-25 bg-white"
                 // TODO onDoubleClick does not work on mobile
                 onDoubleClick={() => handleDoubleClick(document)}
               >

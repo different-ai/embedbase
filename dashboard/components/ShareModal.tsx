@@ -138,7 +138,7 @@ export default function Example({ open, setOpen }: ShareModalProps) {
                     <div className="mt-2">
                       {loading ? (
                         <div className="flex items-center">
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-[#912ee8] border-opacity-25"></div>
                           <p className="text-sm text-gray-500">
                             Creating link...
                           </p>

@@ -25,9 +25,9 @@ export default async function Index() {
 
   return (
     <div className="mt-6 flex w-full flex-col gap-3">
-      <h3 className="text-2xl font-semibold">Datasets</h3>
-      <div className="rounded-2xl bg-[#912ee8] bg-opacity-[75%] py-5 px-5">
-        <p className="text-white">
+      <h3 className="text-2xl font-semibold">Embedbase Hub</h3>
+      <div className="rounded-2xl bg-gray-300 bg-opacity-[25%] py-5 px-5">
+        <p className="text-gray-700">
           {`Here you'll find a list of public datasets, that you can use to start
           building your app, remix or just play around with.`}
         </p>

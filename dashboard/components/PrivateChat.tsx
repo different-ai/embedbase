@@ -83,7 +83,7 @@ const DatasetCheckboxes = ({ datasets, isLoading }) => {
         {isLoading && (
           <div className="flex h-12 w-full items-center justify-center">
             <div className="flex items-center space-x-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-b-2 border-gray-300"></div>
+              <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-b-2 border-[#912ee8] border-opacity-25"></div>
               <p className="text-gray-500">Loading...</p>
             </div>
           </div>
@@ -434,7 +434,7 @@ export default function SmartChat() {
                 }
               }}
               ref={inputRef}
-              className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+              className="w-full border-[#912ee8] border-opacity-25 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
             />
             <div>
               <PrimaryButton

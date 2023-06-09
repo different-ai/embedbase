@@ -5,7 +5,7 @@ import { SubmitIcon } from '@/components/SubmitIcon'
 
 export function DisabledChatSkelton() {
   return (
-    <div className="w-full  border-t border-gray-100">
+    <div className="w-full  border-t border-[#912ee8] border-opacity-25">
       <div className="gap-4 rounded-t-lg p-2 ">
         <div className="flex h-[200px] flex-col gap-3 space-y-2 overflow-y-auto p-2 text-xs">
           <div>
@@ -22,7 +22,7 @@ export function DisabledChatSkelton() {
               id="userInput"
               name="userInput"
               placeholder={'coming soon'}
-              className="w-full border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent text-xs"
+              className="w-full border-[#912ee8] border-opacity-25 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent text-xs"
             />
               <PrimaryButton
                 type="submit"

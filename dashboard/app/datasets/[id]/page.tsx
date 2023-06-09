@@ -1,15 +1,13 @@
 import {
   SupabaseClient,
-  createServerActionClient,
   createServerComponentClient,
 } from '@supabase/auth-helpers-nextjs'
 import { cookies, headers } from 'next/headers'
 import DataTable from './DataTable'
 import { UseInSdkButton } from './UseInSdkModal'
-import { Sandpack } from '@codesandbox/sandpack-react'
 
 import { NewChat } from './NewChat'
-import { CONSOLE_LEVELS } from '@sentry/utils'
+import SearchBar from '@/components/Search'
 const pageSize = 25
 
 export default async function Index(context) {
@@ -28,10 +26,10 @@ export default async function Index(context) {
       to,
     })
 
-
   return (
     <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
-      <div className="sm:col-span-6">
+      <div className="flex flex-col gap-3 sm:col-span-6">
+        <SearchBar />
         <DataTable
           documents={documents}
           page={parseInt(page)}
@@ -54,24 +52,6 @@ export default async function Index(context) {
       </div>
     </div>
   )
-}
-
-const getApiKeys = async (supabase: SupabaseClient, userId) => {
-  const { data, status, error } = await supabase
-    .from('api-keys')
-    .select()
-    .eq('user_id', userId)
-
-  if (error && status !== 406) {
-    throw error
-  }
-
-  // get the first api key
-  const apiKey = data[0].api_key
-  if (!apiKey) {
-    throw new Error('No API key found')
-  }
-  return apiKey
 }
 
 const getPagination = (page: number, size: number) => {

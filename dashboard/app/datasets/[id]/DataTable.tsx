@@ -33,77 +33,6 @@ export const CopyButton = ({ className, textToCopy }) => {
   )
 }
 
-function cleanPath(path) {
-  return path.replace(/\/\//g, '/')
-}
-function Breadcrumbs() {
-  const pathname = usePathname()
-  // Get current path
-  const currentPath = pathname.split('/')
-
-  // Build pages array using forEach loop
-  const pages = currentPath
-    .filter((path) => path !== '')
-    .map((path, index) => {
-      // Build page object
-      const name = path.charAt(0).toUpperCase() + path.slice(1)
-      const href = cleanPath('/' + currentPath.slice(0, index + 1).join('/'))
-
-      const current = index === currentPath.length - 1
-
-      return {
-        name: name,
-        href,
-        current,
-      }
-    })
-
-  return (
-    <nav className="flex" aria-label="Breadcrumb">
-      <ol role="list" className="flex items-center space-x-4">
-        <li>
-          <div>
-            <Link
-              href="/datasets"
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-              <span className="sr-only">Home</span>
-            </Link>
-          </div>
-        </li>
-
-        {pages.map((page) => (
-          <li key={page.name}>
-            <div className="flex items-center">
-              <svg
-                className="h-5 w-5 flex-shrink-0 text-gray-300"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-              </svg>
-
-              {/* TODO: href shitty */}
-              {/* <Link
-                                href={page.href}
-                                className={`ml-4 text-sm font-medium text-gray-500 ${page.current ? 'underline' : 'hover:text-gray-700'
-                                    }`}
-                            >
-                                {page.name}
-                            </Link> */}
-              <p className={`ml-4 text-sm font-medium text-gray-500`}>
-                {page.name}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  )
-}
-
 const pageSize = 25
 interface DataTableProps {
   documents: Document[]
@@ -113,7 +42,8 @@ interface DataTableProps {
   datasetName: string
 }
 
-const Table = ({ documents }) => {
+const Table = () => {
+  const documents = useDataSetItemStore((state) => state.documents)
   const [activeDocument, setActiveDocument] = useState(null)
 
   const handleExpandRow = (document) => {
@@ -133,7 +63,7 @@ const Table = ({ documents }) => {
         {documents.map((document) => (
           <tr
             key={document.id}
-            className="border-1 cursor-pointer border-t border-[#912ee8] border-opacity-5 odd:bg-white even:bg-[#fdfbff] hover:bg-gray-100"
+            className="border-1 cursor-pointer border-t border-[#912ee8] border-opacity-[10%] odd:bg-white even:bg-gray-50"
           >
             <td
               className="cursor-context-menu select-none px-4 py-1 font-mono text-xs text-gray-500"
@@ -166,24 +96,24 @@ export default function DataTable({
   datasetName,
 }: DataTableProps) {
   const setName = useDataSetItemStore((state) => state.setName)
+  const setDocuments = useDataSetItemStore((state) => state.setDocuments)
   // initialize dataset item store
   useEffect(() => {
     setName(datasetName)
+    setDocuments(documents)
   }, [])
 
   return (
     <div className="p w-full rounded-md border border-[#912ee8] border-opacity-25">
       <Toaster />
-      <div className="flex items-center justify-between border-gray-100 p-4 ">
+      <div className="flex items-center justify-between border-[#912ee8] border-opacity-25 p-4 ">
         <div className="flex items-center">
-          <h3 className="text-lg font-semibold text-gray-700">
-            Dataset Preview
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-700">Resource</h3>
         </div>
       </div>
 
       <div className="relative max-h-[calc(100vh-230px)] overflow-auto border-b ">
-        <Table documents={documents} />
+        <Table />
       </div>
 
       <DataTableController datasetId={datasetId} page={page} count={count} />

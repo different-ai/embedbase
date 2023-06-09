@@ -40,6 +40,7 @@ const ChatForm = () => {
   const [userInput, setUserInput] = useState('')
   const appendMessage = useChatAppStore((state) => state.appendMessage)
   const datasetName = useDataSetItemStore((state) => state.name)
+  const query = useDataSetItemStore((state) => state.query)
 
   const appendChunkToLastMessage = useChatAppStore(
     (state) => state.appendChunkToLastMessage
@@ -76,14 +77,12 @@ const ChatForm = () => {
     const question = userInput
     const context = await embedbase
       .dataset(datasetName)
-      .createContext(question, { limit: 20 })
+      .createContext(query, { limit: 20 })
     console.log(context)
     setUserInput('')
 
     for await (const chunk of embedbase.generate(
-      `Provide a list of points that summarize the following:  ${context.join(
-        ''
-      )} `,
+      `${question}  ${context.join('')} `,
       {
         url: `${getRedirectURL()}/api/chat/`,
         history: [],
@@ -102,7 +101,7 @@ const ChatForm = () => {
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
         placeholder={'Ask any question'}
-        className="w-full border-gray-200 bg-white text-xs text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+        className="w-full border-[#912ee8] border-opacity-25 bg-white text-xs text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
       />
       <PrimaryButton
         type="submit"

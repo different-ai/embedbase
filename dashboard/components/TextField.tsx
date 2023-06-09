@@ -21,7 +21,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         type="text"
         value={value}
         onChange={onChange}
-        className={className+" w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"}
+        className={className+" w-full rounded-md border border-[#912ee8] border-opacity-25 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"}
       />
     )
   }

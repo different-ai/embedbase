@@ -39,7 +39,7 @@ export default function CodeCopyBtn({ children }) {
       {loading && (
         <div className="flex items-center justify-center">
           Loading... this might take a while
-          <div className="h-5 w-5 animate-spin rounded-full border-t-2 border-b-2 border-gray-900"></div>
+          <div className="h-5 w-5 animate-spin rounded-full border-t-2 border-b-2 border-[#912ee8] border-opacity-25"></div>
         </div>
       )}
     </PrimaryButton>

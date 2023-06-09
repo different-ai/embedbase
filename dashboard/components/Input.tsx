@@ -10,7 +10,7 @@ export const Input = forwardRef(function Input(
     <input
       type={type}
       className={classNames(
-        'border-1 rounded-md border-gray-300 py-2 pl-3 focus:border-gray-400 focus:outline-none focus:ring-0 focus:ring-transparent',
+        'border-1 rounded-md border-[#912ee8] border-opacity-25 py-2 pl-3 focus:border-[#912ee8] border-opacity-25 focus:outline-none focus:ring-0 focus:ring-transparent',
         className
       )}
       ref={ref}
@@ -27,7 +27,7 @@ export const TextArea = forwardRef(function Input(
     <textarea
       type={type}
       className={
-        classNames( 'border-1 rounded-md border-gray-300 py-2 pl-3 focus:border-gray-800 focus:outline-none focus:ring-0 focus:ring-transparent', className)
+        classNames( 'border-1 rounded-md border-[#912ee8] border-opacity-25 py-2 pl-3 focus:border-[#912ee8] border-opacity-25 focus:outline-none focus:ring-0 focus:ring-transparent', className)
       }
       ref={ref}
       rows={rows}
