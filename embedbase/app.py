@@ -142,6 +142,7 @@ class Embedbase:
         documents = request_body.documents
 
         filtered_data = []
+        existing_data = []
         for doc in documents:
             if self.embedder.is_too_big(doc.data):
                 # tell the client that he has
@@ -154,8 +155,11 @@ class Embedbase:
                         + ", please see https://docs.embedbase.xyz/document-is-too-long"
                     },
                 )
-            if doc.data is not None:
-                filtered_data.append(doc.dict())
+            # ignore duplicates in the same request
+            if doc.data in existing_data:
+                continue
+            filtered_data.append(doc.dict())
+            existing_data.append(doc.data)
 
         df = DataFrame(
             data=filtered_data,

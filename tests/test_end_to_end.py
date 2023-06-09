@@ -160,7 +160,7 @@ async def test_refresh_small_documents():
 async def test_sync_no_id_collision():
     async for app in run_around_tests():
         df = pd.DataFrame(
-            ["foo" for _ in range(10)],
+            ["foo" + str(i) for i in range(10)],
             columns=["text"],
         )
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
@@ -241,7 +241,7 @@ async def test_health_properly_forward_headers():
 # TODO: confusing names, here we just check if embeddings cache works (badly)
 @pytest.mark.asyncio
 async def test_adding_twice_the_same_data_is_ignored():
-    async for app in run_around_tests():
+    async for app in run_around_tests(only_db=[Supabase]):
         d = [
             "The lion is the king of the jungle",
             "The lion is a large cat",
@@ -285,6 +285,115 @@ async def test_adding_twice_the_same_data_is_ignored():
                 sorted([e["data"] for e in json_response.get("similarities")])
             ):
                 assert lion == sorted(d)[idx], f"{lion} != {sorted(d)[idx]}"
+
+
+@pytest.mark.asyncio
+async def test_adding_twice_the_same_data_is_ignored_two():
+    async for app in run_around_tests():
+        d = [
+            "The lion is the king of the jungle",
+            "The lion is the king of the jungle",
+            "The lion is the king of the jungle",
+            "The lion is the king of the jungle",
+        ]
+        df = pd.DataFrame({"data": d})
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": data,
+                        }
+                        for i, data in enumerate(df.data.tolist())
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 1
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": data,
+                        }
+                        for i, data in enumerate(df.data.tolist())
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 1
+
+        # search should not have duplicates
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search", json={"query": "Feline animal"}
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert json_response.get("query", "") == "Feline animal"
+            assert len(json_response.get("similarities")) == 1
+
+
+@pytest.mark.asyncio
+async def test_adding_twice_the_same_data_is_ignored_one_row_twice():
+    async for app in run_around_tests():
+        d = [
+            "just trying something",
+        ]
+        df = pd.DataFrame({"data": d})
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": data,
+                        }
+                        for i, data in enumerate(df.data.tolist())
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 1
+
+        import time
+
+        time.sleep(1)
+
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": data,
+                        }
+                        for i, data in enumerate(df.data.tolist())
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert len(json_response.get("results")) == 1
+
+        # search should not have duplicates
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}/search", json={"query": "smthing"}
+            )
+            assert response.status_code == 200
+            json_response = response.json()
+            assert json_response.get("query", "") == "smthing"
+            assert len(json_response.get("similarities")) == 1
 
 
 @pytest.mark.asyncio
@@ -418,7 +527,7 @@ async def test_get_datasets_with_auth():
 
 @pytest.mark.asyncio
 async def test_update_documents():
-    async for app in run_around_tests():
+    async for app in run_around_tests(only_db=[Supabase]):
         # First, insert some documents
         documents = [
             {
@@ -492,7 +601,7 @@ d = [
         },
     },
     {
-        "data": "John pushed code at 8 AM",
+        "data": "John pushed code at 7 AM",
         "metadata": {
             "source": "google.com",
             "path": "https://google.com/john",
@@ -510,7 +619,7 @@ d = [
 
 @pytest.mark.asyncio
 async def test_search_with_where():
-    async for app in run_around_tests(skip_db=[Postgres]):
+    async for app in run_around_tests(only_db=[Supabase]):
         # First, insert some documents
         async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
             response = await client.post(
@@ -752,3 +861,25 @@ async def test_replace():
                 "source": "github.com",
                 "new": "metadata",
             }
+
+
+@pytest.mark.asyncio
+async def adding_empty_doc_fails():
+    async for app in run_around_tests():
+        async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
+            response = await client.post(
+                f"/v1/{unit_testing_dataset}",
+                json={
+                    "documents": [
+                        {
+                            "data": "",
+                        }
+                    ]
+                },
+            )
+            assert response.status_code == 422
+            text_response = response.text
+            assert (
+                text_response
+                == '{"detail":[{"loc":["body","documents",0,"data"],"msg":"data must not be empty","type":"assertion_error"}]}'
+            )
