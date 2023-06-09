@@ -106,7 +106,7 @@ const DesktopSidebar = ({ current }) => {
                     item.path === current
                       ? `text-white`
                       : 'text-gray-600 group-hover:text-gray-700',
-                    'mr-3 h-6 w-6 flex-shrink-0 stroke-1 font-bold'
+                    'mr-3 h-6 w-6 flex-shrink-0 stroke-2 font-bold'
                   )}
                   aria-hidden="true"
                 />

@@ -51,7 +51,7 @@ export function Playground() {
               <h3 className="mb-6 text-2xl font-semibold text-gray-900">
                 Playground{' '}
               </h3>
-              <div>
+              {/* <div>
                 <SecondaryButton
                   onClick={() => setIsShareModalOpen(true)}
                   className="flex max-w-max gap-2"
@@ -66,7 +66,7 @@ export function Playground() {
                   <ShareIcon height={18} width={18} />
                   Share this Playground
                 </SecondaryButton>
-              </div>
+              </div> */}
 
             </div>
 
