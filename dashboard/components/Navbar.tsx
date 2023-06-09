@@ -4,11 +4,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { AuthButtons } from './AuthButtons'
 import { CircleStackIcon } from '@heroicons/react/24/outline'
+import CommunityHubButton from './CommunityHubButton'
 
 function Logo() {
   return (
     <Link href="/">
-      <Image src="/logo-transparent.svg" alt="Logo" width={150} height={100} />
+      <Image src="/newlog.png" alt="Logo" width={150} height={100} />
     </Link>
   )
 }
@@ -30,13 +31,8 @@ export default function Navbar() {
   return (
     <>
       <SimpleNavbar>
-        <div className="flex w-full flex-1 justify-end items-center">
-          <Link href="/datasets">
-            <div className="flex text-gray-600">
-              <CircleStackIcon className="h-6 w-6 " />
-              Community Hub
-            </div>
-          </Link>
+        <div className="flex w-full flex-1 items-center justify-end">
+          <CommunityHubButton />
           <AuthButtons />
         </div>
       </SimpleNavbar>

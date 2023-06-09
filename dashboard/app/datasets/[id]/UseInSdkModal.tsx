@@ -79,9 +79,12 @@ export const UseInSdkButton = ({ datasetName }) => {
   return (
     <>
       <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
-      <SecondaryButton onClick={() => setOpen(true)} className="gap-1 max-w-max mr-2 text-xs">
+      <SecondaryButton
+        onClick={() => setOpen(true)}
+        className="fle mr-2 max-w-max items-center gap-1 text-xs"
+      >
+        <div className="text-gray-900 font-normal">Remix for your app</div>
         <CodeBracketIcon height={12} width={12} />
-        Remix for your app
       </SecondaryButton>
     </>
   )

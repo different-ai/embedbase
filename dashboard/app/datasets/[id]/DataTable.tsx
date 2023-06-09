@@ -133,7 +133,7 @@ const Table = ({ documents }) => {
         {documents.map((document) => (
           <tr
             key={document.id}
-            className="border-1 cursor-pointer border-t border-gray-300 odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+            className="border-1 cursor-pointer border-t border-[#912ee8] border-opacity-5 odd:bg-white even:bg-[#fdfbff] hover:bg-gray-100"
           >
             <td
               className="cursor-context-menu select-none px-4 py-1 font-mono text-xs text-gray-500"
@@ -172,7 +172,7 @@ export default function DataTable({
   }, [])
 
   return (
-    <div className="p w-full rounded-md border border-gray-100">
+    <div className="p w-full rounded-md border border-[#912ee8] border-opacity-25">
       <Toaster />
       <div className="flex items-center justify-between border-gray-100 p-4 ">
         <div className="flex items-center">

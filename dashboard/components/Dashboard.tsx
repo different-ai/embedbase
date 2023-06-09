@@ -13,16 +13,15 @@ import {
   QuestionMarkCircleIcon,
   CircleStackIcon,
 } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Fragment, useState } from 'react'
 import { classNames } from '../lib/utils'
 import Breadcrumbs from './Breadcrumbs'
+import CommunityHubButton from './CommunityHubButton'
 import { User } from './User'
-import Image from 'next/image'
-import Navbar, { SimpleNavbar } from './Navbar'
-import { SecondaryButton } from './Button'
 
 const navigation = [
   {
@@ -74,8 +73,16 @@ const navigation = [
 const DesktopSidebar = ({ current }) => {
   return (
     <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:pt-5 lg:pb-4">
+      <div className="flex justify-center">
+        <Image
+          height={100}
+          width={150}
+          src="/newlog.png"
+          alt="embedbase logo"
+        />
+      </div>
       {/* Sidebar component, swap this element with another sidebar if you like */}
-      <div className="mt-[80px] flex h-0 flex-1 flex-col overflow-y-auto pt-1">
+      <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-1">
         {/* User account dropdown */}
         <User />
         {/* Navigation */}
@@ -87,17 +94,17 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-gray-100 text-gray-600 `
-                    : `text-gray-600 hover:bg-gray-100 `,
+                    ? `bg-[#912ee8]  text-white`
+                    : `text-gray-600 hover:bg-[#f4e9fe] `,
                   // Using template literals to add the color value defined in the navigation array
-                  'group flex cursor-pointer items-center rounded-2xl px-3 py-2  text-sm'
+                  'group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm'
                 )}
                 aria-current={item.current ? 'page' : undefined}
               >
                 <item.icon
                   className={classNames(
                     item.path === current
-                      ? `text-gray-600 `
+                      ? `text-white`
                       : 'text-gray-600 group-hover:text-gray-700',
                     'mr-3 h-6 w-6 flex-shrink-0 stroke-1 font-bold'
                   )}
@@ -123,17 +130,6 @@ export default function Dashboard({ children }) {
   return (
     <>
       <div className="min-h-full bg-white">
-        <SimpleNavbar>
-          <div className='ml-32 flex justify-between w-full'>
-            <Breadcrumbs />
-            <Link href="/datasets">
-              <div className="flex text-gray-600">
-                <CircleStackIcon className="h-6 w-6 " />
-                Community Hub
-              </div>
-            </Link>
-          </div>
-        </SimpleNavbar>
         <DesktopSidebar current={current} />
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
@@ -242,7 +238,11 @@ export default function Dashboard({ children }) {
           <main className="flex-1 bg-white px-4">
             {/* Page title & actions */}
             {/* Pinned projects */}
-            <div className="mt-4"></div>
+            <div className="mt-6 flex w-full justify-between">
+              <Breadcrumbs />
+              <CommunityHubButton />
+            </div>
+
             <div className="">{children}</div>
           </main>
         </div>

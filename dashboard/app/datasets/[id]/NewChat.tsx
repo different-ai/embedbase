@@ -18,6 +18,7 @@ interface DatasetItemStore {
   appendMessage: (message: string) => void
   setMessages: (messages: string[]) => void
   appendChunkToLastMessage: (chunk: string) => void
+  loading: boolean
 }
 
 export const useChatAppStore = create<DatasetItemStore>()((set) => ({
@@ -25,6 +26,7 @@ export const useChatAppStore = create<DatasetItemStore>()((set) => ({
   appendMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
   setMessages: (messages) => set(() => ({ messages })),
+  loading: false,
   appendChunkToLastMessage: (chunk) =>
     set((state) => ({
       messages: [
@@ -56,6 +58,7 @@ const ChatForm = () => {
       toast.error('Please sign in to chat')
       return
     }
+
     const apiKey = await getApiKeys(supabase, session.user.id)
 
     const embedbase = createClient(
@@ -137,7 +140,7 @@ const ChatMessages = () => {
 // update to datasetid
 export function NewChat() {
   return (
-    <div className="w-full  border-t border-gray-100">
+    <div className="w-full  border-t border-[#912ee8] border-opacity-25">
       <ChatBody>
         <ChatMessages />
       </ChatBody>

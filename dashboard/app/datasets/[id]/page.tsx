@@ -42,7 +42,7 @@ export default async function Index(context) {
       </div>
 
       <div className="flex flex-col gap-3 sm:col-span-3">
-        <div className="rounded-md border border-gray-100">
+        <div className="rounded-md border border-[#912ee8] border-opacity-25">
           <div className="flex items-center justify-between">
             <h3 className="p-4 text-lg font-semibold text-gray-700">
               Chat Playground
