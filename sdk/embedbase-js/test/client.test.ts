@@ -1,6 +1,9 @@
 import { describe, expect, jest, test } from '@jest/globals';
 import { createClient } from '../src/index';
 import { stream as originalStream } from '../src/utils';
+import glob from 'glob'
+import fs from 'fs'
+import path from 'path';
 
 try {
   require('dotenv').config({ path: './.env' })
@@ -289,6 +292,7 @@ describe('API error handling tests', () => {
     });
 
     // Restore the original stream function implementation after the test
+    // @ts-ignore
     jest.spyOn(require('../src/utils'), 'stream').mockImplementation(originalStream);
   }, TIMEOUT);
 
@@ -446,3 +450,48 @@ test('should be able to replace my documents', async () => {
   expect(res.length).toBe(1)
   expect(res[0].data).toContain('dancing')
 }, TIMEOUT)
+
+test.skip('large documents shouldnt crash javascript heap', async () => {
+
+  const ignored = [
+    "node_modules",
+    "dist",
+    "build",
+    "public",
+    "env",
+    ".next",
+    ".git",
+  ];
+  // read all files under pages/* with .md, .mdx, .ts, .py extension
+  const filePaths = glob.sync("../../**/*.{md,mdx,ts,py}")
+    .filter((p) => !ignored.some((i) => p.includes(i)) &&
+      // Check if the path is a file
+      fs.statSync(p).isFile());
+
+  const documents = filePaths
+    .map((p) => ({
+      path:
+        // if the file is under docs/ folder, then
+        // it is docs (docs.embedbase.xyz)
+        p.includes("docs/") ?
+          path.join(
+            "https://docs.embedbase.xyz",
+            p.replace("../", "")
+              .replace("pages/", "/")
+              .replace("index.mdx", "")
+              .replace(".mdx", "")
+          ) :
+          // otherwise it is https://github.com/different-ai/embedbase
+          path.join(
+            "https://github.com/different-ai/embedbase/blob/main",
+            p.replace("../", "")
+          ),
+      // content of the file
+      data: fs.readFileSync(p, "utf-8")
+    }));
+
+  // await Promise.all(documents.map((doc) => splitText(doc.data)))
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).chunkAndBatchAdd(documents.filter((d) => !d.data.includes("<|endoftext|>")))
+  expect(true).toBe(true)
+}, TIMEOUT * 10)

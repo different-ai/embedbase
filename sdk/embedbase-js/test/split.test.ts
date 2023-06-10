@@ -1,6 +1,6 @@
-import { splitText } from '../src/split/index'
-import { merge } from '../src/split'
-import {it, describe, expect, jest, test} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
+import { merge } from '../src/split';
+import { splitText } from '../src/split/index';
 
 
 describe('Splitting based on max tokens', () => {
@@ -15,7 +15,7 @@ describe('Splitting based on max tokens', () => {
 it('merge chunks', async () => {
   const text = 'AGI'.repeat(50)
   const chunks = await splitText(text, { chunkSize: 50, chunkOverlap: 0 }).map((c) => c.chunk)
-  const merged = await merge(chunks, { separator: ''})
+  const merged = await merge(chunks, { separator: '' })
   expect(merged).toBe(text)
 })
 
@@ -34,7 +34,7 @@ describe('Splitting based on max tokens properly return start and end', () => {
 
 it('splits text using generator', async () => {
   const text = 'AGI '.repeat(50)
-  for await (const {chunk} of splitText(text, { chunkSize: 1, chunkOverlap: 0 })) {
+  for await (const { chunk } of splitText(text, { chunkSize: 1, chunkOverlap: 0 })) {
     expect(chunk).toBe("AG")
     return
   }
@@ -49,7 +49,7 @@ it('splits text and batch', async () => {
   }
   expect(i).toBeGreaterThan(10)
 })
-    
+
 it('splits text and batch with map', async () => {
   const text = 'AGI '.repeat(50)
   let i = 0
