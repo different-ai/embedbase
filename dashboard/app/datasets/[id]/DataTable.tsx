@@ -43,7 +43,7 @@ interface DataTableProps {
   datasetOwnerUsername: string
 }
 
-const Table = () => {
+const Table = ({ defaultDocuments }) => {
   const documents = useDataSetItemStore((state) => state.documents)
   const [activeDocument, setActiveDocument] = useState(null)
 
@@ -57,11 +57,12 @@ const Table = () => {
     navigator.clipboard.writeText(text)
     toast('Copied to clipboard!')
   }
+  const renderedDocuments = documents || defaultDocuments
 
   return (
     <table className="min-w-full bg-gray-100">
       <tbody className="space-y flex flex-col bg-gray-100">
-        {documents.map((document) => (
+        {renderedDocuments.map((document) => (
           <tr
             key={document.id}
             className="border-1 cursor-pointer border-t border-[#912ee8] border-opacity-[10%] odd:bg-white even:bg-gray-50"
@@ -119,7 +120,7 @@ export default function DataTable({
       </div>
 
       <div className="relative max-h-[calc(100vh-230px)] overflow-auto border-b ">
-        <Table />
+        <Table defaultDocuments={documents} />
       </div>
 
       <DataTableController datasetId={datasetId} page={page} count={count} />

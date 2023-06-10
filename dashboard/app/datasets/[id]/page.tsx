@@ -21,11 +21,15 @@ export default async function Index(context) {
     datasetName,
     count,
     datasetOwnerUsername,
-  }: { documents: any[]; datasetName: string; count: number } =
-    await getDocuments(supabase, datasetId, {
-      from,
-      to,
-    })
+  }: {
+    documents: any[]
+    datasetName: string
+    count: number
+    datasetOwnerUsername: string
+  } = await getDocuments(supabase, datasetId, {
+    from,
+    to,
+  })
 
   return (
     <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
@@ -42,12 +46,12 @@ export default async function Index(context) {
       </div>
 
       <div className="flex flex-col gap-3 sm:col-span-3">
+        <UseInSdkButton datasetName={datasetName} />
         <div className="rounded-md border border-[#912ee8] border-opacity-25">
           <div className="flex items-center justify-between">
             <h3 className="p-4 text-lg font-semibold text-gray-700">
               Chat Playground
             </h3>
-            <UseInSdkButton datasetName={datasetName} />
           </div>
           <NewChat />
         </div>

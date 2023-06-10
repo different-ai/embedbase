@@ -5,8 +5,11 @@ import Markdown from '@/components/Markdown'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useState } from 'react'
 import { CopyButton } from './DataTable'
+import { useDataSetItemStore } from './store'
 
 function UseInSdkModal({ datasetName, open, setOpen }) {
+  const query = useDataSetItemStore((state) => state.query)
+  const question = useDataSetItemStore((state) => state.userQuestion)
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>
@@ -42,7 +45,7 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
                     >
                       Remix
                     </Dialog.Title>
-                    <div className="rounded-md bg-gray-100 p-5 text-sm text-gray-600">
+                    <div className="rounded-md bg-gray-50 p-5 text-sm text-gray-600">
                       You can easily re-use this dataset in your own application
                       using the&nbsp;
                       <a
@@ -56,13 +59,15 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
                     </div>
 
                     <div className="mt-2">
-                      <Markdown>{datasetToSdkUsage(datasetName)}</Markdown>
+                      <Markdown>
+                        {datasetToSdkUsage(datasetName, query, question)}
+                      </Markdown>
                     </div>
                   </div>
                 </div>
                 <CopyButton
                   className="mt-5 inline-flex w-full justify-center px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                  textToCopy={datasetToSdkUsage(datasetName)}
+                  textToCopy={datasetToSdkUsage(datasetName, query, question)}
                 />
               </Dialog.Panel>
             </Transition.Child>
@@ -83,14 +88,14 @@ export const UseInSdkButton = ({ datasetName }) => {
         onClick={() => setOpen(true)}
         className="fle mr-2 max-w-max items-center gap-1 text-xs"
       >
-        <div className="text-gray-900 font-normal">Remix for your app</div>
+        <div className="font-normal text-gray-900">Remix for your app</div>
         <CodeBracketIcon height={12} width={12} />
       </SecondaryButton>
     </>
   )
 }
 
-export const datasetToSdkUsage = (datasetName) => {
+export const datasetToSdkUsage = (datasetName, query, question) => {
   return ` \`\`\`js
 const { createClient } = require("embedbase-js");
 
@@ -100,10 +105,10 @@ const question =
 
 (async () => {
   console.log("retrieving data...");
-  const context = await embedbase.dataset('${datasetName}').createContext(question);
+  const context = await embedbase.dataset('${datasetName}').createContext(${query});
 
   console.log("generating data");
-  const response = await embedbase.generate(\`\${context} \${question}\`).get();
+  const response = await embedbase.generate(\`\${context} ${question}\`).get();
   console.log(response.join(""));
 })();
 

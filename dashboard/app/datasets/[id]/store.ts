@@ -5,6 +5,8 @@ interface DatasetItemStore {
   query: string
   queryResults: string[]
   documents: any[]
+  userQuestion: string
+  setUserQuestion: (userInput: string) => void
   setDocuments: (documents: any[]) => void
   setName: (name: string) => void
   setQueryResults: (queryResults: string[]) => void
@@ -13,6 +15,8 @@ interface DatasetItemStore {
 
 export const useDataSetItemStore = create<DatasetItemStore>()((set) => ({
   name: '',
+  userQuestion: '',
+  setUserQuestion: (userInput: string) => set({ userQuestion: userInput }),
   query: '',
   documents: [],
   queryResults: [],

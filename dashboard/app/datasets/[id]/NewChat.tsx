@@ -6,7 +6,7 @@ import { SubmitIcon } from '@/components/SubmitIcon'
 import { useDataSetItemStore } from './store'
 
 import { create } from 'zustand'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from 'embedbase-js'
 import { getRedirectURL } from '@/lib/redirectUrl'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -39,12 +39,18 @@ export const useChatAppStore = create<DatasetItemStore>()((set) => ({
 const ChatForm = () => {
   const [userInput, setUserInput] = useState('')
   const appendMessage = useChatAppStore((state) => state.appendMessage)
-  const datasetName = useDataSetItemStore((state) => state.name)
-  const query = useDataSetItemStore((state) => state.query)
+  const documents = useDataSetItemStore((state) => state.documents)
+  const setQuestion = useDataSetItemStore((state) => state.setUserQuestion)
+  const context = documents.map((doc) => doc.data)
 
   const appendChunkToLastMessage = useChatAppStore(
     (state) => state.appendChunkToLastMessage
   )
+  useEffect(() => {
+    if (userInput.trim()) {
+      setQuestion(userInput)
+    }
+  }, [userInput])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -75,16 +81,15 @@ const ChatForm = () => {
     appendMessage('')
 
     const question = userInput
-    const context = await embedbase
-      .dataset(datasetName)
-      .createContext(query, { limit: 20 })
     console.log(context)
     setUserInput('')
 
     for await (const chunk of embedbase.generate(
-      `${question}  ${context.join('')} `,
+      `the following line is a question:\n${question}  the following line is context to answer:\n${context.join(
+        ''
+      )} `,
       {
-        url: `${getRedirectURL()}/api/chat/`,
+        url: `${getRedirectURL()}api/chat`,
         history: [],
       }
     )) {
