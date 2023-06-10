@@ -7,9 +7,11 @@ import { useDataSetItemStore } from '../app/datasets/[id]/store'
 import { getApiKeys } from '../pages/dashboard/explorer/[datasetId]'
 import { PrimaryButton } from './Button'
 import { Input } from './Input'
+import Spinner from './Spinner'
 
 const SearchBar = () => {
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
   const datasetName = useDataSetItemStore((state) => state.name)
   const setQuery = useDataSetItemStore((state) => state.setQuery)
   const setDocuments = useDataSetItemStore((state) => state.setDocuments)
@@ -21,6 +23,8 @@ const SearchBar = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setLoading(true)
+    if (!search.trim()) return
     const supabase = createClientComponentClient()
     // check if session
     const {
@@ -28,7 +32,7 @@ const SearchBar = () => {
     } = await supabase.auth.getSession()
     // if no session
     if (!session) {
-      toast.error('Please sign in to chat')
+      toast.error('Please sign in to search')
       return
     }
 
@@ -41,11 +45,12 @@ const SearchBar = () => {
     )
     embedbase
       .dataset(datasetName)
-      .search(search, {limit: 10})
+      .search(search, { limit: 10 })
       .then((res) => {
         console.log(res)
         setDocuments(res)
       })
+      .finally(() => setLoading(false))
   }
 
   return (
@@ -57,7 +62,13 @@ const SearchBar = () => {
         value={search}
         onChange={handleChange}
       />
-      <PrimaryButton>Search</PrimaryButton>
+      {loading && (
+        <PrimaryButton disabled className="flex gap-3">
+          Loading <Spinner />
+        </PrimaryButton>
+      )}
+
+      {!loading && <PrimaryButton type="submit">Search</PrimaryButton>}
     </form>
   )
 }

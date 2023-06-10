@@ -40,6 +40,7 @@ interface DataTableProps {
   count: number
   datasetId: string
   datasetName: string
+  datasetOwnerUsername: string
 }
 
 const Table = () => {
@@ -94,6 +95,7 @@ export default function DataTable({
   count,
   datasetId,
   datasetName,
+  datasetOwnerUsername,
 }: DataTableProps) {
   const setName = useDataSetItemStore((state) => state.setName)
   const setDocuments = useDataSetItemStore((state) => state.setDocuments)
@@ -108,7 +110,11 @@ export default function DataTable({
       <Toaster />
       <div className="flex items-center justify-between border-[#912ee8] border-opacity-25 p-4 ">
         <div className="flex items-center">
-          <h3 className="text-lg font-semibold text-gray-700">Resource</h3>
+          <h3 className="text-lg font-semibold text-gray-700">{datasetName}</h3>
+          {/* display author in light gray ish */}
+          <h3 className="ml-2 text-xs font-medium text-gray-400">
+            by {datasetOwnerUsername}
+          </h3>
         </div>
       </div>
 

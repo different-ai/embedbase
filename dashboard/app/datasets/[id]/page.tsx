@@ -20,6 +20,7 @@ export default async function Index(context) {
     documents,
     datasetName,
     count,
+    datasetOwnerUsername,
   }: { documents: any[]; datasetName: string; count: number } =
     await getDocuments(supabase, datasetId, {
       from,
@@ -35,6 +36,7 @@ export default async function Index(context) {
           page={parseInt(page)}
           count={count}
           datasetName={datasetName}
+          datasetOwnerUsername={datasetOwnerUsername}
           datasetId={datasetId}
         />
       </div>
@@ -83,13 +85,14 @@ const getDocuments = async (
     count: res2.count,
     datasetName: res.data.name,
     datasetOwner: res.data.owner,
+    datasetOwnerUsername: res.data.owner_username,
   }
 }
 
 const getDataset = async (supabase: SupabaseClient, datasetId: string) => {
   const res = await supabase
     .from('public_dataset_view')
-    .select('name,owner')
+    .select('name,owner, owner_username')
     .eq('id', datasetId)
     .single()
 
