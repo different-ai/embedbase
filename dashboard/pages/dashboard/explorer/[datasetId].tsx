@@ -36,7 +36,7 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
     );
   };
   const router = useRouter()
-  const [isPublic, setIsPublic] = useState(documents[0].public === true);
+  const [isPublic, setIsPublic] = useState(documents[0]?.public === true);
 
   const onShareDataset = async () => {
     // if the user has no username, send him to /dashboard/account with a toast

@@ -30,9 +30,9 @@ const url = 'https://api.embedbase.xyz'
 const embedbase = createClient(url, apiKey)
 const datasetId = `embedbase-documentation`
 
-const clear = async () => {
-    await embedbase.dataset(datasetId).clear()
-}
+// const clear = async () => {
+//     await embedbase.dataset(datasetId).clear()
+// }
 // clear()
 const sync = async () => {
     const ignored = [
