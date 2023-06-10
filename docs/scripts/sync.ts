@@ -28,7 +28,12 @@ const apiKey = process.env.EMBEDBASE_API_KEY;
 // this is using the hosted instance
 const url = 'https://api.embedbase.xyz'
 const embedbase = createClient(url, apiKey)
+const datasetId = `embedbase-documentation`
 
+const clear = async () => {
+    await embedbase.dataset(datasetId).clear()
+}
+// clear()
 const sync = async () => {
     const ignored = [
         "node_modules",
@@ -81,7 +86,6 @@ const sync = async () => {
                 }
             }))
         )
-    const datasetId = `embedbase-documentation`
 
     console.log(`Syncing to ${datasetId} ${chunks.length} documents`);
 
@@ -92,3 +96,5 @@ const sync = async () => {
 }
 
 sync();
+
+
