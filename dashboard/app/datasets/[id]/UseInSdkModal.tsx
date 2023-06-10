@@ -86,7 +86,7 @@ export const UseInSdkButton = ({ datasetName }) => {
       <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
       <SecondaryButton
         onClick={() => setOpen(true)}
-        className="fle mr-2 max-w-max items-center gap-1 text-xs"
+        className="fle mr-2 max-w-max items-center gap-1 "
       >
         <div className="font-normal text-gray-900">Remix for your app</div>
         <CodeBracketIcon height={12} width={12} />
@@ -95,20 +95,23 @@ export const UseInSdkButton = ({ datasetName }) => {
   )
 }
 
-export const datasetToSdkUsage = (datasetName, query, question) => {
+export const datasetToSdkUsage = (
+  datasetName,
+  query,
+  question = 'write down a question here'
+) => {
   return ` \`\`\`js
 const { createClient } = require("embedbase-js");
 
 const embedbase = createClient('https://api.embedbase.xyz', '<grab the api key here https://app.embedbase.xyz/>')
-const question =
-  "replace this with a query to dataset e.g. what can I use for improved sequence segmentation and labeling";
+const question = "${question}";
 
 (async () => {
   console.log("retrieving data...");
   const context = await embedbase.dataset('${datasetName}').createContext(${query});
 
   console.log("generating data");
-  const response = await embedbase.generate(\`\${context} ${question}\`).get();
+  const response = await embedbase.generate(\`\${context} \${question}\`).get();
   console.log(response.join(""));
 })();
 
