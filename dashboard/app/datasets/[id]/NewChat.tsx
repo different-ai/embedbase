@@ -86,7 +86,7 @@ const ChatForm = () => {
 
     for await (const chunk of embedbase.generate(
       `the following line is a question:\n${question}  the following line is context to answer:\n${context.join(
-        ''
+        '\n'
       )} `,
       {
         url: `${getRedirectURL()}api/chat`,
