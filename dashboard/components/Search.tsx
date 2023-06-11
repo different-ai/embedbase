@@ -41,14 +41,18 @@ const SearchBar = () => {
     const embedbase = createClient(
       'https://api.embedbase.xyz',
       apiKey
-      //   '093d0aaf-11b2-4046-8f7f-5bd703b26957'
     )
+
+    // const augmentedQuery = await augmentSearchQuery(search)
+
     embedbase
       .dataset(datasetName)
       .search(search, { limit: 10 })
       .then((res) => {
         console.log(res)
-        setDocuments(res)
+        // @ts-ignore
+        const relevant = res.filter((item) => item.score >= 0.7)
+        setDocuments(relevant)
       })
       .finally(() => setLoading(false))
   }
