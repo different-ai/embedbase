@@ -10,7 +10,7 @@ import { getStripe } from '@/utils/stripe-client'
 import { PrimaryButton } from '@/components/Button'
 import Usage, { UsageItem } from '@/components/Usage'
 import { Price } from '@/utils/types'
-import { User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { User, createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
 const FreePlan = () => {
@@ -223,7 +223,7 @@ export default function Index({ usage }: { usage: UsageItem[] }) {
 }
 
 export const getServerSideProps = async (ctx) => {
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
 
   // Check if we have a session
   const {

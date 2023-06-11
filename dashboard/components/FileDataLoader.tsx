@@ -108,7 +108,7 @@ export default function FileDataLoader() {
   return (
     <div className="flex flex-col gap-3">
       <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex gap-3 ">
+        <div className="sm:flex gap-3 ">
           <div className="col-span-full">
             <div className=" border-1  flex w-[250px] rounded-lg border bg-white py-4 px-8">
               <div className="w-full text-center">

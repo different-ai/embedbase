@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
@@ -110,7 +110,7 @@ export function DatasetList() {
         <div className="flex flex-wrap gap-4">
           {datasets.map((dataset) => (
             <Link key={dataset.id} href={`/dashboard/explorer/${dataset.id}`}>
-              <Card className="flex h-[130px] w-[300px] max-w-xs flex-1 items-center justify-center rounded-md ">
+              <Card className="flex h-[130px] w-[300px] max-w-xs flex-1 items-center justify-center rounded-md hover:bg-purple-100">
                 <CardTitle className="flex items-center text-lg font-normal text-gray-600">
                   {dataset.id}
                 </CardTitle>
@@ -135,7 +135,7 @@ export default function Index() {
 
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   // Check if we have a session
   const {
     data: { session },

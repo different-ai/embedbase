@@ -3,7 +3,7 @@ import { getApiKey } from '@/lib/getApiKey'
 import { OpenAIStream, OpenAIPayload } from '@/lib/utils'
 import { defaultChatSystem } from '@/utils/constants'
 import * as Sentry from '@sentry/nextjs'
-import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextRequest, NextResponse } from 'next/server'
 
 if (!process.env.OPENAI_API_KEY) {
@@ -29,7 +29,7 @@ type Chat = {
 
 const handler = async (req: Request, res: Response): Promise<Response> => {
   const getEmbedbaseApp = async (publicApiKey: string) => {
-    const supabase = createMiddlewareSupabaseClient(
+    const supabase = createMiddlewareClient(
       // @ts-ignore
       { req, res },
       {

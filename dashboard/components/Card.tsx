@@ -44,7 +44,7 @@ interface CardProps {
 const Card = ({ className, children }: CardProps): JSX.Element => {
   return (
     <div
-      className={`overflow-hidden bg-white sm:rounded-lg ${className} border border-purple-700 border-opacity-25 relative`}
+      className={`overflow-hidden bg-white rounded-lg ${className} border border-purple-700 border-opacity-25 relative`}
     >
 
       <div className="px-4 py-5 sm:px-6">{children}</div>

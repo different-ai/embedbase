@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import LoginForm from '../components/LoginForm'
 
@@ -40,7 +40,7 @@ function Login() {
 }
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   // Check if we have a session
   const {
     data: { session },

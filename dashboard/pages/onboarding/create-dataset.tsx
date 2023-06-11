@@ -1,5 +1,5 @@
 import { ArrowRightCircleIcon } from '@heroicons/react/20/solid'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from 'embedbase-js'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -55,7 +55,7 @@ const Index = ({ apiKey }) => {
 
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   // Check if we have a session
   const {
     data: { session },

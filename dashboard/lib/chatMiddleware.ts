@@ -1,4 +1,4 @@
-import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
 export const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
   'https://',
@@ -68,7 +68,7 @@ export const chatMiddleware = async ({ req, res }) => {
   // no api key means that we are in the dashboard directly authenticated
   // with supabase client and can get the user session
 
-  const supabase = createMiddlewareSupabaseClient({ req, res })
+  const supabase = createMiddlewareClient({ req, res })
 
   // dashboard auth using the session
   const {

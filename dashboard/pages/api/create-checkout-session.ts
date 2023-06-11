@@ -1,5 +1,5 @@
 import { NextApiHandler } from 'next';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 
 import { stripe } from '../../utils/stripe';
 import { createOrRetrieveCustomer } from '../../utils/supabase-admin';
@@ -10,7 +10,7 @@ const CreateCheckoutSession: NextApiHandler = async (req, res) => {
     const { price, quantity = 1, metadata = {} } = req.body;
 
     try {
-      const supabase = createServerSupabaseClient({ req, res });
+      const supabase = createPagesServerClient({ req, res });
       const {
         data: { user }
       } = await supabase.auth.getUser();

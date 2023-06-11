@@ -9,7 +9,7 @@ import CommunityHubButton from './CommunityHubButton'
 function Logo() {
   return (
     <Link href="/datasets">
-      <Image src="/newlog.png" alt="Logo" width={150} height={100} />
+      <Image src="/newlogo2.png" alt="Logo" width={150} height={100} />
     </Link>
   )
 }

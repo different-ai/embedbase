@@ -1,4 +1,4 @@
-import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 
 // subscription_status:
@@ -13,7 +13,7 @@ import { NextResponse } from 'next/server'
 // NEXT_PUBLIC_SUPABASE_URL=https://teyceztmbotvelgagqwm.supabase.co
 // grab project id from it
 export const hasSessionMiddleware = async ({ req, res }) => {
-  const supabase = createMiddlewareSupabaseClient({ req, res })
+  const supabase = createMiddlewareClient({ req, res })
 
   const {
     data: { session },

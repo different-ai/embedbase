@@ -29,14 +29,14 @@ const navigation = [
     name: 'Dashboard',
     icon: HomeIcon,
     current: true,
-    color: 'text-blue-500', // Adding text-blue-100 class for blue background
+    color: 'blue-500', // Adding blue-100 class for blue background
   },
   {
     path: '/dashboard/playground',
     name: 'Playground',
     icon: PlayIcon,
     current: false,
-    color: 'text-purple-500', // Adding text-purple-300 class for purple background
+    color: 'purple-500', // Adding purple-300 class for purple background
   },
 
   {
@@ -44,28 +44,28 @@ const navigation = [
     name: 'Billing',
     icon: CreditCardIcon,
     current: false,
-    color: 'text-green-500', // Adding text-green-300 class for green background
+    color: 'green-500', // Adding green-300 class for green background
   },
   {
     path: 'https://discord.gg/pMNeuGrDky',
     name: 'Get Help',
     icon: QuestionMarkCircleIcon,
     current: false,
-    color: 'text-pink-500', // Adding text-pink-300 class for pink background
+    color: 'pink-500', // Adding pink-300 class for pink background
   },
   {
     path: 'https://docs.embedbase.xyz',
     name: 'Docs',
     icon: BookOpenIcon,
     current: false,
-    color: 'text-red-500', // Adding text-red-300 class for red background
+    color: 'red-500', // Adding red-300 class for red background
   },
   {
     path: '/dashboard/tutorial',
     name: 'Quickstart',
     icon: Bars2Icon,
     current: false,
-    color: 'text-yellow-500', // Adding text-yellow-300 class for yellow background
+    color: 'yellow-500', // Adding yellow-300 class for yellow background
   },
 ]
 
@@ -76,17 +76,15 @@ const DesktopSidebar = ({ current }) => {
       <div className="flex justify-center">
         <Image
           height={100}
-          width={150}
-          src="/newlog.png"
+          width={130}
+          src="/newlogo2.png"
           alt="embedbase logo"
         />
       </div>
       {/* Sidebar component, swap this element with another sidebar if you like */}
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-1">
-        {/* User account dropdown */}
-        <User />
         {/* Navigation */}
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 flex-col flex justify-between h-full">
           <div className="space-y-2">
             {navigation.map((item) => (
               <Link
@@ -94,19 +92,19 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-purple-600  text-white`
-                    : `text-gray-900 hover:bg-indigo-200 `,
+                    ? `text-purple-700 bg-purple-200`
+                    : `text-gray-700 `,
                   // Using template literals to add the color value defined in the navigation array
-                  'group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm font-medium tracking-wide	'
+                  `group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm font-medium tracking-wide	`
                 )}
                 aria-current={item.current ? 'page' : undefined}
               >
                 <item.icon
                   className={classNames(
                     item.path === current
-                      ? `text-white`
-                      : 'text-gray-900 group-hover:text-gray-700',
-                    'mr-3 h-6 w-6 flex-shrink-0 stroke-2 font-bold'
+                      ? `text-purple-600`
+                      : `text-gray-700 g`,
+                    `mr-2 h-4 w-4 flex-shrink-0 stroke-2 font-bold d`
                   )}
                   aria-hidden="true"
                 />
@@ -114,6 +112,8 @@ const DesktopSidebar = ({ current }) => {
               </Link>
             ))}
           </div>
+
+        <User />
         </nav>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import Banner from '@/components/Banner'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Dashboard from '../../components/Dashboard'
@@ -111,7 +111,7 @@ export default function Index({
 
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   // Check if we have a session
   const {
     data: { session },

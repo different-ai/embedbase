@@ -1,6 +1,6 @@
 import { getGithubContent, getRepoName } from "@/lib/github";
 import { batch } from "@/utils/array";
-import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { BatchAddDocument, createClient, splitText } from "embedbase-js";
 
 const EMBEDBASE_URL = "https://api.embedbase.xyz";
@@ -13,7 +13,7 @@ export const config = {
 const getApiKey = async (req: Request, res: Response) => {
   // Create authenticated Supabase Client
   // @ts-ignore
-  const supabase = createMiddlewareSupabaseClient({ req, res });
+  const supabase = createMiddlewareClient({ req, res });
   // Check if we have a session
   const {
     data: { session },

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from 'embedbase-js'
 import { splitText } from 'embedbase-js/dist/main/split'
 import fs from 'fs'
@@ -19,7 +19,7 @@ export const config = {
 
 const getApiKey = async (req, res) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient({ req, res })
+  const supabase = createPagesServerClient({ req, res })
   // Check if we have a session
   const {
     data: { session },

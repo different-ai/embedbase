@@ -3,7 +3,7 @@ import {
   ArrowRightCircleIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline'
-import { SupabaseClient, User, createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { SupabaseClient, User, createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Document } from 'embedbase-js'
 import { useRouter } from 'next/router'
@@ -292,7 +292,7 @@ const getDocuments = async (
 
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   const { page = 0, size } = ctx.query
   const { from, to } = getPagination(page, pageSize)
   const datasetId = ctx?.query?.datasetId
