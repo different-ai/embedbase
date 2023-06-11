@@ -106,7 +106,7 @@ const ChatForm = () => {
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
         placeholder={'Ask any question'}
-        className="w-full border-[#912ee8] border-opacity-25 bg-white text-xs text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+        className="w-full border-purple-700 border-opacity-25 bg-white text-xs text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
       />
       <PrimaryButton
         type="submit"
@@ -120,7 +120,7 @@ const ChatForm = () => {
 }
 const ChatBody = ({ children }) => {
   return (
-    <div className="flex h-[calc(100vh-240px)] flex-col gap-2 space-y-2 overflow-y-auto p-2 text-xs">
+    <div className="flex h-[calc(100vh-290px)] flex-col gap-2 space-y-2 overflow-y-auto p-2 text-xs">
       {children}
     </div>
   )
@@ -144,7 +144,7 @@ const ChatMessages = () => {
 // update to datasetid
 export function NewChat() {
   return (
-    <div className="w-full  border-t border-[#912ee8] border-opacity-25">
+    <div className="w-full  border-t border-purple-700 border-opacity-25">
       <ChatBody>
         <ChatMessages />
       </ChatBody>

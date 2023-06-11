@@ -26,8 +26,8 @@ export default async function Index() {
   return (
     <div className="mt-6 flex w-full flex-col gap-3">
       <h3 className="text-2xl font-semibold">Embedbase Hub</h3>
-      <div className="rounded-2xl bg-gray-300 bg-opacity-[25%] py-5 px-5">
-        <p className="text-gray-700">
+      <div className="rounded-2xl bg-indigo-200 bg-opacity-[25%] py-5 px-5">
+        <p className="text-black">
           {`Here you'll find a list of public datasets, that you can use to start
           building your app, remix or just play around with.`}
         </p>
@@ -38,8 +38,8 @@ export default async function Index() {
       >
         {datasets?.map((dataset) => (
           <Link key={dataset.id} href={`/datasets/${dataset.id}`}>
-            <Card className="flex h-[130px] max-w-xs">
-              <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
+            <Card className="flex h-[130px] max-w-xs hover:bg-purple-100" >
+              <CardTitle className="flex items-center text-lg font-semibold text-purple-800">
                 {dataset.name}
               </CardTitle>
               <CardSubtitle className="flex items-center text-sm font-normal text-gray-400">

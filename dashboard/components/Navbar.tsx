@@ -8,7 +8,7 @@ import CommunityHubButton from './CommunityHubButton'
 
 function Logo() {
   return (
-    <Link href="/">
+    <Link href="/datasets">
       <Image src="/newlog.png" alt="Logo" width={150} height={100} />
     </Link>
   )
@@ -17,7 +17,7 @@ function Logo() {
 export const SimpleNavbar = ({ children }) => {
   return (
     <>
-      <div className="mx-auto h-[80px] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto h-[100px] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="relative flex">
           <Logo />
           {children}

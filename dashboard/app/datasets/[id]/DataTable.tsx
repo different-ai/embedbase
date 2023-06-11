@@ -65,7 +65,7 @@ const Table = ({ defaultDocuments }) => {
         {renderedDocuments.map((document) => (
           <tr
             key={document.id}
-            className="border-1 cursor-pointer border-t border-[#912ee8] border-opacity-[10%] odd:bg-white even:bg-gray-50"
+            className="border-1 cursor-pointer border-t border-purple-700 border-opacity-[10%] odd:bg-white even:bg-gray-50"
           >
             <td
               className="cursor-context-menu select-none px-4 py-1 font-mono text-xs text-gray-500"
@@ -104,12 +104,12 @@ export default function DataTable({
   useEffect(() => {
     setName(datasetName)
     setDocuments(documents)
-  }, [])
+  }, [documents, datasetName])
 
   return (
-    <div className="p w-full rounded-md border border-[#912ee8] border-opacity-25">
+    <div className="p w-full rounded-md border border-purple-700 border-opacity-25">
       <Toaster />
-      <div className="flex items-center justify-between border-[#912ee8] border-opacity-25 p-4 ">
+      <div className="flex items-center justify-between border-purple-700 border-opacity-25 p-4 ">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold text-gray-700">{datasetName}</h3>
           {/* display author in light gray ish */}
@@ -119,7 +119,7 @@ export default function DataTable({
         </div>
       </div>
 
-      <div className="relative max-h-[calc(100vh-230px)] overflow-auto border-b ">
+      <div className="relative max-h-[calc(100vh-290px)] overflow-auto border-b ">
         <Table defaultDocuments={documents} />
       </div>
 

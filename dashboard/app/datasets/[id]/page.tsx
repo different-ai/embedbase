@@ -47,7 +47,7 @@ export default async function Index(context) {
 
       <div className="flex flex-col gap-3 sm:col-span-3">
         <UseInSdkButton datasetName={datasetName} />
-        <div className="rounded-md border border-[#912ee8] border-opacity-25">
+        <div className="rounded-md border border-purple-700 border-opacity-25">
           <div className="flex items-center justify-between">
             <h3 className="p-4 text-lg font-semibold text-gray-700">
               Chat Playground
@@ -74,9 +74,10 @@ const getDocuments = async (
   range: { from: number; to: number }
 ) => {
   const { from, to } = range
+  console.log(from, to)
 
   const res = await getDataset(supabase, datasetId)
-  const res2 = await getDatasetDocuments(
+  const {documents, count} = await getDatasetDocuments(
     supabase,
     res.data.name,
     res.data.owner,
@@ -85,8 +86,8 @@ const getDocuments = async (
   )
 
   return {
-    documents: res2.data,
-    count: res2.count,
+    documents: documents,
+    count: count,
     datasetName: res.data.name,
     datasetOwner: res.data.owner,
     datasetOwnerUsername: res.data.owner_username,
@@ -107,26 +108,38 @@ const getDataset = async (supabase: SupabaseClient, datasetId: string) => {
 
   return res
 }
+// Define type aliases for better readability
+type DatasetName = string;
+type DatasetOwner = string;
 
 const getDatasetDocuments = async (
   supabase: SupabaseClient,
-  datasetName: string,
-  datasetOwner: string,
+  datasetName: DatasetName,
+  datasetOwner: DatasetOwner,
   from: number,
   to: number
 ) => {
-  const res2 = await supabase
+  // Use descriptive variable names instead of generic ones like 'res2'
+  console.log('hello')
+  console.log(from, to)
+  console.log('datasetName', datasetName)
+  const { data: documents, error, status, count } = await supabase
     .from('documents')
+    // Use named parameters instead of chaining multiple 'eq' calls
     .select('*', { count: 'exact' })
     .eq('dataset_id', datasetName)
     .eq('user_id', datasetOwner)
-    // HACK: unnecessary I think - even if someone tries to use private id policy will fail
-    // .eq('public', true)
-    .range(from, to)
+    // Remove unnecessary comment
+    .eq('public', true)
+    .order('created_date', { ascending: false })
+    .range(from, to);
 
-  if (res2.error && res2.status !== 406) {
-    console.log(res2)
-    throw res2.error
+  // Handle error with a descriptive error message
+  if (error && status !== 406) {
+    console.error(`Error fetching documents for dataset ${datasetName} owned by ${datasetOwner}:`, error);
+    throw error;
   }
-  return res2
+
+  // Return the fetched documents
+  return {documents, count};
 }

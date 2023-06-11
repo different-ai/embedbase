@@ -248,7 +248,7 @@ export default function SmartChat() {
               }
             }}
             ref={inputRef}
-            className="w-full border-[#912ee8] border-opacity-25 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
+            className="w-full border-purple-700 border-opacity-25 bg-white text-gray-800 focus:outline-none focus:ring focus:ring-transparent"
           />
           <PrimaryButton
             type="submit"

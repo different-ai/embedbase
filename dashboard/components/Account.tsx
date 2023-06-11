@@ -27,7 +27,7 @@ export default function Account({ user, profile, updateProfile }) {
       <Toaster />
 
       <div className="bg-white dark:bg-gray-900 shadow-md rounded-lg">
-        <div className="border-b border-[#912ee8] border-opacity-25 px-2 py-4">
+        <div className="border-b border-purple-700 border-opacity-25 px-2 py-4">
           <ul className="flex gap-5">
             <li>
               <button

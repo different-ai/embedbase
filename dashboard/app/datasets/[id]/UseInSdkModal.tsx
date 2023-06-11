@@ -36,7 +36,7 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg border border-[#912ee8] border-opacity-25 bg-white px-4 pb-4 text-left transition-all sm:my-8 sm:w-full sm:max-w-xl sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg border border-purple-700 border-opacity-25 bg-white px-4 pb-4 text-left transition-all sm:my-8 sm:w-full sm:max-w-xl sm:p-6">
                 <div>
                   <div className="">
                     <Dialog.Title
@@ -82,7 +82,7 @@ export const UseInSdkButton = ({ datasetName }) => {
   const [open, setOpen] = useState(false)
 
   return (
-    <>
+  <>
       <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
       <SecondaryButton
         onClick={() => setOpen(true)}

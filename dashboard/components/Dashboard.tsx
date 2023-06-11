@@ -72,7 +72,7 @@ const navigation = [
 // We update the className property in the Link component to use the color value defined in the navigation array
 const DesktopSidebar = ({ current }) => {
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[#912ee8] lg:border-opacity-25 lg:pt-5 lg:pb-4">
+    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-purple-700 lg:border-opacity-25 lg:pt-5 lg:pb-4">
       <div className="flex justify-center">
         <Image
           height={100}
@@ -94,8 +94,8 @@ const DesktopSidebar = ({ current }) => {
                 key={item.name}
                 className={classNames(
                   item.path === current
-                    ? `bg-[#912ee8]  text-white`
-                    : `text-gray-900 hover:bg-[#f4e9fe] `,
+                    ? `bg-purple-600  text-white`
+                    : `text-gray-900 hover:bg-indigo-200 `,
                   // Using template literals to add the color value defined in the navigation array
                   'group flex cursor-pointer items-center rounded-md px-3 py-2  text-sm font-medium tracking-wide	'
                 )}
@@ -225,10 +225,10 @@ export default function Dashboard({ children }) {
         {/* Main column */}
         <div className="flex flex-col lg:pl-64">
           {/* Search header */}
-          <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-[#912ee8] border-opacity-25 bg-white lg:hidden">
+          <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-purple-700 border-opacity-25 bg-white lg:hidden">
             <button
               type="button"
-              className="border-r border-[#912ee8] border-opacity-25 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black lg:hidden"
+              className="border-r border-purple-700 border-opacity-25 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black lg:hidden"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>
