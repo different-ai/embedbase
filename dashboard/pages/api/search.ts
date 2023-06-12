@@ -15,8 +15,8 @@ type SearchRequest = {
 // 2. Get a context from a dataset
 export default async function buildPrompt(req: Request, res: Response) {
   const { query, datasets_id, top_k, where } = await req.json() as SearchRequest
-  if (!prompt) {
-    return new Response(JSON.stringify({ error: 'No prompt' }), {
+  if (!query) {
+    return new Response(JSON.stringify({ error: 'No query' }), {
       status: 400,
     })
   }
