@@ -6,7 +6,7 @@ import type {
   ClientSearchData,
   ClientSearchResponse,
   Document,
-  SearchOptions,
+  ExperimentalSearchOptions,
   GenerateOptions,
   Metadata,
   RangeOptions,
@@ -31,7 +31,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
     private client: EmbedbaseExperimentalClient,
     private dataset: string,
     private query: string,
-    private options: SearchOptions = {}
+    private options: ExperimentalSearchOptions = {}
   ) { }
 
   /**
@@ -44,15 +44,12 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
    */
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
-    let searchUrl = 'https://app.embedbase.xyz/api/search'
+    let searchUrl =
+      this.options.url ||
+      'https://app.embedbase.xyz/api/search'
     let requestBody: any = {
       query: this.query, top_k,
       datasets_id: [this.dataset]
-    }
-
-    // HACK: temporary hack slowly switching from python fastapi to js api
-    if (searchUrl.includes("app.embedbase.xyz")) {
-      requestBody.datasets_id = [this.dataset]
     }
 
     if (this.options.where) {
@@ -266,7 +263,7 @@ export default class EmbedbaseExperimentalClient {
    * Searches for most similar documents in a dataset using the search query and options provided.
    *
    * @param {string} query - The search query.
-   * @param {SearchOptions} options - Optional search options.
+   * @param {ExperimentalSearchOptions} options - Optional search options.
    * @returns {SearchBuilder} - Returns a SearchBuilder instance to build search queries.
    * 
    * @example
@@ -275,7 +272,7 @@ export default class EmbedbaseExperimentalClient {
   search(
     dataset: string,
     query: string,
-    options: SearchOptions = {}
+    options: ExperimentalSearchOptions = {}
   ): SearchBuilder {
     return new SearchBuilder(this, dataset, query, options);
   }
@@ -402,13 +399,13 @@ export default class EmbedbaseExperimentalClient {
      * Searches for most similar documents in a dataset using the search query and options provided.
      *
      * @param {string} query - The search query.
-     * @param {SearchOptions} options - Optional search options.
+     * @param {ExperimentalSearchOptions} options - Optional search options.
      * @returns {SearchBuilder} - Returns a SearchBuilder instance to build search queries.
      * 
      * @example
      * const searchBuilder = embedbase.dataset('dataset_name').search('search_query');
      */
-    search: (query: string, options?: SearchOptions) => SearchBuilder
+    search: (query: string, options?: ExperimentalSearchOptions) => SearchBuilder
     /**
      * Adds a document to the dataset with optional metadata.
      * 
@@ -435,13 +432,13 @@ export default class EmbedbaseExperimentalClient {
      * Creates a context based on the search query and options provided.
      *
      * @param {string} query - The search query.
-     * @param {SearchOptions} options - Optional search options.
+     * @param {ExperimentalSearchOptions} options - Optional search options.
      * @returns {Promise<ClientContextData>} - Resolves to a ClientContextData object.
      * 
      * @example
      * const contextData = await embedbase.dataset('dataset_name').createContext('search_query');
      */
-    createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+    createContext: (query: string, options?: ExperimentalSearchOptions) => Promise<ClientContextData>
     /**
      * 
      * @param {string} dataset 
@@ -553,11 +550,11 @@ export default class EmbedbaseExperimentalClient {
 
   } {
     return {
-      search: (query: string, options?: SearchOptions) =>
+      search: (query: string, options?: ExperimentalSearchOptions) =>
         this.search(dataset, query, options),
       add: async (document: string, metadata?: Metadata) => this.add(dataset, document, metadata),
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
-      createContext: async (query: string, options?: SearchOptions) =>
+      createContext: async (query: string, options?: ExperimentalSearchOptions) =>
         this.createContext(dataset, query, options),
       list: (options?: RangeOptions) => this.list(dataset, options),
       clear: async () => this.clear(dataset),

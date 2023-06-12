@@ -39,6 +39,12 @@ export interface SearchOptions {
   where?: object
 }
 
+export interface ExperimentalSearchOptions {
+  limit?: number
+  where?: object
+  url?: string
+}
+
 export interface Document {
   id: string
   data: string
