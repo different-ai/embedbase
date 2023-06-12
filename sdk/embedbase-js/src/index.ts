@@ -30,6 +30,7 @@ export const createClient = (embedbaseUrl: string, embedbaseKey?: string) => {
 
 /**
  * Creates a new experimental Embedbase Client.
+ * This client is not recommended for production use.
  */
 export const createExperimentalClient = (embedbaseUrl: string, embedbaseKey?: string) => {
   return new EmbedbaseExperimentalClient(embedbaseUrl, embedbaseKey)
