@@ -1,10 +1,8 @@
-import { PROJECT_ID } from '@/lib/chatMiddleware'
-import { getApiKey } from '@/lib/getApiKey'
-import { OpenAIStream, OpenAIPayload } from '@/lib/utils'
+import { PROJECT_ID } from '@/lib/apiMiddleware'
+import { OpenAIPayload, OpenAIStream } from '@/lib/utils'
 import { defaultChatSystem } from '@/utils/constants'
 import * as Sentry from '@sentry/nextjs'
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextRequest, NextResponse } from 'next/server'
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set')

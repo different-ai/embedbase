@@ -55,6 +55,17 @@ serve(async (req: any) => {
     )
   }
 
+  // atm only chat is monthly limited
+  if (body.endpoint !== 'chat') {
+    return new Response(
+      JSON.stringify({ userId }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
+  }
+
   // get stripe subscription from supabase
   const { data: stripeSubscription } = await supabaseClient
     .from('subscriptions')

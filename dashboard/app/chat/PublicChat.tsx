@@ -132,7 +132,7 @@ export default function SmartChat() {
       setLastMessage({ content: '', role: 'assistant' })
 
       // 2.a ask the context based on a query
-      const res: SearchResponse = await fetch('/api/search', {
+      const res: SearchResponse = await fetch('/api/publicCreateContext', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

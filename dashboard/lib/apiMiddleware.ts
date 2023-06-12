@@ -15,7 +15,9 @@ const track = async (req, res, userId) => {
       },
       body: JSON.stringify({
         api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
-        event: 'chat middleware submitted',
+        event: req.nextUrl.pathname === '/api/search' ?
+          'search' :
+          'chat middleware submitted',
         distinct_id: userId,
       }),
     }
@@ -23,9 +25,13 @@ const track = async (req, res, userId) => {
 }
 
 // this is a hack we should move away from this middleware
-export const chatMiddleware = async ({ req, res }) => {
+export const apiMiddleware = async ({ req, res }) => {
   // check if there is an api key in the headers
   const apiKey = req.headers.get('Authorization')
+
+  const endpoint = req.nextUrl.pathname === '/api/chat' ?
+    'chat' :
+    'search'
 
   // api key auth
   if (apiKey) {
@@ -47,7 +53,7 @@ export const chatMiddleware = async ({ req, res }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ apiKey: token }),
+          body: JSON.stringify({ apiKey: token, endpoint: endpoint }),
         }
       )
       // if we have a user id then we can continue
@@ -55,6 +61,7 @@ export const chatMiddleware = async ({ req, res }) => {
         return response
       }
       const { userId } = await response.json()
+      req.headers.set('userId', userId)
       await track(req, res, userId)
       return res
     } catch (error) {
@@ -86,6 +93,7 @@ export const chatMiddleware = async ({ req, res }) => {
     )
   }
   const userId = session.user.id
+  req.headers.set('userId', userId)
 
   const response = await fetch(
     `https://${PROJECT_ID}.functions.supabase.co/consumeApi`,
@@ -94,7 +102,7 @@ export const chatMiddleware = async ({ req, res }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId: userId }),
+      body: JSON.stringify({ userId: userId, endpoint: endpoint }),
     }
   )
 
