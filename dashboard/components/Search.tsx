@@ -1,6 +1,7 @@
 'use client'
+import { getRedirectURL } from '@/lib/redirectUrl'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { createClient } from 'embedbase-js'
+import { createExperimentalClient } from 'embedbase-js'
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { useDataSetItemStore } from '../app/datasets/[id]/store'
@@ -38,7 +39,7 @@ const SearchBar = () => {
 
     const apiKey = await getApiKeys(supabase, session.user.id)
 
-    const embedbase = createClient(
+    const embedbase = createExperimentalClient(
       'https://api.embedbase.xyz',
       apiKey
     )
@@ -47,10 +48,11 @@ const SearchBar = () => {
 
     embedbase
       .dataset(datasetName)
-      .search(search, { limit: 10 })
+      .search(search, {
+        limit: 10, url: `${getRedirectURL()}api/search`
+      })
       .then((res) => {
         console.log(res)
-        // @ts-ignore
         const relevant = res.filter((item) => item.score >= 0.7)
         setDocuments(relevant)
       })
