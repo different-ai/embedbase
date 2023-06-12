@@ -45,6 +45,11 @@ export interface ExperimentalSearchOptions {
   url?: string
 }
 
+export interface ExperimentalCreateContextOptions {
+  limit?: number
+  url?: string
+}
+
 export interface Document {
   id: string
   data: string

@@ -514,3 +514,14 @@ test('should be able to search the vercel search endpoint', async () => {
   expect(data[0]).toHaveProperty('hash')
   expect(data[0].data).toBe('hello')
 }, TIMEOUT)
+
+test('should return a list of strings when using createContext with experimental api', async () => {
+  const embedbase = createExperimentalClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('the tiger is the biggest cat')
+  await embedbase.dataset(DATASET_NAME).add('the butterfly is the smallest cat')
+  const data = await embedbase.dataset(DATASET_NAME).createContext('test', { limit: 10 })
+
+  expect(data).toBeDefined()
+  expect(data).toHaveLength(2)
+}, TIMEOUT)

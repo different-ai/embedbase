@@ -6,6 +6,7 @@ import type {
   ClientSearchData,
   ClientSearchResponse,
   Document,
+  ExperimentalCreateContextOptions,
   ExperimentalSearchOptions,
   GenerateOptions,
   Metadata,
@@ -236,7 +237,7 @@ export default class EmbedbaseExperimentalClient {
    * Creates a context based on the search query and options provided.
    *
    * @param {string} query - The search query.
-   * @param {SearchOptions} options - Optional search options.
+   * @param {ExperimentalCreateContextOptions} options - Optional search options.
    * @returns {Promise<ClientContextData>} - Resolves to a ClientContextData object.
    * 
    * @example
@@ -245,14 +246,19 @@ export default class EmbedbaseExperimentalClient {
   async createContext(
     dataset: string,
     query: string,
-    options: { limit?: number } = {}
+    options: ExperimentalCreateContextOptions = {}
   ): Promise<ClientContextData> {
     const top_k = options.limit || 5
-    const searchUrl = `${this.embedbaseApiUrl}/${dataset}/search`
+    const searchUrl =
+      options.url ||
+      'https://app.embedbase.xyz/api/search'
     const res: Response = await fetch(searchUrl, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ query, top_k }),
+      body: JSON.stringify({
+        query, top_k,
+        datasets_id: [dataset]
+      }),
     })
     await this.handleError(res);
     const data: SearchData = await res.json()
@@ -385,7 +391,7 @@ export default class EmbedbaseExperimentalClient {
    *   search: (query: string, options?: SearchOptions) => SearchBuilder
    *   add: (document: string, metadata?: Metadata) => Promise<Document>
    *   batchAdd: (documents: BatchAddDocument[]) => Promise<Document[]>
-   *   createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+   *   createContext: (query: string, options?: ExperimentalCreateContextOptions) => Promise<ClientContextData>
    *   list: (options?: RangeOptions) => ListBuilder
    *
    * @example
@@ -432,13 +438,13 @@ export default class EmbedbaseExperimentalClient {
      * Creates a context based on the search query and options provided.
      *
      * @param {string} query - The search query.
-     * @param {ExperimentalSearchOptions} options - Optional search options.
+     * @param {ExperimentalCreateContextOptions} options - Optional search options.
      * @returns {Promise<ClientContextData>} - Resolves to a ClientContextData object.
      * 
      * @example
      * const contextData = await embedbase.dataset('dataset_name').createContext('search_query');
      */
-    createContext: (query: string, options?: ExperimentalSearchOptions) => Promise<ClientContextData>
+    createContext: (query: string, options?: ExperimentalCreateContextOptions) => Promise<ClientContextData>
     /**
      * 
      * @param {string} dataset 
@@ -554,7 +560,7 @@ export default class EmbedbaseExperimentalClient {
         this.search(dataset, query, options),
       add: async (document: string, metadata?: Metadata) => this.add(dataset, document, metadata),
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
-      createContext: async (query: string, options?: ExperimentalSearchOptions) =>
+      createContext: async (query: string, options?: ExperimentalCreateContextOptions) =>
         this.createContext(dataset, query, options),
       list: (options?: RangeOptions) => this.list(dataset, options),
       clear: async () => this.clear(dataset),
