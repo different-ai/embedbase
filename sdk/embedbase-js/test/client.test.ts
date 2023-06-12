@@ -15,7 +15,6 @@ const URL = process.env.EMBEDBASE_URL || 'https://api.embedbase.xyz'
 const KEY = process.env.EMBEDBASE_API_KEY || 'some.fake.KEY'
 
 const embedbase = createClient(URL, KEY)
-const RANDOM_DATASET_NAME = new Date().getTime().toString()
 
 const DATASET_NAME = process.env.EMBEDBASE_DATASET || 'unit_test_js'
 const TIMEOUT = Number(process.env.EMBEDBASE_TIMEOUT || 0) || 60000
@@ -46,8 +45,9 @@ describe('Check if headers are set', () => {
 
 test('should be able to add elements to a dataset,   ', async () => {
   const embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
   // just used to make sure we're creating new datasets
-  const data = await embedbase.dataset(RANDOM_DATASET_NAME).add('hello')
+  const data = await embedbase.dataset(DATASET_NAME).add('hello')
   expect(data).toBeDefined()
   expect(data).toHaveProperty('id')
   expect(data).toHaveProperty('embedding')
@@ -110,7 +110,7 @@ test('should return an array of similarities', async () => {
   await embedbase.dataset(DATASET_NAME).clear()
   await embedbase.dataset(DATASET_NAME).add('hello')
 
-  const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
+  const data = await embedbase.dataset(DATASET_NAME).search('hello')
   console.log(data)
 
   expect(data).toBeDefined()
@@ -124,10 +124,11 @@ test('should return an array of similarities', async () => {
 
 test('should return an array of similarities with metadata', async () => {
   const embedbase = createClient(URL, KEY)
-  await embedbase.dataset(RANDOM_DATASET_NAME).add('hello', {
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('hello', {
     timestamp: new Date().getTime(),
   })
-  const data = await embedbase.dataset(RANDOM_DATASET_NAME).search('hello')
+  const data = await embedbase.dataset(DATASET_NAME).search('hello')
   console.log(data)
 
   expect(data).toBeDefined()
@@ -495,3 +496,23 @@ test.skip('large documents shouldnt crash javascript heap', async () => {
   await embedbase.dataset(DATASET_NAME).chunkAndBatchAdd(documents.filter((d) => !d.data.includes("<|endoftext|>")))
   expect(true).toBe(true)
 }, TIMEOUT * 10)
+
+
+test('should be able to search the vercel search endpoint', async () => {
+  let embedbase = createClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  await embedbase.dataset(DATASET_NAME).add('hello')
+
+  const data = await embedbase.dataset(DATASET_NAME).search('hello', {
+    url: 'https://app.embedbase.xyz/api/search'
+  })
+  console.log(data)
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data[0]).toHaveProperty('score')
+  expect(data[0]).toHaveProperty('data')
+  expect(data[0]).toHaveProperty('embedding')
+  expect(data[0]).toHaveProperty('hash')
+  expect(data[0].data).toBe('hello')
+}, TIMEOUT)

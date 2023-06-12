@@ -26,7 +26,7 @@ export interface Metadata {
 }
 
 export interface SearchSimilarity extends Document {
-  similarity: number
+  score: number
 }
 
 export interface SearchData {
@@ -37,6 +37,7 @@ export interface SearchData {
 export interface SearchOptions {
   limit?: number
   where?: object
+  url?: string
 }
 
 export interface Document {

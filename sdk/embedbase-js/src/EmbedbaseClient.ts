@@ -44,13 +44,15 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
    */
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
-    const searchUrl = `${this.client.embedbaseApiUrl}/${this.dataset}/search`
+    let searchUrl = 
+      this.options.url ||
+      `${this.client.embedbaseApiUrl}/${this.dataset}/search`
+    let requestBody: any = { query: this.query, top_k }
 
-    const requestBody: {
-      query: string
-      top_k: number
-      where?: object
-    } = { query: this.query, top_k };
+    // HACK: temporary hack slowly switching from python fastapi to js api
+    if (searchUrl.includes("app.embedbase.xyz")) {
+      requestBody.datasets_id = [this.dataset]
+    }
 
     if (this.options.where) {
       requestBody.where = this.options.where;
