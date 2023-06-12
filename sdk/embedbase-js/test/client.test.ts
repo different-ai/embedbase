@@ -1,5 +1,5 @@
 import { describe, expect, jest, test } from '@jest/globals';
-import { createClient } from '../src/index';
+import { createClient, createExperimentalClient } from '../src/index';
 import { stream as originalStream } from '../src/utils';
 import glob from 'glob'
 import fs from 'fs'
@@ -499,13 +499,11 @@ test.skip('large documents shouldnt crash javascript heap', async () => {
 
 
 test('should be able to search the vercel search endpoint', async () => {
-  let embedbase = createClient(URL, KEY)
+  let embedbase = createExperimentalClient(URL, KEY)
   await embedbase.dataset(DATASET_NAME).clear()
   await embedbase.dataset(DATASET_NAME).add('hello')
 
-  const data = await embedbase.dataset(DATASET_NAME).search('hello', {
-    url: 'https://app.embedbase.xyz/api/search'
-  })
+  const data = await embedbase.dataset(DATASET_NAME).search('hello')
   console.log(data)
 
   expect(data).toBeDefined()

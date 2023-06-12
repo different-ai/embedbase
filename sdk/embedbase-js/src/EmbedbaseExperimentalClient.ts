@@ -6,11 +6,11 @@ import type {
   ClientSearchData,
   ClientSearchResponse,
   Document,
+  SearchOptions,
   GenerateOptions,
   Metadata,
   RangeOptions,
   SearchData,
-  SearchOptions,
   SearchResponse,
   UpdateDocument
 } from './types';
@@ -28,7 +28,7 @@ let fetch = getFetch();
  */
 class SearchBuilder implements PromiseLike<ClientSearchData> {
   constructor(
-    private client: EmbedbaseClient,
+    private client: EmbedbaseExperimentalClient,
     private dataset: string,
     private query: string,
     private options: SearchOptions = {}
@@ -44,13 +44,16 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
    */
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
-    const searchUrl = `${this.client.embedbaseApiUrl}/${this.dataset}/search`
+    let searchUrl = 'https://app.embedbase.xyz/api/search'
+    let requestBody: any = {
+      query: this.query, top_k,
+      datasets_id: [this.dataset]
+    }
 
-    const requestBody: {
-      query: string
-      top_k: number
-      where?: object
-    } = { query: this.query, top_k };
+    // HACK: temporary hack slowly switching from python fastapi to js api
+    if (searchUrl.includes("app.embedbase.xyz")) {
+      requestBody.datasets_id = [this.dataset]
+    }
 
     if (this.options.where) {
       requestBody.where = this.options.where;
@@ -103,7 +106,7 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
  */
 class ListBuilder implements PromiseLike<Document[]> {
   constructor(
-    private client: EmbedbaseClient,
+    private client: EmbedbaseExperimentalClient,
     private dataset: string,
     private options: RangeOptions = {
       offset: 0,
@@ -171,7 +174,7 @@ class ListBuilder implements PromiseLike<Document[]> {
  *
  * An typescript library to interact with Embedbase
  */
-export default class EmbedbaseClient {
+export default class EmbedbaseExperimentalClient {
   public embedbaseApiUrl: string
   protected embedbaseApiKey: string
 

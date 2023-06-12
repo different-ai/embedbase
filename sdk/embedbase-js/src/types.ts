@@ -37,7 +37,6 @@ export interface SearchData {
 export interface SearchOptions {
   limit?: number
   where?: object
-  url?: string
 }
 
 export interface Document {
