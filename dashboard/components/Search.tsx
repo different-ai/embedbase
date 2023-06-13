@@ -26,7 +26,7 @@ const SearchBar = () => {
     e.preventDefault()
     setLoading(true)
     if (!search.trim()) return
-    if (true) return
+    // if (true) return
     const supabase = createClientComponentClient()
     // check if session
     const {
