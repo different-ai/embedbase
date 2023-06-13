@@ -7,9 +7,10 @@ import { Fragment, useState } from 'react'
 import { CopyButton } from './DataTable'
 import { useDataSetItemStore } from './store'
 
-function UseInSdkModal({ datasetName, open, setOpen }) {
+function UseInSdkModal({ open, setOpen }) {
   const query = useDataSetItemStore((state) => state.query)
   const question = useDataSetItemStore((state) => state.userQuestion)
+  const datasetName = useDataSetItemStore((state) => state.name)
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>
@@ -78,12 +79,12 @@ function UseInSdkModal({ datasetName, open, setOpen }) {
   )
 }
 
-export const UseInSdkButton = ({ datasetName }) => {
+export const UseInSdkButton = () => {
   const [open, setOpen] = useState(false)
 
   return (
-  <>
-      <UseInSdkModal datasetName={datasetName} open={open} setOpen={setOpen} />
+    <>
+      <UseInSdkModal open={open} setOpen={setOpen} />
       <SecondaryButton
         onClick={() => setOpen(true)}
         className="fle mr-2 max-w-max items-center gap-1 "

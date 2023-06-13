@@ -8,6 +8,7 @@ import { UseInSdkButton } from './UseInSdkModal'
 
 import { NewChat } from './NewChat'
 import SearchBar from '@/components/Search'
+import SandpackClient from './Sandpack'
 const pageSize = 25
 
 export default async function Index(context) {
@@ -46,7 +47,7 @@ export default async function Index(context) {
       </div>
 
       <div className="flex flex-col gap-3 sm:col-span-3">
-        <UseInSdkButton datasetName={datasetName} />
+        <UseInSdkButton />
         <div className="rounded-md border border-purple-700 border-opacity-25">
           <div className="flex items-center justify-between">
             <h3 className="p-4 text-lg font-semibold text-gray-700">
@@ -77,7 +78,7 @@ const getDocuments = async (
   console.log(from, to)
 
   const res = await getDataset(supabase, datasetId)
-  const {documents, count} = await getDatasetDocuments(
+  const { documents, count } = await getDatasetDocuments(
     supabase,
     res.data.name,
     res.data.owner,
@@ -109,8 +110,8 @@ const getDataset = async (supabase: SupabaseClient, datasetId: string) => {
   return res
 }
 // Define type aliases for better readability
-type DatasetName = string;
-type DatasetOwner = string;
+type DatasetName = string
+type DatasetOwner = string
 
 const getDatasetDocuments = async (
   supabase: SupabaseClient,
@@ -120,10 +121,12 @@ const getDatasetDocuments = async (
   to: number
 ) => {
   // Use descriptive variable names instead of generic ones like 'res2'
-  console.log('hello')
-  console.log(from, to)
-  console.log('datasetName', datasetName)
-  const { data: documents, error, status, count } = await supabase
+  const {
+    data: documents,
+    error,
+    status,
+    count,
+  } = await supabase
     .from('documents')
     // Use named parameters instead of chaining multiple 'eq' calls
     .select('*', { count: 'exact' })
@@ -132,14 +135,17 @@ const getDatasetDocuments = async (
     // Remove unnecessary comment
     .eq('public', true)
     .order('created_date', { ascending: false })
-    .range(from, to);
+    .range(from, to)
 
   // Handle error with a descriptive error message
   if (error && status !== 406) {
-    console.error(`Error fetching documents for dataset ${datasetName} owned by ${datasetOwner}:`, error);
-    throw error;
+    console.error(
+      `Error fetching documents for dataset ${datasetName} owned by ${datasetOwner}:`,
+      error
+    )
+    throw error
   }
 
   // Return the fetched documents
-  return {documents, count};
+  return { documents, count }
 }

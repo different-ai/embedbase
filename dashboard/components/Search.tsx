@@ -26,6 +26,7 @@ const SearchBar = () => {
     e.preventDefault()
     setLoading(true)
     if (!search.trim()) return
+    if (true) return
     const supabase = createClientComponentClient()
     // check if session
     const {
@@ -49,7 +50,8 @@ const SearchBar = () => {
     embedbase
       .dataset(datasetName)
       .search(search, {
-        limit: 10, url: `${getRedirectURL()}api/search`
+        limit: 10,
+        url: `${getRedirectURL()}api/search`,
       })
       .then((res) => {
         console.log(res)

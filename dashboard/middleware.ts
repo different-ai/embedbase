@@ -16,6 +16,9 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.includes('dashboard')) {
     return await hasSessionMiddleware({ req, res })
   }
+
+  // this middleware refreshes the user's session and must be run
+  // for any Server Component route that uses `createServerComponentSupabaseClient`
   const supabase = createMiddlewareClient({ req, res })
   await supabase.auth.getSession()
   return res

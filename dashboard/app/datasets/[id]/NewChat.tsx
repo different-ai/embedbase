@@ -1,7 +1,7 @@
 'use client'
 import { PrimaryButton } from '@/components/Button'
 import { ChatBox } from '@/components/ChatBox'
-import { Input, TextArea } from '@/components/Input'
+import { Input } from '@/components/Input'
 import { SubmitIcon } from '@/components/SubmitIcon'
 import { useDataSetItemStore } from './store'
 
@@ -11,7 +11,6 @@ import { createClient } from 'embedbase-js'
 import { getRedirectURL } from '@/lib/redirectUrl'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { toast } from 'react-hot-toast'
-import { getApiKeys } from '../../../pages/dashboard/explorer/[datasetId]'
 
 interface DatasetItemStore {
   messages: string[]
@@ -66,12 +65,18 @@ const ChatForm = () => {
       return
     }
 
-    const apiKey = await getApiKeys(supabase, session.user.id)
+    const {
+      data: { api_key: apiKey },
+    } = await supabase
+      .from('api-keys')
+      .select('api_key')
+      .eq('user_id', session.user.id)
+      .limit(1)
+      .single()
 
     const embedbase = createClient(
       'https://api.embedbase.xyz',
       apiKey
-      //   '093d0aaf-11b2-4046-8f7f-5bd703b26957'
     )
 
     // add the user message to chat
