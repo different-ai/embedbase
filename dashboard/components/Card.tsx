@@ -28,11 +28,9 @@ export const CardSubtitle = ({
   children,
 }: CardSubtitleProps): JSX.Element => {
   return (
-    <p
-      className={`mt-1 max-w-2xl text-sm text-gray-500 ${className}`}
-    >
+    <div className={`mt-1 max-w-2xl text-sm text-gray-500 ${className}`}>
       {children}
-    </p>
+    </div>
   )
 }
 
@@ -44,9 +42,8 @@ interface CardProps {
 const Card = ({ className, children }: CardProps): JSX.Element => {
   return (
     <div
-      className={`overflow-hidden bg-white rounded-lg ${className} border border-purple-700 border-opacity-25 relative`}
+      className={`overflow-hidden rounded-lg bg-white ${className} relative border border-purple-700 border-opacity-25`}
     >
-
       <div className="px-4 py-5 sm:px-6">{children}</div>
     </div>
   )
