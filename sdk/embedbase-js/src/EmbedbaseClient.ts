@@ -765,6 +765,29 @@ export default class EmbedbaseClient {
     const data: { results: Document[] } = await res.json()
     return data.results
   }
+
+  /**
+   * Execute a prompt using Google PaLM2 model
+   * @param prompt 
+   * @returns 
+   */
+  public async complete(prompt: string): Promise<string> {
+    const url = 'https://llm-usx5gpslaq-uc.a.run.app'
+
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt: prompt,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    await this.handleError(res);
+    const data: { answer: string } = await res.json()
+    return data.answer
+  }
 }
 
 

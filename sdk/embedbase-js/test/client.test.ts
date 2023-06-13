@@ -1,9 +1,9 @@
 import { describe, expect, jest, test } from '@jest/globals';
+import fs from 'fs';
+import glob from 'glob';
+import path from 'path';
 import { createClient, createExperimentalClient } from '../src/index';
 import { stream as originalStream } from '../src/utils';
-import glob from 'glob'
-import fs from 'fs'
-import path from 'path';
 
 try {
   require('dotenv').config({ path: './.env' })
@@ -524,4 +524,10 @@ test('should return a list of strings when using createContext with experimental
 
   expect(data).toBeDefined()
   expect(data).toHaveLength(2)
+}, TIMEOUT)
+
+test('should be able to complete with experimental api', async () => {
+  const embedbase = createExperimentalClient(URL, KEY)
+  const data = await embedbase.complete('the tiger is the biggest cat')
+  expect(data).toBeDefined()
 }, TIMEOUT)
