@@ -391,7 +391,7 @@ const getDocuments = async (
     .select('*', { count: 'exact' })
     .eq('dataset_id', datasetId)
     .eq('user_id', userId)
-    .order('created_date', { ascending: false })
+    .order('id', { ascending: false })
     .range(from, to)
 
   if (res.error && res.status !== 406) {
