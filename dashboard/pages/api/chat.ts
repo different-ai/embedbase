@@ -41,7 +41,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   //3. pass in the history of the conversation as well as the context (which is included in the prompt)
   const payload: OpenAIPayload = {
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-3.5-turbo-16k',
     messages,
     stream: true,
   }

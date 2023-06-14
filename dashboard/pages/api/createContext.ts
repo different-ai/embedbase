@@ -21,7 +21,7 @@ const createContext = async (
 
   const similarities = results.flatMap((r) => r)
 
-  const topResults = similarities.sort(() => Math.random() - 0.5).slice(0, 15)
+  const topResults = similarities.sort(() => Math.random() - 0.5)
   // if the dataset has been indexed
   // using path in the metadata,
   // we can return the reference
@@ -36,7 +36,8 @@ const createContext = async (
     }
     return r.data
   })
-  const chunkedContext = await merge(datas)
+  const chunkedContext = await merge(datas, {chunkSize: 4_000})
+  console.log('context size', chunkedContext.length)
   return { chunkedContext: chunkedContext, contexts: topResults }
 }
 
