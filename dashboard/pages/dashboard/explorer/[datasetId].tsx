@@ -1,7 +1,9 @@
+import { Dialog, Transition } from '@headlessui/react'
 import {
   ArrowLeftCircleIcon,
   ArrowRightCircleIcon,
-  ShareIcon,
+  PencilIcon,
+  ShareIcon
 } from '@heroicons/react/24/outline'
 import { SupabaseClient, User, createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
@@ -13,6 +15,93 @@ import { SecondaryButton } from '../../../components/Button'
 import Dashboard from '../../../components/Dashboard'
 import { EMBEDBASE_CLOUD_URL } from '../../../utils/constants'
 
+const EditModal = ({ isModalOpen, setIsModalOpen, modalDocument, setModalDocument, userId }) => {
+  const supabase = useSupabaseClient()
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleUpdateDocument = async () => {
+    setIsLoading(true);
+
+    const newContent = modalDocument.data.trim();
+
+    if (newContent) {
+      const res = await supabase
+        .from("documents")
+        .update({ data: newContent })
+        .eq("id", modalDocument.id)
+        .eq("user_id", userId);
+
+      if (res.error) {
+        toast.error(res.error.message);
+      } else {
+        toast.success("Document updated successfully, refresh to see the difference");
+      }
+    }
+
+    setIsLoading(false);
+    setIsModalOpen(false);
+  };
+
+  return (
+    <Transition.Root show={isModalOpen} as={Fragment}>
+      <Dialog
+        as="div"
+        className="fixed inset-0 z-10 overflow-y-auto"
+        onClose={() => setIsModalOpen(false)}
+      >
+        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enterTo="opacity-100 translate-y-0 sm:scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+              <div>
+                <textarea
+                  className="resize-none w-full h-40 mt-4 rounded"
+                  value={modalDocument?.data}
+                  onChange={(e) =>
+                    setModalDocument({ ...modalDocument, data: e.target.value })
+                  }
+                />
+              </div>
+              <div className="mt-5 sm:mt-6">
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus-ring-2 focus-ring-offset-2 focus:ring-purple-500"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus-ring-2 focus-ring-offset-2 focus:ring-purple-500 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={isLoading}
+                    onClick={handleUpdateDocument}
+                  >
+                    {isLoading ? (
+                      <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </Dialog.Panel>
+          </Transition.Child>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  )
+}
 
 const pageSize = 25;
 interface DataTableProps {
@@ -24,7 +113,8 @@ interface DataTableProps {
 }
 const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps) => {
   const [activeDocument, setActiveDocument] = useState(null);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalDocument, setModalDocument] = useState(null);
   const supabase = useSupabaseClient()
   const handleCopyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
@@ -93,9 +183,20 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
     toast(`dataset ${datasetId} is now ${!isPublic ? 'public' : 'private'}`);
     return res;
   }
+  const handleEditDocument = (document) => {
+    setModalDocument(document);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="rounded-md px-4">
+      <EditModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        modalDocument={modalDocument}
+        setModalDocument={setModalDocument}
+        userId={userId}
+      />
       <div className="flex justify-between items-center gap-3">
         <div className="flex items-center gap-3">
           {/* previous */}
@@ -167,6 +268,15 @@ const DataTable = ({ documents, page, count, datasetId, userId }: DataTableProps
                 // TODO onDoubleClick does not work on mobile
                 onDoubleClick={() => handleDoubleClick(document)}
               >
+                <td className="px-4 py-2">
+                  <SecondaryButton
+                    // remove border
+                    className="w-10 h-10 rounded-full border-0"
+                    type="submit"
+                    onClick={() => handleEditDocument(document)}>
+                    <PencilIcon />
+                  </SecondaryButton>
+                </td>
                 <td
                   className="select-none cursor-context-menu px-4 py-4 text-xs text-gray-500"
                   onClick={() => handleCopyToClipboard(document.id)}
@@ -281,7 +391,7 @@ const getDocuments = async (
     .select('*', { count: 'exact' })
     .eq('dataset_id', datasetId)
     .eq('user_id', userId)
-    // .order('id', { ascending: true })
+    .order('created_date', { ascending: false })
     .range(from, to)
 
   if (res.error && res.status !== 406) {
