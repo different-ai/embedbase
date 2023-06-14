@@ -16,7 +16,7 @@ from embedbase_client.model import (
     Metadata,
     SearchSimilarity,
 )
-from embedbase_client.split import split_text
+from embedbase_client.split import merge_and_return_tokens, split_text
 from embedbase_client.utils import sync_stream
 
 
@@ -259,6 +259,26 @@ class Dataset:
             results = dataset.chunk_and_batch_add(documents)
         """
         return self.client.chunk_and_batch_add(self.dataset, documents)
+
+    def create_max_context(
+        self,
+        query: str,
+        max_tokens: int,
+    ) -> str:
+        """
+        Create a context from a query by searching for similar documents and concatenating them up to the specified max tokens.
+
+        Args:
+            query: The query to search for.
+            max_tokens: The maximum number of tokens for the context.
+
+        Returns:
+            A string containing the context.
+
+        Example usage:
+            context = dataset.create_max_context("What is Python?", max_tokens=100)
+        """
+        return self.client.create_max_context(self.dataset, query, max_tokens)
 
 
 class EmbedbaseClient(BaseClient):
@@ -577,3 +597,51 @@ class EmbedbaseClient(BaseClient):
             pool.map(add_batch, batch_chunks(chunks, parallel_batch_size))
 
         return list(itertools.chain.from_iterable(results))
+
+    def create_max_context(
+        self,
+        dataset: str,
+        query: str,
+        max_tokens: int,
+    ) -> str:
+        """
+        Create a context from a query by searching for similar documents and concatenating them up to the specified max tokens.
+
+        Args:
+            dataset: The name of the dataset to search.
+            query: The query to search for.
+            max_tokens: the maximum number of tokens for the context.
+
+        Returns:
+            A string containing the context.
+
+        Example usage:
+            context = embedbase.create_max_context("my_dataset", "What is Python?", max_tokens=30)
+            print(context)
+            # Python is a programming language.
+            # Python is a high-level, general-purpose programming language.
+            # Python is interpreted, dynamically typed and garbage-collected.
+            # Python is designed to be highly extensible.
+            # Python is a multi-paradig...
+        """
+
+        # try to build a context until it's big enough by incrementing top_k
+        top_k = 100
+        context = self.create_context(dataset, query, top_k)
+        merged_context, size = merge_and_return_tokens(context, max_tokens)
+
+        tries = 0
+        max_tries = 3
+        while size < max_tokens and tries < max_tries:
+            top_k *= 3
+            context = self.create_context(dataset, query, top_k)
+            merged_context, size = merge_and_return_tokens(context, max_tokens)
+            tries += 1
+
+        if size < max_tokens:
+            # warn the user that the context is smaller than the max tokens
+            print(
+                f"Warning: context is smaller than the max tokens ({size} < {max_tokens})"
+            )
+
+        return merged_context

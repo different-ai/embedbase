@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from tiktoken import get_encoding
 
@@ -106,3 +106,40 @@ def merge(
         separator = "\n\n###\n\n"
 
     return separator.join(context)
+
+
+def merge_and_return_tokens(
+    chunks: List[str],
+    max_len: int,
+    encoding_name: str = EMBEDDING_ENCODING,
+) -> Tuple[str, int]:
+    """
+    This function takes a list of `chunks` and optional parameters `max_len`, `encoding_name`, and `separator`.
+    It encodes each chunk using the specified tokenizer, checks if the current length exceeds the `max_len`,
+    breaks if it does, and appends the chunk to the `context` list.
+    Finally, it joins the context list and returns the merged string.
+
+    For example,
+    ```python
+    chunks = ['Hello', 'world', '!']
+    merge_and_return_tokens(chunks, max_len=10)
+    ```
+    will return
+    ```
+    'Hello world!', 12
+    """
+    tokenizer = get_encoding(encoding_name)
+
+    cur_len = 0
+    context = []
+    for chunk in chunks:
+        n_tokens = len(tokenizer.encode(chunk))
+        if cur_len + n_tokens + ((len(context) - 1) * 4) > max_len:
+            break
+        cur_len += n_tokens
+        context.append(chunk)
+
+    separator = "\n\n"
+
+    # length is tokens + 4 tokens for each separator
+    return separator.join(context), cur_len + ((len(context) - 1) * 4)

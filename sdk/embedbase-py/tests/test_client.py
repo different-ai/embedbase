@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 from embedbase_client import EmbedbaseAsyncClient
 from embedbase_client.model import SearchSimilarity
+from tiktoken import get_encoding
 
 from embedbase import get_app
 from embedbase.database.memory_db import MemoryDatabase
@@ -174,3 +175,31 @@ async def test_filter_by_metadata_using_where():
     assert isinstance(data, list)
     assert len(data) >= 1
     assert "source" in data[0].metadata and data[0].metadata["source"] == "github.com"
+
+
+@pytest.mark.asyncio
+async def test_create_max_context_async():
+    query = "What is Python?"
+    max_tokens = 50
+    await ds.clear()
+    documents = [
+        "Python is a programming language.",
+        "Java is another popular programming language.",
+        "JavaScript is widely used for web development.",
+        "C++ is commonly used for system programming.",
+        "Ruby is known for its simplicity and readability.",
+        "Go is a statically typed language developed by Google.",
+        "Rust is a systems programming language that focuses on safety and performance.",
+        "TypeScript is a superset of JavaScript that adds static typing.",
+        "PHP is a server-side scripting language used for web development.",
+        "Swift is a modern programming language developed by Apple for iOS app development.",
+    ]
+
+    for document in documents:
+        await ds.add(document)
+
+    context = await ds.create_max_context(query, max_tokens)
+    tokenizer = get_encoding("cl100k_base")
+
+    assert isinstance(context, str)
+    assert len(tokenizer.encode(context)) <= max_tokens
