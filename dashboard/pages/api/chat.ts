@@ -24,6 +24,7 @@ type Chat = {
 }
 const handler = async (req: Request, res: Response): Promise<Response> => {
   const { prompt, history, system } = (await req.json()) as RequestPayload
+  console.log('starting')
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
       status: 400,

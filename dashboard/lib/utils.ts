@@ -15,7 +15,6 @@ export interface OpenAIPayload {
   stream: boolean
 }
 export const createCompletion = async (payload: OpenAIPayload) => {
-  console.log('before')
   payload.stream = false
   const data = await fetch('https://api.openai.com/v1/chat/completions', {
     headers: {
@@ -25,7 +24,6 @@ export const createCompletion = async (payload: OpenAIPayload) => {
     method: 'POST',
     body: JSON.stringify(payload),
   }).then((res) => res.json())
-  console.log(data)
 }
 
 export async function OpenAIStream(payload: OpenAIPayload) {
@@ -34,7 +32,6 @@ export async function OpenAIStream(payload: OpenAIPayload) {
   // createCompletion(payload)
 
   let counter = 0
-  console.log(payload, 'payload')
   let res: Response
 
   try {
