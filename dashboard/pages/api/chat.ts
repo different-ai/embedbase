@@ -49,9 +49,12 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   try {
     const stream = await OpenAIStream(payload)
-    return new Response(stream, {
-      status: 200,
-    })
+    return cors(
+      req,
+      new Response(stream, {
+        status: 200,
+      })
+    )
   } catch (error) {
     Sentry.captureException(error)
     return new Response(JSON.stringify({ error: error.message }), {
