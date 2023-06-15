@@ -29,6 +29,10 @@ export default function SignupForm() {
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        // make this redirect to a page that interprets the token so that it signs in automatically
+        emailRedirectTo: `${getRedirectURL()}/login`,
+      },
     })
 
     if (error) {
