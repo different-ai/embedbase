@@ -5,6 +5,7 @@ import {
   ArrowRightCircleIcon,
   ClipboardIcon,
   HomeIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -42,7 +43,6 @@ interface DataTableProps {
   datasetName: string
   datasetOwnerUsername: string
 }
-
 const Table = ({ defaultDocuments }) => {
   const documents = useDataSetItemStore((state) => state.documents)
   const [activeDocument, setActiveDocument] = useState(null)
@@ -60,8 +60,8 @@ const Table = ({ defaultDocuments }) => {
   const renderedDocuments = documents || defaultDocuments
 
   return (
-    <table className="min-w-full bg-gray-100">
-      <tbody className="space-y flex flex-col bg-gray-100">
+    <table className="min-w-full bg-gray-100" style={{ tableLayout: 'fixed' }}>
+      <tbody className="space-y bg-gray-100">
         {renderedDocuments.map((document) => (
           <tr
             key={document.id}
@@ -82,6 +82,19 @@ const Table = ({ defaultDocuments }) => {
                   document.id !== activeDocument?.id &&
                   '...'}
               </div>
+            </td>
+            <td className="px-4 py-1 text-xs text-gray-500">
+              {document.metadata.path.startsWith('http') ? (
+                <a
+                  href={document.metadata.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <LinkIcon className="h-4 w-4" />
+                </a>
+              ) : (
+                document.metadata.path.split(0, 10)
+              )}
             </td>
           </tr>
         ))}

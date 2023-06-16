@@ -26,6 +26,7 @@ export default async function buildPrompt(req: Request, res: Response) {
       headers: CORS_HEADERS,
     })
   }
+  console.log('starting')
   const { query, datasets_id, top_k, where } =
     (await req.json()) as SearchRequest
   if (!query) {
@@ -35,6 +36,7 @@ export default async function buildPrompt(req: Request, res: Response) {
   }
 
   const userId = req.headers.get('userId')
+  console.log('userId', userId)
 
   try {
     const context = await semanticSearch(
@@ -45,6 +47,7 @@ export default async function buildPrompt(req: Request, res: Response) {
       top_k
     )
 
+    console.log('done')
     return cors(
       req,
       new Response(JSON.stringify(context), {

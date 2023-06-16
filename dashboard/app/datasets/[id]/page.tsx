@@ -9,6 +9,7 @@ import { UseInSdkButton } from './UseInSdkModal'
 import { NewChat } from './NewChat'
 import SearchBar from '@/components/Search'
 import SandpackClient from './Sandpack'
+import { NEXTJS_TEMPLATE } from '@/utils/template'
 const pageSize = 25
 
 export default async function Index(context) {
@@ -36,6 +37,8 @@ export default async function Index(context) {
     <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
       <div className="flex flex-col gap-3 sm:col-span-6">
         <SearchBar />
+
+        {/* <SandpackClient /> */}
         <DataTable
           documents={documents}
           page={parseInt(page)}
@@ -133,7 +136,6 @@ const getDatasetDocuments = async (
     .eq('dataset_id', datasetName)
     .eq('user_id', datasetOwner)
     // Remove unnecessary comment
-    .eq('public', true)
     .order('created_date', { ascending: false })
     .range(from, to)
 
