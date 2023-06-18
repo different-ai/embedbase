@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator, List, Optional, Union
 
 import itertools
 import json
@@ -600,12 +600,13 @@ class EmbedbaseClient(BaseClient):
 
     def create_max_context(
         self,
-        dataset: str,
+        dataset: Union[str, List[str]],
         query: str,
-        max_tokens: int,
+        max_tokens: Union[int, List[int]],
     ) -> str:
         """
-        Create a context from a query by searching for similar documents and concatenating them up to the specified max tokens.
+        Create a context from a query by searching for similar documents and
+        concatenating them up to the specified max tokens.
 
         Args:
             dataset: The name of the dataset to search.
@@ -616,32 +617,55 @@ class EmbedbaseClient(BaseClient):
             A string containing the context.
 
         Example usage:
-            context = embedbase.create_max_context("my_dataset", "What is Python?", max_tokens=30)
+            context = create_max_context("programming", "Python is a programming language.", 30)
             print(context)
             # Python is a programming language.
             # Python is a high-level, general-purpose programming language.
             # Python is interpreted, dynamically typed and garbage-collected.
             # Python is designed to be highly extensible.
-            # Python is a multi-paradig...
+            # Python is a multi-paradig
+            # or
+            context = create_max_context(["programming", "science"], "Python lives planet earth.", [3, 30])
+            print(context)
+            # Pyt
+            # The earth orbits the sun.
+            # The earth is the third planet from the sun.
+            # The earth is the only planet known to support life.
+            # The earth formed approximately 4.5 billion years ago.
+            # The earth's gravity interacts with other objects in space, especially the sun and the moon.
         """
 
-        # try to build a context until it's big enough by incrementing top_k
-        top_k = 100
-        context = self.create_context(dataset, query, top_k)
-        merged_context, size = merge_and_return_tokens(context, max_tokens)
-
-        tries = 0
-        max_tries = 3
-        while size < max_tokens and tries < max_tries:
-            top_k *= 3
+        def create_context_for_dataset(dataset, max_tokens):
+            top_k = 100
             context = self.create_context(dataset, query, top_k)
             merged_context, size = merge_and_return_tokens(context, max_tokens)
-            tries += 1
 
-        if size < max_tokens:
-            # warn the user that the context is smaller than the max tokens
-            print(
-                f"Warning: context is smaller than the max tokens ({size} < {max_tokens})"
-            )
+            tries = 0
+            max_tries = 3
+            while size < max_tokens and tries < max_tries:
+                top_k *= 3
+                context = self.create_context(dataset, query, top_k)
+                merged_context, size = merge_and_return_tokens(context, max_tokens)
+                tries += 1
 
-        return merged_context
+            if size < max_tokens:
+                print(
+                    f"Warning: context for dataset '{dataset}' is smaller than the max tokens ({size} < {max_tokens})"
+                )
+            return merged_context
+
+        if not isinstance(dataset, list):
+            dataset = [dataset]
+
+        if not isinstance(max_tokens, list):
+            max_tokens = [max_tokens for _ in range(len(dataset))]
+
+        if len(dataset) != len(max_tokens):
+            raise ValueError("The number of datasets and max_tokens should be equal.")
+
+        contexts = []
+        for ds, mt in zip(dataset, max_tokens):
+            context = create_context_for_dataset(ds, mt)
+            contexts.append(context)
+
+        return "\n\n".join(contexts)

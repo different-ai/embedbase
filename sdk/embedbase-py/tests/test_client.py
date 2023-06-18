@@ -203,3 +203,51 @@ async def test_create_max_context_async():
 
     assert isinstance(context, str)
     assert len(tokenizer.encode(context)) <= max_tokens
+
+
+@pytest.mark.asyncio
+async def test_create_max_context_multiple_datasets_async():
+    query = "What is Python?"
+    dataset1 = "programming"
+    dataset2 = "animals"
+    max_tokens1 = 20
+    max_tokens2 = 25
+    await client.dataset(dataset1).clear()
+    await client.dataset(dataset2).clear()
+    programming_documents = [
+        "Python is a programming language.",
+        "Java is another popular programming language.",
+        "JavaScript is widely used for web development.",
+        "C++ is commonly used for system programming.",
+        "Ruby is known for its simplicity and readability.",
+        "Go is a statically typed language developed by Google.",
+        "Rust is a systems programming language that focuses on safety and performance.",
+        "TypeScript is a superset of JavaScript that adds static typing.",
+        "PHP is a server-side scripting language used for web development.",
+        "Swift is a modern programming language developed by Apple for iOS app development.",
+    ]
+    animal_documents = [
+        "Python is a type of snake.",
+        "Lions are known as the king of the jungle.",
+        "Elephants are the largest land animals.",
+        "Giraffes are known for their long necks.",
+        "Kangaroos are native to Australia.",
+        "Pandas are native to China and primarily eat bamboo.",
+        "Penguins live primarily in the Southern Hemisphere.",
+        "Tigers are carnivorous mammals found in Asia.",
+        "Whales are large marine mammals.",
+        "Zebras are part of the horse family and native to Africa.",
+    ]
+
+    await client.dataset(dataset1).batch_add([{"data": d} for d in programming_documents])
+    await client.dataset(dataset2).batch_add([{"data": d} for d in animal_documents])
+    context = await client.create_max_context(
+        [dataset1, dataset2], query, [max_tokens1, max_tokens2]
+    )
+    tokenizer = get_encoding("cl100k_base")
+
+    assert isinstance(context, str)
+    context_parts = context.split("\n")
+    assert len(context_parts) == 2
+    assert len(tokenizer.encode(context_parts[0])) <= max_tokens1
+    assert len(tokenizer.encode(context_parts[1])) <= max_tokens2

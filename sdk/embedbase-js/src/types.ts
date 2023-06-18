@@ -82,6 +82,7 @@ type Chat = {
 export interface GenerateOptions {
   history: Chat[]
   url?: string
+  model?: 'gpt-3.5-turbo-16k' | 'falcon'
 }
 
 export interface RangeOptions {
