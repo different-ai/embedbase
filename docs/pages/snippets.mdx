@@ -18,3 +18,230 @@ await embedbase.generate('${prompt} ${chunkedContext}').get()
 // Sam Altman made his appearance in Germany on Thursday, 5/25/2023, at the Technical University of Munich (TUM) to speak about OpenAI and ChatGPT.
 
 ```
+
+# Add PDFs or DOCX files to your dataset in Python
+
+To add a PDF or DOCX file, you'll first need to read the file and convert its content to text. You can use the `pdfplumber` library for PDF files and the `python-docx` library for DOCX files.
+
+First, install the required libraries:
+
+```bash copy
+pip install pdfplumber python-docx
+```
+
+Then, you can use the following code to read a PDF or DOCX file and add its content to your dataset:
+
+```python copy
+import pdfplumber
+from docx import Document
+from embedbase_client.client import EmbedbaseClient
+
+def read_pdf(file_path):
+    with pdfplumber.open(file_path) as pdf:
+        content = ""
+        for page in pdf.pages:
+            content += page.extract_text()
+    return content
+
+def read_docx(file_path):
+    doc = Document(file_path)
+    content = ""
+    for paragraph in doc.paragraphs:
+        content += paragraph.text + "\n"
+    return content
+
+embedbase = EmbedbaseClient('https://api.embedbase.xyz', '<grab me here https://app.embedbase.xyz/>')
+
+pdf_file_path = "path/to/your/pdf_file.pdf"
+docx_file_path = "path/to/your/docx_file.docx"
+
+pdf_content = read_pdf(pdf_file_path)
+docx_content = read_docx(docx_file_path)
+
+dataset_id = 'document-content'
+data = embedbase.dataset(dataset_id).chunk_and_batch_add([{'data': pdf_content}, {'data': docx_content}])
+print(data)
+```
+
+Replace `path/to/your/pdf_file.pdf` and `path/to/your/docx_file.docx` with the actual file paths of your PDF and DOCX files.
+
+
+# Adding a Github repository content to Embedbase
+
+This example shows how to add a Github repository content to Embedbase.
+It uses the Embedbase JS SDK that you can install with `npm i embedbase-js`.
+You also need `cross-fetch` which allows you to use fetch in NodeJS.
+
+NextJS is also used here, but you can use any other framework or no framework at all.
+
+The following code consists of utility functions to extract the repo name from the url, and to fetch all the files from a Github repo.
+This particular example has been used for web3 code, feel free to adapt it to your needs.
+
+```ts filename="lib/github.ts"
+import fetch from 'cross-fetch';
+import { createClient, BatchAddDocument, ClientAddData, splitText } from "embedbase-js";
+
+// extract repo name from url
+// e.g. https://github.com/gnosis/hashi should return gnosis-hashi
+export const getRepoName = (url: string) => {
+  const urlParts = url.split("/");
+  const repo = urlParts.slice(3, 5).join("-");
+  return repo;
+};
+
+export const getUserAndRepo = (url: string) => {
+  const regex = /github\.com\/(.*)\/(.*)/;
+  const match = url.match(regex);
+  if (!match) {
+    return [];
+  }
+  const user = match[1];
+  const repo = match[2].replace("/", "");
+  return [ user, repo ];
+};
+
+function getGitHubRawContentUrl(url: string): string {
+  const [, owner, repo, , branchName = "main", ...filePathParts] =
+    url.match(/github\.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+))?\/?(.*)/) ?? [];
+
+  if (!owner || !repo) {
+    throw new Error("Invalid GitHub repository URL");
+  }
+
+  const filePath = filePathParts.join("/");
+  const ending = branchName ? `?ref=${branchName}` : "";
+
+  return `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}${ending}`;
+}
+
+export const getGithubContent = async (humanUrl: string, token: string) => {
+  const url = getGitHubRawContentUrl(humanUrl);
+  console.log(url);
+  const files = await getAllFilesFromGithubRepo(url, token);
+  const markdownFilesData = files.filter(
+    (file) => file.name.endsWith(".md") || file.name.endsWith(".mdx")
+  );
+  const solidityFilesData = files.filter((file) => file.name.endsWith(".sol"));
+
+  const githubFiles = [...markdownFilesData, ...solidityFilesData].map(
+    async (file) => {
+      return {
+        content: await fetch(file.download_url, {
+          headers: {
+            Authorization: `token ${token}`,
+          },
+        }).then((res) => res.text()),
+        metadata: file,
+      };
+    }
+  );
+
+  return await Promise.all(githubFiles);
+};
+
+interface GithubFile {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  url: string;
+  html_url: string;
+  git_url: string;
+  download_url: string;
+  type: 'file' | 'dir';
+  _links: {
+    self: string;
+    git: string;
+    html: string;
+  };
+}
+
+// get all files from agithub repo
+export const getAllFilesFromGithubRepo = async (url: string, githubToken: string): Promise<GithubFile[]> => {
+  if (!url) {
+    throw new Error('No url provided');
+  }
+  if (!githubToken) {
+    throw new Error('No github token provided');
+  }
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `token ${githubToken}`,
+    },
+  });
+
+  const data: GithubFile[] = await response.json();
+
+  const dataList: GithubFile[] = [];
+  for (const item of data) {
+    if (item.type === 'file') {
+      dataList.push(item);
+    } else if (item.type === 'dir') {
+      const subdirFiles = await getAllFilesFromGithubRepo(item._links.self, githubToken);
+      dataList.push(...subdirFiles);
+    }
+  }
+  return dataList;
+};
+```
+
+The following code is the actual sync function that will be called by the API route.
+It uses the Embedbase JS SDK to add the documents to the dataset in batches of 100.
+
+```ts filename="pages/api/sync.ts"
+import fetch from 'cross-fetch';
+import { splitText, createClient, BatchAddDocument, ClientAddData } from "embedbase-js";
+
+
+const EMBEDBASE_URL = "https://api.embedbase.xyz";
+const EMBEDBASE_API_KEY = process.env.EMBEDBASE_API_KEY!;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
+
+const embedbase = createClient(EMBEDBASE_URL, EMBEDBASE_API_KEY);
+
+// 1. Sync all the docs from a github repo onto embedbase
+export default async function sync(req: any, res: any) {
+  const url = req.body.url;
+  const githubFiles = await getGithubContent(url, GITHUB_TOKEN);
+  const repo = getRepoName(url);
+
+  const chunks: BatchAddDocument[] = [];
+  await Promise.all(githubFiles
+      // ignore chunks containing <|endoftext|>
+      .filter((file) => !file.content.includes("<|endoftext|>"))
+      .map((file) =>
+        splitText(file.content).map(({ chunk }) => chunks.push({
+          data: chunk,
+          metadata: file.metadata,
+        }))
+      )
+    );
+
+  console.log('indexing', chunks.length, 'chunks into dataset', repo)
+  const batchSize = 100;
+  // add to embedbase by batches of size 100
+  return Promise.all(
+    chunks.reduce((acc: BatchAddDocument[][], chunk, i) => {
+      if (i % batchSize === 0) {
+        acc.push(chunks.slice(i, i + batchSize));
+      }
+      return acc;
+    }, []).map((chunk) => embedbase.dataset(repo).batchAdd(chunk))
+  ).catch((error) => res.status(500).json({ error: error }))
+    .then(() => res.status(200));
+}
+```
+
+You can fetch this API route from the frontend to trigger the sync,
+for example using the `fetch` API:
+
+```ts filename="pages/index.tsx"
+fetch('/api/sync', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ url: 'https://github.com/gnosis/hashi' }),
+});
+```
+
