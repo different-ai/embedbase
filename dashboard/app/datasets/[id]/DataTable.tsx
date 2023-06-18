@@ -84,7 +84,7 @@ const Table = ({ defaultDocuments }) => {
               </div>
             </td>
             <td className="px-4 py-1 text-xs text-gray-500">
-              {document.metadata.path.startsWith('http') ? (
+              {document.metadata?.path?.startsWith('http') ? (
                 <a
                   href={document.metadata.path}
                   target="_blank"
@@ -93,7 +93,7 @@ const Table = ({ defaultDocuments }) => {
                   <LinkIcon className="h-4 w-4" />
                 </a>
               ) : (
-                document.metadata.path.split(0, 10)
+                document.metadata?.path?.split(0, 10)
               )}
             </td>
           </tr>
