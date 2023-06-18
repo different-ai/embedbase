@@ -34,7 +34,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.6",
-    "react-syntax-highlignhter": "^15.5.0",
+    "react-syntax-highlighter": "^15.5.0",
     "remark-footnotes": "^4.0.1"
   },
   "devDependencies": {
