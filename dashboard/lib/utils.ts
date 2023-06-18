@@ -88,3 +88,73 @@ export async function OpenAIStream(payload: OpenAIPayload) {
 
   return stream
 }
+
+
+export interface HuggingFacePayload {
+  inputs: string;
+  parameters?: {
+    best_of?: number;
+    top_k?: number;
+    top_p?: number;
+    temperature?: number;
+    max_new_tokens?: number;
+    watermark?: boolean;
+  };
+  stream: boolean;
+}
+
+export interface HuggingFaceResponse {
+  generated_text: string;
+  ended: boolean;
+}
+
+async function generateText(modelUrl: string, payload: HuggingFacePayload): Promise<HuggingFaceResponse> {
+  payload.stream = false;
+  const response = await fetch(modelUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
+    },
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  const json = await response.json();
+  return json;
+}
+
+async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
+  const encoder = new TextEncoder();
+
+  payload.stream = true;
+  const response = await fetch(modelUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
+      Accept: 'text/event-stream'
+    },
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  return new ReadableStream({
+    async start(controller) {
+      const decoder = new TextDecoder();
+      const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
+        if (event.type === 'event') {
+          const data = JSON.parse(event.data);
+          const queue = encoder.encode(data)
+          controller.enqueue(queue);
+          return data;
+        }
+        return null;
+      });
+
+      for await (const buffer of response.body as any) {
+        const text = decoder.decode(buffer);
+        parser.feed(text);
+      }
+    },
+  });
+}
+
+export { generateText, huggingFaceStream };
