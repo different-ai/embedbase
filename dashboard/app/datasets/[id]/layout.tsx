@@ -10,6 +10,11 @@ export default function DatasetLayout({
   return (
     <>
       <SandPackCSS />
+      <div className="rounded-2xl bg-purple-200 bg-opacity-[25%] py-5 px-5 mb-6">
+        <p className="text-purple-900 ">{`Utilize the search function to find and select relevant documents.
+The chosen data will be automatically inputted into the chat prompt on the right.`}</p>
+      </div>
+
       <div className="m-auto flex w-full ">
         <div className="w-full">{children}</div>
       </div>

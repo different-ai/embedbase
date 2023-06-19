@@ -37,7 +37,6 @@ export default async function Index(context) {
     <div className="flex flex-col justify-between gap-3 sm:grid sm:grid-cols-9">
       <div className="flex flex-col gap-3 sm:col-span-6">
         <SearchBar />
-
         {/* <SandpackClient /> */}
         <DataTable
           documents={documents}
