@@ -1,6 +1,9 @@
 import FileDataLoader from '@/components/FileDataLoader'
 import { GithubDataLoader } from '@/components/GithubDataLoader'
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import {
+  createPagesServerClient,
+  createServerSupabaseClient,
+} from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
 import { ApiKeyList } from '../../components/APIKeys'
 import Dashboard from '../../components/Dashboard'
@@ -37,7 +40,6 @@ function DataImporter() {
     </div>
   )
 }
-
 
 export default function Index({
   apiKey,
@@ -78,7 +80,7 @@ export default function Index({
 
 export const getServerSideProps = async (ctx) => {
   // Create authenticated Supabase Client
-  const supabase = createServerSupabaseClient(ctx)
+  const supabase = createPagesServerClient(ctx)
   // Check if we have a session
   const {
     data: { session },
@@ -101,16 +103,15 @@ export const getServerSideProps = async (ctx) => {
     if (!apiKey) {
       throw new Error('No API key found')
     }
+    const { data: datasets } = await supabase
+      .from('datasets')
+      .select('name,  documents_count')
+      .eq('owner', session?.user?.id)
 
-    const { datasets } = await fetch(EMBEDBASE_CLOUD_URL + '/v1/datasets', {
-      headers: {
-        Authorization: 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-      },
-    }).then((res) => res.json())
+    console.log({ datasets })
 
     formattedDatasets = datasets.map((dataset: any) => ({
-      id: dataset.dataset_id,
+      id: dataset.name,
       documentsCount: dataset.documents_count,
     }))
   } catch (error) {
