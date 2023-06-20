@@ -63,3 +63,6 @@ export default async function buildPrompt(req: Request, res: Response) {
     })
   }
 }
+
+// API_KEY=""
+// curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $API_KEY" -d '{"query":"What is the capital of France?", "datasets_id": ["AI-clone"]}' http://localhost:3000/api/search

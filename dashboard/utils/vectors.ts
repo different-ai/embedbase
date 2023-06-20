@@ -7,7 +7,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const embed = async (input: string) => {
+export const embed = async (input: string | string[]) => {
     const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
@@ -19,7 +19,9 @@ const embed = async (input: string) => {
             "model": "text-embedding-ada-002",
         })
     }).then((response) => response.json());
-    return response.data[0].embedding;
+    return input instanceof Array ?
+        response.data.map((embedding: any) => embedding.embedding) :
+        response.data[0].embedding;
 }
 
 
