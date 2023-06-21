@@ -1,16 +1,13 @@
 import FileDataLoader from '@/components/FileDataLoader'
-import { GithubDataLoader } from '@/components/GithubDataLoader'
 import {
-  createPagesServerClient,
-  createServerSupabaseClient,
+  createPagesServerClient
 } from '@supabase/auth-helpers-nextjs'
 import { useEffect } from 'react'
+import { DatasetList } from '../../components/DatasetList'
 import { ApiKeyList } from '../../components/APIKeys'
 import Dashboard from '../../components/Dashboard'
 import { Dataset } from '../../hooks/useDatasets'
 import { useAppStore } from '../../lib/store'
-import { EMBEDBASE_CLOUD_URL } from '../../utils/constants'
-import { DatasetList } from './explorer'
 
 export function APIKeySection() {
   return (
@@ -44,9 +41,11 @@ function DataImporter() {
 export default function Index({
   apiKey,
   datasets,
+  user,
 }: {
   apiKey: string
   datasets: Dataset[]
+  user: any
 }) {
   const setApiKey = useAppStore((state) => state.setApiKey)
   const setDataset = useAppStore((state) => state.setDatasets)
@@ -71,7 +70,7 @@ export default function Index({
           <h3 className="mb-3 font-semibold text-gray-700">Dataset Importer</h3>
           <DataImporter />
           <h3 className="my-3 font-semibold text-gray-700">Your Datasets</h3>
-          <DatasetList />
+          <DatasetList userId={user.id} />
         </div>
       </div>
     </Dashboard>
@@ -107,8 +106,6 @@ export const getServerSideProps = async (ctx) => {
       .from('datasets')
       .select('name,  documents_count')
       .eq('owner', session?.user?.id)
-
-    console.log({ datasets })
 
     formattedDatasets = datasets.map((dataset: any) => ({
       id: dataset.name,
