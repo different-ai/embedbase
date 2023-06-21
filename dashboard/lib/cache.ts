@@ -86,11 +86,11 @@ const checkAndComputeEmbeddings = async (documents: Document[]) => {
 export const addToEmbedbase = async (
     supabase: SupabaseClient,
     documents: Document[],
-    datasetId: string,
+    datasetName: string,
     userId: string | null = null
 ) => {
     const processedDocs = await checkAndComputeEmbeddings(documents);
-    let q = supabase.from("datasets").select("id").eq("name", datasetId)
+    let q = supabase.from("datasets").select("id").eq("name", datasetName)
     if (userId) {
         q = q.eq("owner", userId)
     }
@@ -99,22 +99,29 @@ export const addToEmbedbase = async (
         console.error("An error occurred:", existingDatasetError.message);
         throw existingDatasetError;
     }
+    let datasetId = existingDataset[0].id;
+
     console.log("Existing dataset:", existingDataset);
     if (existingDataset.length === 0) {
-        console.log("Creating dataset:", datasetId);
-        await supabase.from("datasets").insert(
+        console.log("Creating dataset:", datasetName);
+        const {data, error} = await supabase.from("datasets").insert(
             {
-                "name": datasetId,
+                "name": datasetName,
                 "owner": userId
             }
-        )
+        ).select("id");
+        if (error || !data) {
+            console.error("An error occurred:", error.message || "No data returned");
+            throw error;
+        }
+        datasetId = data[0].id;
     }
     const hashes = processedDocs.map((doc) => doc.hash);
     const { data: existingDocs, error } = await supabase
         .from("documents")
         .select("id, hash")
         .eq("user_id", userId)
-        .eq("dataset_id", datasetId)
+        .eq("dataset_id", datasetName)
         .in("hash", hashes);
 
     if (error) {
@@ -130,9 +137,11 @@ export const addToEmbedbase = async (
         // add dataset_id and user_id to each doc
         newDocuments.forEach((doc) => {
             // @ts-ignore
-            doc.dataset_id = datasetId;
+            doc.dataset_id = datasetName;
             // @ts-ignore
             doc.user_id = userId;
+            // @ts-ignore
+            doc.dataset_final_id = datasetId;
         });
         console.log("New documents:", newDocuments);
         const { error } = await supabase.from("documents").insert(newDocuments);
