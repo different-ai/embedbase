@@ -113,19 +113,29 @@ class Supabase(VectorDatabase):
 
         # create dataset in datasets table if not exist
 
-        q = self.supabase.table("datasets").select("*").eq("name", dataset_id)
+        q = self.supabase.table("datasets").select("id").eq("name", dataset_id)
         if user_id:
             q = q.eq("owner", user_id)
+        dataset_final_id = ""
         data = q.execute().data
         if not data:
-            self.supabase.table("datasets").insert(
-                {
-                    "name": dataset_id,
-                    "owner": user_id,
-                }
-            ).execute()
+            data = (
+                self.supabase.table("datasets")
+                .insert(
+                    {
+                        "name": dataset_id,
+                        "owner": user_id,
+                    }
+                )
+                .execute()
+                .data
+            )
 
-        async def _insert(batch_df: DataFrame):
+        dataset_final_id = data[0]["id"]
+
+        async def _insert(
+            batch_df: DataFrame, dataset_final_id: str = dataset_final_id
+        ):
             def _d(row: Series):
                 data = {
                     "id": row.id,
@@ -134,6 +144,7 @@ class Supabase(VectorDatabase):
                     "dataset_id": dataset_id,
                     "user_id": user_id,
                     "metadata": row.metadata,
+                    "dataset_final_id": dataset_final_id,
                 }
                 # {'code': '22P05', 'details': '\\u0000 cannot be converted to text.', 'hint': None, 'message': 'unsupported Unicode escape sequence'}
                 row.data = row.data.replace("\x00", "")
