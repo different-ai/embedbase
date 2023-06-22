@@ -1,7 +1,7 @@
 posthog
 supabase
 firebase_admin
-embedbase
+embedbase==1.2.8
 openai
 sentry_sdk[fastapi]
 gunicorn

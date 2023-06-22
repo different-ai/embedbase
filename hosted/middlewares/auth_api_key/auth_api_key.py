@@ -178,6 +178,27 @@ class AuthApiKey(BaseHTTPMiddleware):
         if request.scope["type"] != "http":  # pragma: no cover
             return await call_next(request)
 
+        add_pattern = re.compile(r"^/v1/[^/]+$")
+
+        # if the path looks like /v1/{dataset_id} POST we
+        # send a 400 and tell the user that the add endpoint is currently in maintenance
+        # the maintainance should be less than 20 minutes
+        if (
+            re.match(add_pattern, request.scope["path"])
+            and request.scope["method"] == "POST"
+        ):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "message": "The add endpoint is currently in maintenance. Please try again in 20 minutes."
+                },
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*",
+                },
+            )
+
         if any(path in request.scope["path"] for path in PRODUCTION_IGNORED_PATHS):
             return await call_next(request)
         # in development mode, allow redoc, openapi etc
