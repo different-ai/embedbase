@@ -19,8 +19,7 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   if (
     req.nextUrl.pathname === '/api/chat' ||
-    req.nextUrl.pathname === '/api/search' ||
-    req.nextUrl.pathname === '/api/add'
+    req.nextUrl.pathname === '/api/search'
   ) {
     return await apiMiddleware({ req, res })
   }

@@ -17,7 +17,11 @@ const track = async (req, res, userId) => {
         api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
         event: req.nextUrl.pathname === '/api/search' ?
           'search' :
-          'chat middleware submitted',
+          req.nextUrl.pathname === '/api/chat' ?
+            'chat middleware submitted' :
+            req.nextUrl.pathname === '/api/add' ?
+              'add' :
+              'unknown',
         distinct_id: userId,
       }),
     }
@@ -31,7 +35,11 @@ export const apiMiddleware = async ({ req, res }) => {
 
   const endpoint = req.nextUrl.pathname === '/api/chat' ?
     'chat' :
-    'search'
+    req.nextUrl.pathname === '/api/search' ?
+      'search' :
+      req.nextUrl.pathname === '/api/add' ?
+        'add' :
+        'unknown'
 
   // api key auth
   if (apiKey) {
@@ -61,7 +69,6 @@ export const apiMiddleware = async ({ req, res }) => {
         return response
       }
       const { userId } = await response.json()
-      req.headers.set('userId', userId)
       await track(req, res, userId)
       return res
     } catch (error) {

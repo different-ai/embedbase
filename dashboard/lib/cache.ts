@@ -1,7 +1,7 @@
 
 import { embed } from "@/utils/vectors";
 import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { createClient } from "@supabase/supabase-js";
+import crypto from 'crypto';
 import { Document } from "embedbase-js";
 import { v4 } from 'uuid';
 import { upstashRest } from "./upstash";
@@ -26,14 +26,10 @@ const cache = {
 }
 
 const hashString = (str: string) => {
-    // example: simple hashing function, you may need to use a more robust one like 'crypto' module in Node.js.
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const charCode = str.charCodeAt(i);
-        hash = (hash << 5) - hash + charCode;
-        hash |= 0;
-    }
-    return hash.toString();
+    const fsHash = crypto.createHash('sha256');
+    fsHash.update(str);
+    const hash = fsHash.digest('hex');
+    return hash;
 };
 
 const checkAndComputeEmbeddings = async (documents: Document[]) => {
@@ -104,7 +100,7 @@ export const addToEmbedbase = async (
     console.log("Existing dataset:", existingDataset);
     if (existingDataset.length === 0) {
         console.log("Creating dataset:", datasetName);
-        const {data, error} = await supabase.from("datasets").insert(
+        const { data, error } = await supabase.from("datasets").insert(
             {
                 "name": datasetName,
                 "owner": userId
