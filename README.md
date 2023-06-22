@@ -125,10 +125,3 @@ Ask a question in our [Discord community](https://discord.gg/pMNeuGrDky) to get 
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## Self-hosting
-
-> Note: this render configuration works well for experimentation. 
-
-<a href="https://render.com/deploy?repo=https://github.com/different-ai/embedbase-render">
-      <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
-</a>
