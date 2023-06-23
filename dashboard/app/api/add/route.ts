@@ -1,9 +1,10 @@
 import { addToEmbedbase } from '@/lib/cache'
 import cors from '@/utils/cors'
-import * as Sentry from '@sentry/nextjs'
+// import * as Sentry from '@sentry/nextjs'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { Document } from 'embedbase-js'
 import { cookies } from 'next/headers'
+import { NextRequest } from 'next/server'
 import { v4 } from 'uuid'
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
@@ -29,7 +30,9 @@ const track = async (userId: string) => {
 }
 
 export const runtime = 'edge'
-
+// HACK: https://github.com/vercel/next.js/issues/49373
+export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-static'
 type AddRequest = {
     documents: Document[]
     dataset_id: string
@@ -40,13 +43,14 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': '*',
 }
 
+const credentials = {
+    supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+}
 
+export async function POST(req: NextRequest) {
+    const supabase = createRouteHandlerClient({ cookies }, credentials)
 
-export async function POST(req: Request) {
-    const supabase = createRouteHandlerClient({ cookies }, {
-        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    })
     // The `cors` snippet says the preflight OPTIONS is handled, but it's not stable!
     if (req.method === 'OPTIONS') {
         return new Response(null, {
@@ -119,7 +123,8 @@ export async function POST(req: Request) {
         )
     } catch (error) {
         console.error(error)
-        Sentry.captureException(error)
+        // TODO: Sentry does not support app dir?
+        // Sentry.captureException(error)
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: CORS_HEADERS,
