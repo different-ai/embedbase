@@ -1,7 +1,6 @@
 
 import { embed } from "@/utils/vectors";
 import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
-import crypto from 'crypto';
 import { Document } from "embedbase-js";
 import { v4 } from 'uuid';
 import { upstashRest } from "./upstash";
@@ -26,16 +25,21 @@ const cache = {
 }
 
 const hashString = (str: string) => {
-    const fsHash = crypto.createHash('sha256');
-    fsHash.update(str);
-    const hash = fsHash.digest('hex');
-    return hash;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const charCode = str.charCodeAt(i);
+        hash = (hash << 5) - hash + charCode;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    // Convert to hexadecimal string
+    return (hash >>> 0).toString(16);
 };
 
 const checkAndComputeEmbeddings = async (documents: Document[]) => {
     const processedDocuments: Document[] = [];
     const documentsToEmbed: Document[] = [];
 
+    console.log("Checking and computing embeddings for", documents.length, "documents");
     for (const document of documents) {
         const data = document.data;
         document.id = v4();
@@ -63,11 +67,17 @@ const checkAndComputeEmbeddings = async (documents: Document[]) => {
         }
     }
 
+    // print the diff from cache
+    console.log("Documents to embed:", documentsToEmbed.length);
+    console.log("Documents already in cache:", processedDocuments.length);
+
     if (documentsToEmbed.length > 0) {
         const embeddings = await embed(documentsToEmbed.map((doc) => doc.data));
+        console.log("Embeddings computed:", embeddings.length);
         for (let i = 0; i < documentsToEmbed.length; i++) {
             const doc = documentsToEmbed[i];
             const embedding = embeddings[i];
+            console.log("Setting embedding for", doc.hash);
             await cache.setEmbedding(doc.hash, embedding);
             processedDocuments.push({
                 ...doc,
@@ -85,17 +95,22 @@ export const addToEmbedbase = async (
     datasetName: string,
     userId: string | null = null
 ) => {
+    console.log("Adding documents to Embedbase", documents.length);
     const processedDocs = await checkAndComputeEmbeddings(documents);
+    console.log("Processed documents:", processedDocs.length);
+
     let q = supabase.from("datasets").select("id").eq("name", datasetName)
     if (userId) {
         q = q.eq("owner", userId)
     }
+    console.log("Checking for existing dataset:", datasetName);
     const { data: existingDataset, error: existingDatasetError } = await q;
     if (existingDatasetError) {
         console.error("An error occurred:", existingDatasetError.message);
         throw existingDatasetError;
     }
-    let datasetId = existingDataset[0].id;
+    console.log("Existing dataset:", existingDataset);
+    let datasetId = existingDataset?.[0]?.id;
 
     console.log("Existing dataset:", existingDataset);
     if (existingDataset.length === 0) {

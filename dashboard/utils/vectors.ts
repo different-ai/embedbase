@@ -46,6 +46,7 @@ async function semanticSearch(
     top_k = 5,
     options?: SemanticSearchOptions
 ): Promise<any> {
+    // TODO: copy for metadata https://github.com/supabase/vecs/blob/ffeab7fd19df505d28ce7935df8a66ad5a6928e8/src/vecs/collection.py#L291
 
     // If query is empty and no where are provided, return an empty list
     if (!query && !where) {
