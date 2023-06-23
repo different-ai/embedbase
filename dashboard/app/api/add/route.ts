@@ -35,7 +35,7 @@ type AddRequest = {
     dataset_id: string
 }
 
-export const CORS_HEADERS = {
+const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': '*',
 }
