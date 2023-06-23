@@ -6,7 +6,7 @@ import { Document } from 'embedbase-js'
 import { cookies } from 'next/headers'
 import { v4 } from 'uuid'
 
-export const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
+const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
     'https://',
     ''
 )?.replace('.supabase.co', '')
