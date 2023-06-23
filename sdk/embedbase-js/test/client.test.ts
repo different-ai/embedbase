@@ -531,3 +531,60 @@ test('should be able to complete with experimental api', async () => {
   const data = await embedbase.complete('the tiger is the biggest cat')
   expect(data).toBeDefined()
 }, TIMEOUT)
+
+test('should return an array of similarities with experimental api', async () => {
+  const embedbase = createExperimentalClient(URL, KEY)
+  await embedbase.dataset(DATASET_NAME).clear()
+  const addDocs = await embedbase.dataset(DATASET_NAME).batchAdd([
+    { data: 'the tiger is the biggest cat' },
+    { data: 'the butterfly is the smallest cat' },
+    { data: 'the tiger is the biggest dog' },
+  ])
+
+  const data = await embedbase.dataset(DATASET_NAME).search('animals')
+  console.log(data)
+
+  expect(data).toBeDefined()
+  expect(data).toBeInstanceOf(Array)
+  expect(data[0]).toHaveProperty('score')
+  expect(data[0]).toHaveProperty('data')
+  expect(data[0]).toHaveProperty('embedding')
+  expect(data[0]).toHaveProperty('hash')
+  expect(data[0].data).toBe('the tiger is the biggest dog')
+}, TIMEOUT)
+
+test('should not add duplicate entries', async () => {
+  const embedbase = createClient(URL, KEY);
+  await embedbase.dataset(DATASET_NAME).clear();
+  const result1 = await embedbase.dataset(DATASET_NAME).add('hello');
+  const result2 = await embedbase.dataset(DATASET_NAME).add('hello');
+
+  expect(result1.embedding).toEqual(result2.embedding);
+  // Ensure that only one document is added
+  const documents = await embedbase.dataset(DATASET_NAME).list();
+  expect(documents.length).toEqual(1);
+}, TIMEOUT);
+
+test('should throw an error for large documents', async () => {
+  const embedbase = createClient(URL, KEY);
+  const largeDocument = Array(100000).fill('a').join('');
+
+  await expect(embedbase.dataset(DATASET_NAME).add(largeDocument)).rejects.toThrow();
+}, TIMEOUT);
+
+test('should be able to batch add multiple documents', async () => {
+  const embedbase = createClient(URL, KEY);
+  const documents = [
+    { data: 'document 1' },
+    { data: 'document 2' },
+    { data: 'document 3' },
+  ];
+
+  await embedbase.dataset(DATASET_NAME).clear();
+  const results = await embedbase.dataset(DATASET_NAME).batchAdd(documents);
+
+  expect(results.length).toEqual(3);
+  expect(results[0].data).toEqual('document 1');
+  expect(results[1].data).toEqual('document 2');
+  expect(results[2].data).toEqual('document 3');
+}, TIMEOUT);

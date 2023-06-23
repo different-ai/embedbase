@@ -294,11 +294,12 @@ export default class EmbedbaseExperimentalClient {
    * const addedDocument = await embedbase.add('dataset_name', 'document_content', { key: 'value' });
    */
   async add(dataset: string, document: string, metadata?: Metadata): Promise<Document> {
-    const addUrl = `${this.embedbaseApiUrl}/${dataset}`
+    const addUrl = `https://app.embedbase.xyz/api/add`
+    
     const res: Response = await fetch(addUrl, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ documents: [{ data: document, metadata: metadata }] }),
+      body: JSON.stringify({ dataset_id: dataset, documents: [{ data: document, metadata: metadata }] }),
     })
     await this.handleError(res);
     const data: { results: Document[] } = await res.json()
@@ -316,11 +317,11 @@ export default class EmbedbaseExperimentalClient {
    * const addedDocuments = await embedbase.batchAdd('dataset_name', batchDocuments);
    */
   async batchAdd(dataset: string, documents: BatchAddDocument[]): Promise<Document[]> {
-    const addUrl = `${this.embedbaseApiUrl}/${dataset}`
+    const addUrl = `https://app.embedbase.xyz/api/add`
     const res: Response = await fetch(addUrl, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ documents: documents }),
+      body: JSON.stringify({ dataset_id: dataset, documents: documents }),
     })
     await this.handleError(res);
     const data: { results: Document[] } = await res.json()
