@@ -2,7 +2,7 @@ import { describe, expect, jest, test } from '@jest/globals';
 import fs from 'fs';
 import glob from 'glob';
 import path from 'path';
-import { createClient, createExperimentalClient } from '../src/index';
+import { createClient } from '../src/index';
 import { stream as originalStream } from '../src/utils';
 
 try {
@@ -497,37 +497,3 @@ test.skip('large documents shouldnt crash javascript heap', async () => {
   expect(true).toBe(true)
 }, TIMEOUT * 10)
 
-
-test('should be able to search the vercel search endpoint', async () => {
-  let embedbase = createExperimentalClient(URL, KEY)
-  await embedbase.dataset(DATASET_NAME).clear()
-  await embedbase.dataset(DATASET_NAME).add('hello')
-
-  const data = await embedbase.dataset(DATASET_NAME).search('hello')
-  console.log(data)
-
-  expect(data).toBeDefined()
-  expect(data).toBeInstanceOf(Array)
-  expect(data[0]).toHaveProperty('score')
-  expect(data[0]).toHaveProperty('data')
-  expect(data[0]).toHaveProperty('embedding')
-  expect(data[0]).toHaveProperty('hash')
-  expect(data[0].data).toBe('hello')
-}, TIMEOUT)
-
-test('should return a list of strings when using createContext with experimental api', async () => {
-  const embedbase = createExperimentalClient(URL, KEY)
-  await embedbase.dataset(DATASET_NAME).clear()
-  await embedbase.dataset(DATASET_NAME).add('the tiger is the biggest cat')
-  await embedbase.dataset(DATASET_NAME).add('the butterfly is the smallest cat')
-  const data = await embedbase.dataset(DATASET_NAME).createContext('test', { limit: 10 })
-
-  expect(data).toBeDefined()
-  expect(data).toHaveLength(2)
-}, TIMEOUT)
-
-test('should be able to complete with experimental api', async () => {
-  const embedbase = createExperimentalClient(URL, KEY)
-  const data = await embedbase.complete('the tiger is the biggest cat')
-  expect(data).toBeDefined()
-}, TIMEOUT)

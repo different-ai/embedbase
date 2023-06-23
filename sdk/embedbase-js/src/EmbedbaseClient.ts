@@ -6,11 +6,12 @@ import type {
   ClientSearchData,
   ClientSearchResponse,
   Document,
+  CreateContextOptions,
+  SearchOptions,
   GenerateOptions,
   Metadata,
   RangeOptions,
   SearchData,
-  SearchOptions,
   SearchResponse,
   UpdateDocument
 } from './types';
@@ -44,13 +45,13 @@ class SearchBuilder implements PromiseLike<ClientSearchData> {
    */
   async search(): Promise<ClientSearchData> {
     const top_k = this.options.limit || 5
-    const searchUrl = `${this.client.embedbaseApiUrl}/${this.dataset}/search`
-
-    const requestBody: {
-      query: string
-      top_k: number
-      where?: object
-    } = { query: this.query, top_k };
+    let searchUrl =
+      this.options.url ||
+      'https://app.embedbase.xyz/api/search'
+    let requestBody: any = {
+      query: this.query, top_k,
+      datasets_id: [this.dataset]
+    }
 
     if (this.options.where) {
       requestBody.where = this.options.where;
@@ -236,7 +237,7 @@ export default class EmbedbaseClient {
    * Creates a context based on the search query and options provided.
    *
    * @param {string} query - The search query.
-   * @param {SearchOptions} options - Optional search options.
+   * @param {CreateContextOptions} options - Optional search options.
    * @returns {Promise<ClientContextData>} - Resolves to a ClientContextData object.
    * 
    * @example
@@ -245,14 +246,19 @@ export default class EmbedbaseClient {
   async createContext(
     dataset: string,
     query: string,
-    options: { limit?: number } = {}
+    options: CreateContextOptions = {}
   ): Promise<ClientContextData> {
     const top_k = options.limit || 5
-    const searchUrl = `${this.embedbaseApiUrl}/${dataset}/search`
+    const searchUrl =
+      options.url ||
+      'https://app.embedbase.xyz/api/search'
     const res: Response = await fetch(searchUrl, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ query, top_k }),
+      body: JSON.stringify({
+        query, top_k,
+        datasets_id: [dataset]
+      }),
     })
     await this.handleError(res);
     const data: SearchData = await res.json()
@@ -385,7 +391,7 @@ export default class EmbedbaseClient {
    *   search: (query: string, options?: SearchOptions) => SearchBuilder
    *   add: (document: string, metadata?: Metadata) => Promise<Document>
    *   batchAdd: (documents: BatchAddDocument[]) => Promise<Document[]>
-   *   createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+   *   createContext: (query: string, options?: CreateContextOptions) => Promise<ClientContextData>
    *   list: (options?: RangeOptions) => ListBuilder
    *
    * @example
@@ -432,13 +438,13 @@ export default class EmbedbaseClient {
      * Creates a context based on the search query and options provided.
      *
      * @param {string} query - The search query.
-     * @param {SearchOptions} options - Optional search options.
+     * @param {CreateContextOptions} options - Optional search options.
      * @returns {Promise<ClientContextData>} - Resolves to a ClientContextData object.
      * 
      * @example
      * const contextData = await embedbase.dataset('dataset_name').createContext('search_query');
      */
-    createContext: (query: string, options?: SearchOptions) => Promise<ClientContextData>
+    createContext: (query: string, options?: CreateContextOptions) => Promise<ClientContextData>
     /**
      * 
      * @param {string} dataset 
@@ -554,7 +560,7 @@ export default class EmbedbaseClient {
         this.search(dataset, query, options),
       add: async (document: string, metadata?: Metadata) => this.add(dataset, document, metadata),
       batchAdd: async (documents: BatchAddDocument[]) => this.batchAdd(dataset, documents),
-      createContext: async (query: string, options?: SearchOptions) =>
+      createContext: async (query: string, options?: CreateContextOptions) =>
         this.createContext(dataset, query, options),
       list: (options?: RangeOptions) => this.list(dataset, options),
       clear: async () => this.clear(dataset),
@@ -789,6 +795,3 @@ export default class EmbedbaseClient {
     return data.answer
   }
 }
-
-
-

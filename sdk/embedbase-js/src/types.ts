@@ -37,15 +37,10 @@ export interface SearchData {
 export interface SearchOptions {
   limit?: number
   where?: object
-}
-
-export interface ExperimentalSearchOptions {
-  limit?: number
-  where?: object
   url?: string
 }
 
-export interface ExperimentalCreateContextOptions {
+export interface CreateContextOptions {
   limit?: number
   url?: string
 }
