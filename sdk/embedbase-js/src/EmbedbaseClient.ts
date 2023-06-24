@@ -227,6 +227,7 @@ export default class EmbedbaseClient {
           errorMessage = errorData.error
         }
       } catch (error) {
+        console.error(error);
         // If parsing the response fails, use a generic error message.
       }
 

@@ -387,7 +387,7 @@ test('should provide clear error message', async () => {
 }, TIMEOUT)
 
 test('should be able to generate text sync', async () => {
-  const res = await embedbase.useModel('google/bison').generateText('1+1=')
+  const res = await embedbase.useModel('bigscience/bloomz-7b1').generateText('1+1=')
   expect(res).toBeDefined()
 }, TIMEOUT)
 
