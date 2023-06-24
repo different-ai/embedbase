@@ -123,7 +123,7 @@ const generateText = async (modelUrl: string, payload: HuggingFacePayload): Prom
   return response[0]
 }
 
-const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
+const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> => {
   const encoder = new TextEncoder();
 
   payload.stream = true;
