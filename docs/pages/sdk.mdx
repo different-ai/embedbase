@@ -206,7 +206,7 @@ The recommended workflow is like this:
 1. search your question using internet endpoint
 2. (optional) add results to embedbase
 3. (optional) search embedbase with the question
-4. use .generate() to get your question answered
+4. use .streamText() to get your question answered
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
@@ -573,27 +573,12 @@ const question = 'How do I use Embedbase?'
 const prompt =
 `Based on the following context:\n${data.join('\n')}\nAnswer the user's question: ${question}`
 
-for await (const res of embedbase.generate(prompt)) {
+for await (const res of embedbase.streamText(prompt)) {
     console.log(res)
     // You, can, use, ...
 }
-```
 
-You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
-
-```ts copy
-const history = [
-    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
-    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
-    {"role": "assistant", "content": "You can npm i embedbase-js, write two lines of code, and..."},
-    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
-]
-
-// ...
-for await (const res of embedbase.generate(prompt, {history})) {
-    console.log(res)
-    // You, need, to, query, Notion, API, like, so:, ...
-}
+// or const res = await embedbase.generateText(prompt)
 ```
 
   </Tab>
