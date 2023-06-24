@@ -100,6 +100,7 @@ export interface HuggingFacePayload {
     max_new_tokens?: number;
     watermark?: boolean;
     return_full_text?: boolean;
+    stop?: string[];
   };
   stream: boolean;
 }
@@ -120,7 +121,7 @@ async function generateText(modelUrl: string, payload: HuggingFacePayload): Prom
     body: JSON.stringify(payload),
   });
   const json = await response.json();
-  return json;
+  return json[0]
 }
 
 async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
@@ -142,7 +143,7 @@ async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload):
       const decoder = new TextDecoder();
       const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
         if (event.type === 'event') {
-          const data = JSON.parse(event.data).generated_text;
+          const data = JSON.parse(event.data)?.token?.text;
           if (data === null) return null;
           console.log('data', data);
           const queue = encoder.encode(data)
@@ -154,6 +155,7 @@ async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload):
 
       for await (const buffer of response.body as any) {
         const text = decoder.decode(buffer);
+        console.log('text', text);
         parser.feed(text);
       }
     },

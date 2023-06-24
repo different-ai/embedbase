@@ -130,3 +130,9 @@ export interface ClientSearchResponse {
   url: string
   snippet: string
 }
+
+
+export interface GenerateOptions {
+  maxNewTokens?: number;
+  stop?: string[];
+}

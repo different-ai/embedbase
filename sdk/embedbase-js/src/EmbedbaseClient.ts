@@ -7,6 +7,7 @@ import type {
   ClientSearchResponse,
   CreateContextOptions,
   Document,
+  GenerateOptions,
   LLM,
   LLMDescription,
   Metadata,
@@ -16,7 +17,7 @@ import type {
   SearchResponse,
   UpdateDocument
 } from './types';
-import { batch, camelize, getFetch, stream } from './utils';
+import { batch, camelize, getFetch, snakeize, stream } from './utils';
 
 let fetch = getFetch();
 
@@ -771,13 +772,13 @@ export default class EmbedbaseClient {
    * console.log(generatedText);
    */
   public useModel(modelName: LLM): {
-    generateText: (input: string) => Promise<string>;
-    streamText: (input: string) => AsyncGenerator<string>;
+    generateText: (input: string, options?: GenerateOptions) => Promise<string>;
+    streamText: (input: string, options?: GenerateOptions) => AsyncGenerator<string>;
   } {
     const headers = this.headers
     // Add the appropriate implementation for the generateText and streamText methods
     return {
-      generateText: async (input: string) => {
+      generateText: async (input: string, options?: GenerateOptions) => {
 
         const url = 'https://app.embedbase.xyz/api/chat'
         // const url = 'http://localhost:3000/api/chat'
@@ -788,6 +789,7 @@ export default class EmbedbaseClient {
             prompt: input,
             model: modelName,
             stream: false,
+            ...(options ? snakeize(options) : {})
           }),
           headers,
         })
@@ -798,7 +800,7 @@ export default class EmbedbaseClient {
 
         return data.generated_text
       },
-      streamText: async function* (input: string) {
+      streamText: async function* (input: string, options?: GenerateOptions) {
         if (modelName === 'google/bison') {
           throw new Error('google/bison does not support streaming yet')
         }
@@ -811,6 +813,7 @@ export default class EmbedbaseClient {
             prompt: input,
             model: modelName,
             stream: true,
+            ...(options ? snakeize(options) : {})
           }),
           headers,
         );

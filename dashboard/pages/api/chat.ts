@@ -1,4 +1,4 @@
-import { OpenAIPayload, OpenAIStream, huggingFaceStream } from '@/lib/utils'
+import { OpenAIPayload, OpenAIStream, generateText, huggingFaceStream } from '@/lib/utils'
 import cors from '@/utils/cors'
 import * as Sentry from '@sentry/nextjs'
 import { defaultChatSystem } from '../../utils/constants'
@@ -35,6 +35,8 @@ interface RequestPayload {
   system?: string
   model: LLM
   stream: boolean
+  max_new_tokens?: number;
+  stop?: string[];
 }
 
 export type Role = 'user' | 'system' | 'assistant'
@@ -82,7 +84,7 @@ type Chat = {
 // }
 
 const handler = async (req: Request, res: Response): Promise<Response> => {
-  let { prompt, history, system, model, stream } = (await req.json()) as RequestPayload
+  let { prompt, history, system, model, stream, max_new_tokens, stop } = (await req.json()) as RequestPayload
   if (!model) model = 'openai/gpt-3.5-turbo-16k'
   if (stream === undefined) stream = true
   if (!prompt) {
@@ -119,23 +121,18 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     if (model === 'tiiuae/falcon-7b') {
       const url = 'http://34.127.99.191:9090'
       if (!stream) {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const res = await generateText(url, {
+          inputs: prompt,
+          stream: false,
+          parameters: {
+            max_new_tokens: max_new_tokens || 1000,
+            return_full_text: false,
+            stop: stop || [],
           },
-          body: JSON.stringify({
-            inputs: prompt,
-            stream: false,
-            parameters: {
-              max_new_tokens: 1000,
-              return_full_text: false,
-            },
-          }),
-        }).then((res) => res.json())
+        })
         console.log('res', res)
         return new Response(JSON.stringify({
-          generated_text: res?.[0]?.generated_text || ''
+          generated_text: res.generated_text
         }), {
           status: 200,
         })
@@ -145,30 +142,26 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         stream: true,
         parameters: {
           // { model_id: "tiiuae/falcon-7b", revision: None, sharded: None, num_shard: Some(1), quantize: None, trust_remote_code: false, max_concurrent_requests: 128, max_best_of: 2, max_stop_sequences: 4, max_input_length: 1000, max_total_tokens: 1512, max_batch_size: None, waiting_served_ratio: 1.2, max_batch_total_tokens: 32000, max_waiting_tokens: 20, port: 80, shard_uds_path: "/tmp/text-generation-server", master_addr: "localhost", master_port: 29500, huggingface_hub_cache: Some("/data"), weights_cache_override: None, disable_custom_kernels: false, json_output: false, otlp_endpoint: None, cors_allow_origin: [], watermark_gamma: None, watermark_delta: None, env: false }
-          max_new_tokens: 1000,
+          max_new_tokens: max_new_tokens || 1000,
           return_full_text: false,
+          stop: stop || [],
         }
       })
     } else if (model === 'bigscience/bloomz-7b1') {
       const url = 'http://34.70.171.197:9090'
       if (!stream) {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const res = await generateText(url, {
+          inputs: prompt,
+          stream: false,
+          parameters: {
+            max_new_tokens: max_new_tokens || 1000,
+            return_full_text: false,
+            stop: stop || [],
           },
-          body: JSON.stringify({
-            inputs: prompt,
-            stream: false,
-            parameters: {
-              max_new_tokens: 1000,
-              return_full_text: false,
-            },
-          }),
-        }).then((res) => res.json())
+        })
         console.log('res', res)
         return new Response(JSON.stringify({
-          generated_text: res?.[0]?.generated_text || ''
+          generated_text: res.generated_text
         }), {
           status: 200,
         })
@@ -178,8 +171,9 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         inputs: prompt,
         stream: true,
         parameters: {
-          max_new_tokens: 1000,
+          max_new_tokens: max_new_tokens || 1000,
           return_full_text: false,
+          stop: stop || [],
         }
       })
     } else if (model === 'google/bison') {
@@ -188,6 +182,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
       const res = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({
+          // TODO: support params
           prompt: prompt,
         }),
         headers: {

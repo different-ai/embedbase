@@ -219,8 +219,11 @@ test('should be able to filter by metadata using where', async () => {
 }, TIMEOUT)
 
 test('should be able to chat', async () => {
-  for await (const res of embedbase.useModel('bigscience/bloomz-7b1').streamText('1+1=')) {
+  for await (const res of embedbase.useModel('bigscience/bloomz-7b1').streamText('tell a story', {
+    maxNewTokens: 10,
+  })) {
     expect(res).toBeDefined()
+    console.log(res)
   }
 }, TIMEOUT)
 
@@ -387,7 +390,9 @@ test('should provide clear error message', async () => {
 }, TIMEOUT)
 
 test('should be able to generate text sync', async () => {
-  const res = await embedbase.useModel('bigscience/bloomz-7b1').generateText('1+1=')
+  const res = await embedbase.useModel('bigscience/bloomz-7b1').generateText('1+1=', {
+    maxNewTokens: 10,
+  })
   expect(res).toBeDefined()
 }, TIMEOUT)
 

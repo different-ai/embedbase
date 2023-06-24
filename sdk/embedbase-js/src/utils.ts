@@ -32,6 +32,26 @@ const camelCase = (str: string) => {
   })
 }
 
+const snakeCase = (str: string) => {
+  return str.replace(/([A-Z])/g, ($1) => {
+    return '_' + $1.toLowerCase()
+  })
+}
+
+export const snakeize = <T>(obj: any): T => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj as T
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => snakeize(item)) as unknown as T
+  }
+  const snakeized = {}
+  for (const key in obj) {
+    snakeized[snakeCase(key)] = snakeize(obj[key])
+  }
+  return snakeized as T
+}
+
 
 
 
