@@ -110,7 +110,7 @@ export interface HuggingFaceResponse {
   ended: boolean;
 }
 
-async function generateText(modelUrl: string, payload: HuggingFacePayload): Promise<HuggingFaceResponse> {
+const generateText = async (modelUrl: string, payload: HuggingFacePayload): Promise<HuggingFaceResponse> => {
   payload.stream = false;
   const response = await fetch(modelUrl, {
     headers: {
@@ -123,7 +123,7 @@ async function generateText(modelUrl: string, payload: HuggingFacePayload): Prom
   return response[0]
 }
 
-async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
+const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
   const encoder = new TextEncoder();
 
   payload.stream = true;
@@ -163,4 +163,5 @@ async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload):
   });
 }
 
-export { generateText, huggingFaceStream };
+export { generateText, huggingFaceStream }
+
