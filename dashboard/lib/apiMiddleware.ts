@@ -37,9 +37,7 @@ export const apiMiddleware = async ({ req, res }) => {
     'chat' :
     req.nextUrl.pathname === '/api/search' ?
       'search' :
-      req.nextUrl.pathname === '/api/add' ?
-        'add' :
-        'unknown'
+      'unknown'
 
   // api key auth
   if (apiKey) {
