@@ -119,9 +119,8 @@ async function generateText(modelUrl: string, payload: HuggingFacePayload): Prom
     },
     method: 'POST',
     body: JSON.stringify(payload),
-  });
-  const json = await response.json();
-  return json[0]
+  }).then((res) => res.json());
+  return response[0]
 }
 
 async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> {
@@ -143,7 +142,9 @@ async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload):
       const decoder = new TextDecoder();
       const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
         if (event.type === 'event') {
-          const data = JSON.parse(event.data)?.token?.text;
+          let data = JSON.parse(event.data)
+          data = data?.token?.text
+          if (data?.token?.special) return null;
           if (data === null) return null;
           console.log('data', data);
           const queue = encoder.encode(data)
