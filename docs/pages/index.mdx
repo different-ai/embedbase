@@ -110,7 +110,7 @@ const question = 'im looking for a nice pant that is comfortable and i can both 
 const context = await embedbase.dataset(datasetId).createContext(question)
 const prompt = 
     `Based on the following context:\n${context}\nAnswer the user's question: ${question}`
-for await (const res of embedbase.streamText(prompt)) {
+for await (const res of embedbase.useModel('openai/gpt-3.5-turbo-16k').streamText(prompt)) {
     console.log(res)
 }
 ```

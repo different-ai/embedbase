@@ -573,12 +573,12 @@ const question = 'How do I use Embedbase?'
 const prompt =
 `Based on the following context:\n${data.join('\n')}\nAnswer the user's question: ${question}`
 
-for await (const res of embedbase.streamText(prompt)) {
+for await (const res of embedbase.useModel('openai/gpt-3.5-turbo-16k').streamText(prompt)) {
     console.log(res)
     // You, can, use, ...
 }
 
-// or const res = await embedbase.generateText(prompt)
+// or const res = await embedbase.useModel('openai/gpt-3.5-turbo-16k').generateText(prompt)
 ```
 
   </Tab>
