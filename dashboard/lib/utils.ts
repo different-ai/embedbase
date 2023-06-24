@@ -99,6 +99,7 @@ export interface HuggingFacePayload {
     temperature?: number;
     max_new_tokens?: number;
     watermark?: boolean;
+    return_full_text?: boolean;
   };
   stream: boolean;
 }
@@ -141,7 +142,9 @@ async function huggingFaceStream(modelUrl: string, payload: HuggingFacePayload):
       const decoder = new TextDecoder();
       const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
         if (event.type === 'event') {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data).generated_text;
+          if (data === null) return null;
+          console.log('data', data);
           const queue = encoder.encode(data)
           controller.enqueue(queue);
           return data;
