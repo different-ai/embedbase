@@ -5,17 +5,18 @@ import type {
   ClientDatasets,
   ClientSearchData,
   ClientSearchResponse,
-  Document,
   CreateContextOptions,
-  SearchOptions,
-  GenerateOptions,
+  Document,
+  LLM,
+  LLMDescription,
   Metadata,
   RangeOptions,
   SearchData,
+  SearchOptions,
   SearchResponse,
   UpdateDocument
 } from './types';
-import { CustomAsyncGenerator, batch, camelize, getFetch, stream } from './utils';
+import { batch, camelize, getFetch, stream } from './utils';
 
 let fetch = getFetch();
 
@@ -581,43 +582,6 @@ export default class EmbedbaseClient {
     return data
   }
 
-  public generate(prompt: string, options?: GenerateOptions): CustomAsyncGenerator<string> {
-    const url = options?.url || 'https://app.embedbase.xyz/api/chat'
-
-    options = options || {
-      history: [],
-    }
-
-    // hack to remove system from history because api is slightly different from openai
-    // and we want to go on-pair with openai api for now
-    let system = ''
-    if (options?.history) {
-      const systemIndex = options.history.findIndex((item) => item.role === 'system')
-      if (systemIndex > -1) {
-        system = options.history[systemIndex].content
-        options.history.splice(systemIndex, 1)
-      }
-    }
-
-    const asyncGen = async function* (): AsyncGenerator<string> {
-      const streamGen = stream(
-        url,
-        JSON.stringify({
-          prompt,
-          system,
-          history: options?.history,
-        }),
-        this.headers,
-      );
-
-      for await (const res of streamGen) {
-        yield res;
-      }
-    }.bind(this);
-
-    return new CustomAsyncGenerator<string>(asyncGen());
-  }
-
   /**
    * Searches the internet for the given query.
    *
@@ -773,25 +737,87 @@ export default class EmbedbaseClient {
   }
 
   /**
-   * Execute a prompt using Google PaLM2 model
-   * @param prompt 
-   * @returns 
-   */
-  public async complete(prompt: string): Promise<string> {
-    const url = 'https://llm-usx5gpslaq-uc.a.run.app'
-
-    const res = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({
-        prompt: prompt,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    await this.handleError(res);
-    const data: { answer: string } = await res.json()
-    return data.answer
+ * Retrieves a list of LLM models available for use.
+ * @returns {Promise<LLMDescription[]>} - Returns a list of available LLM models.
+ *
+ * @example
+ * const models = await embedbase.getModels();
+ * console.log(models);
+ */
+  public async getModels(): Promise<LLMDescription[]> {
+    const models: LLMDescription[] = [
+      { name: "openai/gpt-4", description: "OpenAI's GPT-4 model" },
+      { name: "openai/gpt-3.5-turbo-16k", description: "OpenAI's GPT-3.5 Turbo 16k model" },
+      { name: "tiiuae/falcon-7b", description: "Tiiuae's Falcon 7b model" },
+      { name: "google/bison", description: "Google's Bison model" },
+      { name: "bigscience/bloomz-7b1", description: "BigScience's Bloomz 7b1 model" },
+    ];
+    return models;
   }
+
+  /**
+   * Selects a specific LLM model and returns an object containing
+   * methods to interact with the selected model.
+   *
+   * @param {LLM} modelName - The name of the LLM model to use.
+   * @returns {Object} - An object with the following methods:
+   *   generateText: (input: string) => Promise<string>
+   *   streamText: (input: string) => AsyncGenerator<string>
+   *
+   * @example
+   * const gpt4 = embedbase.useModel("openai/gpt-4");
+   * const generatedText = await gpt4.generateText("input-text");
+   * console.log(generatedText);
+   */
+  public useModel(modelName: LLM): {
+    generateText: (input: string) => Promise<string>;
+    streamText: (input: string) => AsyncGenerator<string>;
+  } {
+    const headers = this.headers
+    // Add the appropriate implementation for the generateText and streamText methods
+    return {
+      generateText: async (input: string) => {
+
+        const url = 'https://app.embedbase.xyz/api/chat'
+        // const url = 'http://localhost:3000/api/chat'
+
+        const res = await fetch(url, {
+          method: 'POST',
+          body: JSON.stringify({
+            prompt: input,
+            model: modelName,
+            stream: false,
+          }),
+          headers,
+        })
+
+        await this.handleError(res)
+
+        const data: { generated_text: string } = await res.json()
+
+        return data.generated_text
+      },
+      streamText: async function* (input: string) {
+        if (modelName === 'google/bison') {
+          throw new Error('google/bison does not support streaming yet')
+        }
+        const url = 'https://app.embedbase.xyz/api/chat'
+        // const url = 'http://localhost:3000/api/chat'
+
+        const streamGen = stream(
+          url,
+          JSON.stringify({
+            prompt: input,
+            model: modelName,
+            stream: true,
+          }),
+          headers,
+        );
+
+        for await (const res of streamGen) {
+          yield res;
+        }
+      }
+    }
+  };
 }

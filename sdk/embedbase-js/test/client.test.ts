@@ -219,7 +219,7 @@ test('should be able to filter by metadata using where', async () => {
 }, TIMEOUT)
 
 test('should be able to chat', async () => {
-  for await (const res of embedbase.generate('1+1=')) {
+  for await (const res of embedbase.useModel('bigscience/bloomz-7b1').streamText('1+1=')) {
     expect(res).toBeDefined()
   }
 }, TIMEOUT)
@@ -237,7 +237,7 @@ test.skip('should receive maxed out plan error', async () => {
   // Promise.all(Array(50).fill(0).map(() => e()))
 
   try {
-    for await (const res of bankruptBase.generate('hello')) {
+    for await (const res of bankruptBase.useModel('bigscience/bloomz-7b1').streamText('hello')) {
       // Execution should not reach here, so the test will fail if it does
       expect(false).toBe(true);
     }
@@ -246,21 +246,6 @@ test.skip('should receive maxed out plan error', async () => {
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe("Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz")
   }
-}, TIMEOUT)
-
-test('should be able to chat with map, foreach etc', async () => {
-  const outputs = await embedbase.generate('1+1=').map((res) => res)
-  expect(outputs).toBeDefined()
-  const noHello = await embedbase.generate('1+1=').filter((res) => res !== 'hello')
-  expect(noHello).toBeDefined()
-  const aListOfHellos = await embedbase.generate('1+1=').batch(10).map((res) => res)
-  expect(aListOfHellos).toBeInstanceOf(Array)
-  let lastMessage = ''
-  await embedbase.generate('1+1=').forEach((res) => lastMessage = res)
-  expect(lastMessage).toBeDefined()
-  const result = await embedbase.generate('1+1=').get<string>()
-  // should be a list of string
-  expect(result).toBeInstanceOf(Array)
 }, TIMEOUT)
 
 
@@ -283,7 +268,7 @@ describe('API error handling tests', () => {
 
 
       try {
-        for await (const res of embedbase.generate('hello')) {
+        for await (const res of embedbase.useModel('bigscience/bloomz-7b1').streamText('hello')) {
           // Execution should not reach here, so the test will fail if it does
           expect(false).toBe(true);
         }
@@ -401,9 +386,8 @@ test('should provide clear error message', async () => {
   }
 }, TIMEOUT)
 
-// TODO some network issue in github action?
-test.skip('should be able to chat in spanish', async () => {
-  const res = await embedbase.generate('hola ablos espanol').get()
+test('should be able to generate text sync', async () => {
+  const res = await embedbase.useModel('google/bison').generateText('1+1=')
   expect(res).toBeDefined()
 }, TIMEOUT)
 

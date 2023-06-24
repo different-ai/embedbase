@@ -278,6 +278,24 @@ export class CustomAsyncGenerator<T> implements AsyncIterableIterator<T> {
   }
 }
 
+export class TextAsyncGenerator extends CustomAsyncGenerator<string> {
+  constructor(asyncGenerator: AsyncGenerator<string>) {
+    super(asyncGenerator);
+  }
+
+  /**
+   * **Example**
+   * ```ts
+   * await generator.join()
+   * ```
+   * @param fn 
+   * @returns 
+   */
+  async join(): Promise<string> {
+    return (await this.get()).join("");
+  }
+}
+
 
 
 export const batch = async <T, Z>(

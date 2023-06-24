@@ -68,16 +68,11 @@ export interface ClientDatasets {
   public: boolean
 }
 
+export type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
 
-export type Role = 'user' | 'system' | 'assistant'
-type Chat = {
-  role: Role
-  content: string
-}
-export interface GenerateOptions {
-  history: Chat[]
-  url?: string
-  model?: 'gpt-3.5-turbo-16k' | 'falcon'
+export interface LLMDescription {
+  name: LLM
+  description: string
 }
 
 export interface RangeOptions {
