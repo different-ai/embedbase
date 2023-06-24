@@ -27,7 +27,9 @@ type Chat = {
   content: string
 }
 const handler = async (req: Request, res: Response): Promise<Response> => {
-  const { prompt, history, system, model, stream } = (await req.json()) as RequestPayload
+  let { prompt, history, system, model, stream } = (await req.json()) as RequestPayload
+  if (!model) model = 'openai/gpt-3.5-turbo-16k'
+  if (!stream) stream = true
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
       status: 400,
