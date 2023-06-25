@@ -115,12 +115,16 @@ const generateText = async (modelUrl: string, payload: HuggingFacePayload): Prom
   const response = await fetch(modelUrl, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
+      // Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
     },
     method: 'POST',
     body: JSON.stringify(payload),
-  }).then((res) => res.json());
-  return response[0]
+  })
+  if (!response.ok) {
+    throw new Error('Network response was not ok' + response.statusText)
+  }
+  const responseJson = await response.json()
+  return responseJson[0]
 }
 
 const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> => {
