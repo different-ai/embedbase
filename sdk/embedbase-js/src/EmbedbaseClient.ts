@@ -750,9 +750,9 @@ export default class EmbedbaseClient {
     const models: LLMDescription[] = [
       { name: "openai/gpt-4", description: "OpenAI's GPT-4 model" },
       { name: "openai/gpt-3.5-turbo-16k", description: "OpenAI's GPT-3.5 Turbo 16k model" },
-      { name: "tiiuae/falcon-7b", description: "Tiiuae's Falcon 7b model" },
       { name: "google/bison", description: "Google's Bison model" },
-      { name: "bigscience/bloomz-7b1", description: "BigScience's Bloomz 7b1 model" },
+      // { name: "tiiuae/falcon-7b", description: "Tiiuae's Falcon 7b model" },
+      // { name: "bigscience/bloomz-7b1", description: "BigScience's Bloomz 7b1 model" },
     ];
     return models;
   }

@@ -68,7 +68,7 @@ export interface ClientDatasets {
   public: boolean
 }
 
-export type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
+export type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo-16k' | 'google/bison' // | 'tiiuae/falcon-7b' | 'bigscience/bloomz-7b1'
 
 export interface LLMDescription {
   name: LLM
