@@ -121,7 +121,9 @@ const generateText = async (modelUrl: string, payload: HuggingFacePayload): Prom
     body: JSON.stringify(payload),
   })
   if (!response.ok) {
-    throw new Error('Network response was not ok' + response.statusText)
+    const text = await response.text()
+    console.log(text)
+    throw new Error(text)
   }
   const responseJson = await response.json()
   return responseJson[0]
