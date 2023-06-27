@@ -22,7 +22,9 @@ const track = async (userId: string, model: string) => {
         api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
         event: 'chat api',
         distinct_id: userId,
-        model: model,
+        properties: {
+          model: model,
+        },
       }),
     }
   )
