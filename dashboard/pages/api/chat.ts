@@ -103,6 +103,8 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     })
   }
 
+  console.log('streaming chat with model', model)
+
   const messages: Chat[] = [
     {
       role: 'system',
@@ -119,7 +121,6 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     stream: true,
   }
   const apiKey = req.headers.get('Authorization')
-  console.log('api key', apiKey)
   if (apiKey) {
     await getUserId(apiKey).then((userId) => track(userId, model).catch(console.error))
   }
