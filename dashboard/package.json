@@ -13,6 +13,7 @@
     "@dqbd/tiktoken": "^1.0.7",
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",
+    "@huggingface/inference": "^2.5.2",
     "@sentry/nextjs": "^7.46.0",
     "@stripe/stripe-js": "^1.48.0",
     "@supabase/auth-helpers-nextjs": "^0.7.1",

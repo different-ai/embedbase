@@ -1,3 +1,4 @@
+import { HfInference } from '@huggingface/inference'
 import {
   createParser,
   ParsedEvent,
@@ -130,44 +131,66 @@ const generateText = async (modelUrl: string, payload: HuggingFacePayload): Prom
   return responseJson[0]?.generated_text || responseJson.generated_text
 }
 
+// TODO: cleanup this dirty code :D
+
 const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> => {
-  const encoder = new TextEncoder();
+  const inference = new HfInference();
+  const model = inference.endpoint(modelUrl);
+  const stream = model.textGenerationStream(payload);
 
-  payload.stream = true;
-  const response = await fetch(modelUrl, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
-      Accept: 'text/event-stream'
-    },
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-
+  // return a readablestream
+  const encoder = new TextEncoder()
   return new ReadableStream({
     async start(controller) {
-      const decoder = new TextDecoder();
-      const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
-        if (event.type === 'event') {
-          let data = JSON.parse(event.data)
-          data = data?.token?.text
-          if (data?.token?.special) return null;
-          if (data === null) return null;
-          console.log('data', data);
-          const queue = encoder.encode(data)
-          controller.enqueue(queue);
-          return data;
-        }
-        return null;
-      });
-
-      for await (const buffer of response.body as any) {
-        const text = decoder.decode(buffer);
-        console.log('text', text);
-        parser.feed(text);
+      for await (const chunk of stream) {
+        console.log('chunk', chunk);
+        if (!chunk.generated_text) continue
+        const queue = encoder.encode(chunk.generated_text);
+        controller.enqueue(queue);
       }
+      controller.close();
     },
   });
+
+  // const encoder = new TextEncoder();
+
+  // payload.stream = true;
+  // const response = await fetch(modelUrl, {
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //     // Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
+  //     Accept: 'text/event-stream'
+  //   },
+  //   method: 'POST',
+  //   body: JSON.stringify(payload),
+  // });
+
+  // return new ReadableStream({
+  //   async start(controller) {
+  //     const decoder = new TextDecoder();
+  //     const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
+  //       console.log('event', event);
+
+  //       if (event.type === 'event') {
+  //         let data = JSON.parse(event.data)
+  //         data = data?.token?.text
+  //         if (data?.token?.special) return null;
+  //         if (data === null) return null;
+  //         console.log('data', data);
+  //         const queue = encoder.encode(data)
+  //         controller.enqueue(queue);
+  //         return data;
+  //       }
+  //       return null;
+  //     });
+
+  //     for await (const buffer of response.body as any) {
+  //       const text = decoder.decode(buffer);
+  //       console.log('text', text);
+  //       parser.feed(text);
+  //     }
+  //   },
+  // });
 }
 
 export { generateText, huggingFaceStream }

@@ -160,7 +160,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         }
       })
     } else if (model === 'bigscience/bloomz-7b1') {
-      const url = 'https://api.differentai.xyz/generate'
+      const url = 'https://api.differentai.xyz'
       if (!stream) {
         const res = await generateText(url, {
           inputs: prompt,
