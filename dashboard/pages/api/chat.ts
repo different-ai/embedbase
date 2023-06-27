@@ -10,23 +10,23 @@ if (!process.env.OPENAI_API_KEY) {
 export const config = {
   runtime: 'edge',
 }
-// const track = async (userId: string, model: string) => {
-//   await fetch(
-//     'https://app.posthog.com/capture/',
-//     {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
-//         event: 'chat api',
-//         distinct_id: userId,
-//         model: model,
-//       }),
-//     }
-//   )
-// }
+const track = async (userId: string, model: string) => {
+  await fetch(
+    'https://app.posthog.com/capture/',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: 'phc_plfzAimxHysKLaS80RK3NPaL0OJhlg983m3o5Zuukp',
+        event: 'chat api',
+        distinct_id: userId,
+        model: model,
+      }),
+    }
+  )
+}
 type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
 
 interface RequestPayload {
@@ -44,44 +44,52 @@ type Chat = {
   role: Role
   content: string
 }
+const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
+  'https://',
+  ''
+)?.replace('.supabase.co', '')
 
-// const getUserId = async (req, res, apiKey) => {
-//   // api key auth
-//   // get the bearer token
-//   const split = apiKey.split(' ')
-//   if (split.length !== 2) {
-//     return new Response(JSON.stringify({ error: 'Invalid Api Key' }), {
-//       status: 401,
-//     })
-//   }
+const getUserId = async (apiKey) => {
+  // get the bearer token
+  const split = apiKey.split(' ')
+  if (split.length !== 2) {
+    return new Response(JSON.stringify({ error: 'Invalid Api Key' }), {
+      status: 401,
+    })
+  }
 
-//   const token = split[1]
+  const token = split[1]
 
-//   const supabase = createMiddlewareClient({ req, res }, {
-//     supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-//     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-//   })
-//   // const supabase = createPagesServerClient({ req, res })
-//   // const supabase = createServerActionClient(
-//   //   { cookies },
-//   //   // @ts-ignore
-//   //   {
-//   //     supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-//   //     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-//   //   }
-//   // )
-//   const {
-//     data: { user_id },
-//   } = await supabase
-//     .from('api-keys')
-//     .select('*')
-//     .eq('api_key', token)
-//     .limit(1)
-//     .single()
 
-//   return user_id
+  // HACK using https://$SUPABASE_PROJECT_ID.functions.supabase.co/consumeApi
+  // supabase function instead of getting directly the ID in the db
+  // because i couldn't make the supabase client work here
+  try {
+    const response = await fetch(
+      `https://${PROJECT_ID}.functions.supabase.co/consumeApi`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }, // HACK is to use unknown as endpoint to not track twice the chat already tracked in apiMiddleware.ts
+        // we just use the function to get the userId
+        body: JSON.stringify({ apiKey: token, endpoint: 'unknown' }),
+      }
+    )
+    // if we have a user id then we can continue
+    if (!response.ok) {
+      return response
+    }
+    const { userId } = await response.json()
+    return userId
+  } catch (error) {
+    console.log(error)
+    return new Response(JSON.stringify({ error: 'Invalid Api Key' }), {
+      status: 401,
+    })
+  }
 
-// }
+}
 
 const handler = async (req: Request, res: Response): Promise<Response> => {
   let { prompt, history, system, model, stream, max_new_tokens, stop } = (await req.json()) as RequestPayload
@@ -108,11 +116,11 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     messages,
     stream: true,
   }
-  // const apiKey = req.headers.get('Authorization')
-  // console.log('api key', apiKey)
-  // if (apiKey) {
-  //   await getUserId(req, res, apiKey).then((userId) => track(userId, model).catch(console.error))
-  // }
+  const apiKey = req.headers.get('Authorization')
+  console.log('api key', apiKey)
+  if (apiKey) {
+    await getUserId(apiKey).then((userId) => track(userId, model).catch(console.error))
+  }
 
   try {
     let readableStream: ReadableStream
