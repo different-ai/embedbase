@@ -129,6 +129,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     let readableStream: ReadableStream
 
 
+    // TODO: not supported atm
     if (model === 'tiiuae/falcon-7b') {
       const url = 'http://34.127.99.191:9090'
       if (!stream) {
@@ -159,7 +160,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         }
       })
     } else if (model === 'bigscience/bloomz-7b1') {
-      const url = 'http://34.70.171.197:9090'
+      const url = 'https://api.differentai.xyz/generate'
       if (!stream) {
         const res = await generateText(url, {
           inputs: prompt,
@@ -172,7 +173,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         })
         console.log('res', res)
         return new Response(JSON.stringify({
-          generated_text: res.generated_text
+          generated_text: res
         }), {
           status: 200,
         })

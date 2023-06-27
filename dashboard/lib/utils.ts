@@ -126,7 +126,8 @@ const generateText = async (modelUrl: string, payload: HuggingFacePayload): Prom
     throw new Error(text)
   }
   const responseJson = await response.json()
-  return responseJson[0]
+  console.log('responseJson', responseJson)
+  return responseJson[0]?.generated_text || responseJson.generated_text
 }
 
 const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload): Promise<ReadableStream> => {
