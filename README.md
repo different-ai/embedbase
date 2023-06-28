@@ -83,28 +83,6 @@ The fastest way to get started with Embedbase is signing up for free to [Embedba
 
 
 
-## Supported Integrations
-
-### Connections
-- [x] Any data with the sdk or api
-- [x] PDF
-- [ ] Github
-
-### Vector DBs
-- [x] Supabase
-- [x] Postgres
-- [x] Qdrant
-- [ ] Weaviate
-- [ ] Redis
-
-### Embedding Models
-- [x] OpenAI Embeddings
-- [x] sentence-transformers
-- [ ] T5
-
-
-
-
 ## Docs and support
 
 Check out our [tutorials](https://docs.embedbase.xyz) for step-by-step guides, how-to's, and best practices, our documentation is powered by GPT-4, so you can ask question directly. 
