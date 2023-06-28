@@ -14,49 +14,12 @@ export function SyncTabs(props, { children }) {
 
 ## Embedbase
 
-<Tabs items={['TypeScript', 'Python']}>
-  <Tab>
-[![Try with Replit Badge](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@benjaminshafii/Embedbase-Quickstart-JS?v=1)
-  </Tab>
-    <Tab>
-[![Try with Replit Badge](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@LouisBeaumont1/Embedbase-Python-Quick-Tour?v=1/)
-  </Tab>
-</Tabs>
-
-
-**Open-source API & SDK to connect any data to ChatGPT**
 
 Before you start, you need get a an API key at [app.embedbase.xyz](https://app.embedbase.xyz/signup).
 
-*Note: we're working on a fully client-side SDK. In the meantime, you can use the hosted instance of Embedbase.*
 
 
-## Design philosophy
-
-- Dead simple
-- Open-source
-- Composable (integrates well with any AI providers, databases and LLM helpers)
-
-## What is it
-
-These are the official clients for Embedbase. Open-source API & SDK to easily create, store and retrieve embeddings.
-
-## Who is it for
-
-People who want to
-* plug their own data into ChatGPT or any other LLM
-* build recommendation systems
-* build search engines
-* build classification engines
-* etc.
-
-## Embedbase Vector
-Vector databases are specialized databases designed to work efficiently with high-dimensional vectors, often used for representing data in machine learning applications. Examples of such data include embeddings, which are numerical representations of unstructured data such as text, images, and more. Vector databases enable efficient storage, search, and retrieval of similar items based on their embeddings.
-
-Embedbase Vector makes it easy to use vector dbs. It simplifies the process of working with embeddings and enables users to easily store, index, and search unstructured data. With Embedbase, even those without machine learning expertise can build recommendation engines, search engines, and Q&A engines, offering seamless integration from development to deployment for a wide variety of applications.
-
-## How to use the SDK
-
+## Initializing
 ### Installation
 
 <Tabs items={['TypeScript', 'Python']}>
@@ -73,7 +36,7 @@ pip install embedbase-client
 </Tabs>
 
 
-### Initializing
+### Creating a client
 
 <Tabs items={['TypeScript', 'Python']}>
   <Tab>
@@ -110,6 +73,75 @@ Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
 Learn more about asynchronous Python [here](https://docs.python.org/3/library/asyncio.html).
   </Tab>
 </Tabs>
+
+## Main Operations
+
+
+
+### Generating text
+
+Under the hood, generating text use OpenAI models. If you are interested in using
+other models, such as open-source ones, please contact us.
+
+Remember that this count in your playground usage,
+for more information head to the [billing page](https://app.embedbase.xyz/dashboard/pricing).
+
+<Tabs items={['TypeScript', 'Python']}>
+  <Tab>
+```ts copy
+const data = await embedbase
+  .dataset('my-documentation')
+  .createContext('my-context')
+
+const question = 'How do I use Embedbase?'
+const prompt =
+`Based on the following context:\n${data.join('\n')}\nAnswer the user's question: ${question}`
+
+for await (const res of embedbase.useModel('openai/gpt-3.5-turbo-16k').streamText(prompt)) {
+    console.log(res)
+    // You, can, use, ...
+}
+
+// or const res = await embedbase.useModel('openai/gpt-3.5-turbo-16k').generateText(prompt)
+```
+
+You can list models with `await embedbase.getModels()`
+
+  </Tab>
+    <Tab>
+```python copy
+data = embedbase.dataset(dataset_id).create_context("my-context")
+question = 'How do I use Embedbase?'
+# ⚠️ note here that the prompt depends
+# on the used embedder in embedbase.
+# See `create_context` doc for details. ⚠️
+prompt = (
+    "Based on the following context:\n"
+    + "\n".join(data)
+    + f"\nAnswer the user's question: {question}"
+)
+for r in embedbase.generate(prompt):
+    print(r)
+    # You, need, to, query, Notion, API, like, so:, ...
+```
+
+You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
+
+```python copy
+history = [
+    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
+    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
+    {"role": "assistant", "content": "You can pip install embedbase-client, write two lines of code, and..."},
+    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
+]
+
+for r in embedbase.generate(prompt, history):
+    print(r)
+    # You, need, to, query, Notion, API, like, so:, ...
+```
+  </Tab>
+</Tabs>
+
 
 ### Searching datasets
 
@@ -342,6 +374,7 @@ You can also use `add`, or `batch_add`.
   </Tab>
 </Tabs>
 
+## Extras
 ### Updating data
 
 
@@ -554,69 +587,6 @@ print(data)
 </Tabs>
 
 
-### Generating text
-
-Under the hood, generating text use OpenAI models. If you are interested in using
-other models, such as open-source ones, please contact us.
-
-Remember that this count in your playground usage,
-for more information head to the [billing page](https://app.embedbase.xyz/dashboard/pricing).
-
-<Tabs items={['TypeScript', 'Python']}>
-  <Tab>
-```ts copy
-const data = await embedbase
-  .dataset('my-documentation')
-  .createContext('my-context')
-
-const question = 'How do I use Embedbase?'
-const prompt =
-`Based on the following context:\n${data.join('\n')}\nAnswer the user's question: ${question}`
-
-for await (const res of embedbase.useModel('openai/gpt-3.5-turbo-16k').streamText(prompt)) {
-    console.log(res)
-    // You, can, use, ...
-}
-
-// or const res = await embedbase.useModel('openai/gpt-3.5-turbo-16k').generateText(prompt)
-```
-
-You can list models with `await embedbase.getModels()`
-
-  </Tab>
-    <Tab>
-```python copy
-data = embedbase.dataset(dataset_id).create_context("my-context")
-question = 'How do I use Embedbase?'
-# ⚠️ note here that the prompt depends
-# on the used embedder in embedbase.
-# See `create_context` doc for details. ⚠️
-prompt = (
-    "Based on the following context:\n"
-    + "\n".join(data)
-    + f"\nAnswer the user's question: {question}"
-)
-for r in embedbase.generate(prompt):
-    print(r)
-    # You, need, to, query, Notion, API, like, so:, ...
-```
-
-You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
-
-```python copy
-history = [
-    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
-    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
-    {"role": "assistant", "content": "You can pip install embedbase-client, write two lines of code, and..."},
-    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
-]
-
-for r in embedbase.generate(prompt, history):
-    print(r)
-    # You, need, to, query, Notion, API, like, so:, ...
-```
-  </Tab>
-</Tabs>
 
 
 ### Listing datasets
@@ -708,10 +678,6 @@ embedbase.dataset('test-amazon-product-reviews').clear()
   </Tab>
 </Tabs>
 
-
-## Create a recommendation engine
-
-Check out [this tutorial](https://docs.embedbase.xyz/tutorials/recommendation-engine-to-increase-time-spent).
 
 ## Contributing
 
