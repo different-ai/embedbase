@@ -107,29 +107,33 @@ function DeleteDatasetModal({ userId, datasetId, open, setOpen }) {
   const supabase = useSupabaseClient()
 
   const onHandleDelete = async () => {
-    const { error: datasetsError } = await supabase
-      .from('datasets')
-      .delete()
-      .eq('owner', userId)
-      .eq('name', datasetId)
-    if (datasetsError) {
-      console.error(datasetsError)
-      toast.error('😭 Could not delete dataset')
+
+    const p = new Promise(async (resolve, reject) => {
+      const { error: documentsError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('user_id', userId)
+        .eq('dataset_id', datasetId)
+      if (documentsError) {
+        throw new Error('Could not delete dataset' + documentsError)
+      }
+
+      const { error: datasetsError } = await supabase
+        .from('datasets')
+        .delete()
+        .eq('owner', userId)
+        .eq('name', datasetId)
+      if (datasetsError) {
+        throw new Error('Could not delete dataset' + datasetsError)
+      }
       setOpen(undefined)
-      return
-    }
-    const { error: documentsError } = await supabase
-      .from('documents')
-      .delete()
-      .eq('user_id', userId)
-      .eq('dataset_id', datasetId)
-    if (documentsError) {
-      console.error(documentsError)
-      toast.error('😭 Could not delete dataset')
-    } else {
-      toast.success('🎉 Dataset deleted, refresh to see changes')
-    }
-    setOpen(undefined)
+      resolve(null)
+    })
+    toast.promise(p, {
+      loading: 'Deleting...',
+      success: <b>🎉 Dataset deleted, refresh to see changes!</b>,
+      error: <b>😭 Could not delete dataset</b>,
+    }).finally(() => setOpen(undefined)).catch(console.error)
   }
 
   const cancelButtonRef = useRef(null)
