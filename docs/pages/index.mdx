@@ -14,7 +14,7 @@ Embedbase is a single API to access both LLMs and a VectorDB\*
 
 Here's a small example to do a simple Q&A search app:
 
-```js
+```js copy
 import { createClient } from 'embedbase-js'
 // initialize client
 const embedbase = createClient(
@@ -34,7 +34,7 @@ const stringifiedSearchResults = searchResults
   .join('')
 
 const answer = await embedbase
-  .useModel('openai/gpt-3.5-turbo-16k')
+  .useModel('openai/gpt-3.5-turbo-16k') // or google/bison
   .generateText(`${stringifiedSearchResults} ${question}`)
 
 console.log(answer) // 'I suggest considering harem pants for your needs. Harem pants are known for their ...'
