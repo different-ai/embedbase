@@ -29,7 +29,7 @@ const track = async (userId: string, model: string) => {
     }
   )
 }
-type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
+type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
 
 interface RequestPayload {
   prompt: string
@@ -95,7 +95,7 @@ const getUserId = async (apiKey) => {
 
 const handler = async (req: Request, res: Response): Promise<Response> => {
   let { prompt, history, system, model, stream, max_new_tokens, stop } = (await req.json()) as RequestPayload
-  if (!model) model = 'openai/gpt-3.5-turbo-16k'
+  if (!model) model = 'openai/gpt-3.5-turbo'
   if (stream === undefined) stream = true
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'No prompt in the request' }), {
@@ -116,7 +116,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
   //3. pass in the history of the conversation as well as the context (which is included in the prompt)
   const payload: OpenAIPayload = {
-    model: 'gpt-3.5-turbo-16k',
+    model: 'gpt-3.5-turbo',
     messages,
     stream: true,
   }
@@ -213,6 +213,25 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
       )
     } else if (model === 'openai/gpt-4') {
       payload.model = 'gpt-4'
+      if (!stream) {
+        payload.stream = stream
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ''}`,
+          },
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }).then((res) => res.json())
+        return new Response(JSON.stringify({
+          generated_text: res?.choices?.[0]?.message.content || ''
+        }), {
+          status: 200,
+        })
+      }
+      readableStream = await OpenAIStream(payload)
+    } else if (model === 'openai/gpt-3.5-turbo-16k') {
+      payload.model = 'gpt-3.5-turbo-16k'
       if (!stream) {
         payload.stream = stream
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
