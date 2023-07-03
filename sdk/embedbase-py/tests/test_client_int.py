@@ -5,7 +5,7 @@ import os
 import dotenv
 import pytest
 from embedbase_client import EmbedbaseAsyncClient, EmbedbaseClient
-from embedbase_client.model import Metadata, Document
+from embedbase_client.model import Document, Metadata
 
 dotenv.load_dotenv("../../.env")
 base_url = "https://api.embedbase.xyz"
@@ -202,10 +202,10 @@ def test_sync_client_generate():
     for result in client.generate("hello"):
         assert isinstance(result, str)
 
-def test_sync_client_generate_spanish():
-    results = ''.join([result for result in client.generate("hola ablos")])
-    print(results)
 
+def test_sync_client_generate_spanish():
+    results = "".join([result for result in client.generate("hola ablos")])
+    print(results)
 
 
 # @pytest.mark.asyncio
@@ -222,6 +222,7 @@ async def test_async_client_generate_should_receive_maxed_out_plan_error():
         str(e.value)
         == "Plan limit exceeded, please upgrade on the dashboard. If you are building open-source, please contact us at louis@embedbase.xyz"
     )
+
 
 @pytest.mark.skip(reason="todo")
 def test_sync_client_generate_should_receive_maxed_out_plan_error():
@@ -327,6 +328,7 @@ async def test_async_chunk_and_batch_add():
     assert result[0].data == documents[0]["data"]
     assert isinstance(result[0], Document)
 
+
 def test_chunk_and_batch_add():
     documents = [
         {
@@ -346,3 +348,25 @@ def test_chunk_and_batch_add():
     assert len(result) == 2
     assert result[0].data == documents[0]["data"]
     assert isinstance(result[0], Document)
+
+
+@pytest.mark.asyncio
+async def test_update_documents_async():
+    # Add some documents to the dataset
+    documents = [
+        Document(id="document1", data="Document 1"),
+        Document(id="document2", data="Document 2"),
+    ]
+    await async_ds.batch_add([dict(doc) for doc in documents])
+
+    # Update the documents
+    updated_docs = [
+        Document(id="document1", data="Updated Document 1"),
+        Document(id="document2", data="Updated Document 2"),
+    ]
+    updated_results = await async_ds.update(updated_docs)
+
+    # Check that the documents are updated
+    assert len(updated_results) == len(updated_docs)
+    for result in updated_results:
+        assert result.data in ["Updated Document 1", "Updated Document 2"]
