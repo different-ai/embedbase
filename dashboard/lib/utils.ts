@@ -151,47 +151,21 @@ const huggingFaceStream = async (modelUrl: string, payload: HuggingFacePayload):
       controller.close();
     },
   });
-
-  // const encoder = new TextEncoder();
-
-  // payload.stream = true;
-  // const response = await fetch(modelUrl, {
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //     // Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY ?? ''}`,
-  //     Accept: 'text/event-stream'
-  //   },
-  //   method: 'POST',
-  //   body: JSON.stringify(payload),
-  // });
-
-  // return new ReadableStream({
-  //   async start(controller) {
-  //     const decoder = new TextDecoder();
-  //     const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
-  //       console.log('event', event);
-
-  //       if (event.type === 'event') {
-  //         let data = JSON.parse(event.data)
-  //         data = data?.token?.text
-  //         if (data?.token?.special) return null;
-  //         if (data === null) return null;
-  //         console.log('data', data);
-  //         const queue = encoder.encode(data)
-  //         controller.enqueue(queue);
-  //         return data;
-  //       }
-  //       return null;
-  //     });
-
-  //     for await (const buffer of response.body as any) {
-  //       const text = decoder.decode(buffer);
-  //       console.log('text', text);
-  //       parser.feed(text);
-  //     }
-  //   },
-  // });
 }
 
-export { generateText, huggingFaceStream }
+const openaiCompletion = async (url: string, model: string, prompt: string, maxTokens = 100) => fetch(`${url}/v1/completions`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bearer EMPTY",
+  },
+  body: JSON.stringify({
+    model: model,
+    prompt: prompt,
+    max_tokens: maxTokens,
+    stream: false,
+  })
+}).then((response) => response.json()).then((response) => response.choices?.[0]?.text || response)
+
+export { generateText, huggingFaceStream, openaiCompletion }
 

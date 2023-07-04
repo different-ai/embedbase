@@ -396,6 +396,13 @@ test('should be able to generate text sync', async () => {
   expect(res).toBeDefined()
 }, TIMEOUT)
 
+test('should be able to list models', async () => {
+  const models = await embedbase.getModels()
+  console.log(JSON.stringify(models.map((m: any) => m.name), null, 2))
+  expect(models).toBeDefined()
+}, TIMEOUT)
+
+
 
 test('should be able to replace my documents', async () => {
   const documents = [

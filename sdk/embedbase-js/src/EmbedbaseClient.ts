@@ -738,6 +738,8 @@ export default class EmbedbaseClient {
     return data.results
   }
 
+
+
   /**
  * Retrieves a list of LLM models available for use.
  * @returns {Promise<LLMDescription[]>} - Returns a list of available LLM models.
@@ -747,12 +749,14 @@ export default class EmbedbaseClient {
  * console.log(models);
  */
   public async getModels(): Promise<LLMDescription[]> {
+    const { data: otherModels } = await listModels();
     const models: LLMDescription[] = [
       { name: "openai/gpt-4", description: "OpenAI's GPT-4 model" },
       { name: "openai/gpt-3.5-turbo-16k", description: "OpenAI's GPT-3.5 Turbo 16k model" },
+      { name: "openai/gpt-3.5-turbo", description: "OpenAI's GPT-3.5 Turbo model" },
       { name: "google/bison", description: "Google's Bison model" },
-      // { name: "tiiuae/falcon-7b", description: "Tiiuae's Falcon 7b model" },
-      // { name: "bigscience/bloomz-7b1", description: "BigScience's Bloomz 7b1 model" },
+      { name: "bigscience/bloomz-7b1", description: "BigScience's Bloomz 7b1 model" },
+      ...otherModels.map((model: any) => ({ name: model.model, description: JSON.stringify(model) })),
     ];
     return models;
   }
@@ -771,7 +775,7 @@ export default class EmbedbaseClient {
    * const generatedText = await gpt4.generateText("input-text");
    * console.log(generatedText);
    */
-  public useModel(modelName: LLM): {
+  public useModel(modelName: LLM | string): {
     generateText: (input: string, options?: GenerateOptions) => Promise<string>;
     streamText: (input: string, options?: GenerateOptions) => AsyncGenerator<string>;
   } {
@@ -824,4 +828,33 @@ export default class EmbedbaseClient {
       }
     }
   };
+}
+
+
+/**
+ * Lists all models available on the platform.
+ * @async
+ * @returns {Promise<Object>} A promise that resolves to an object containing a list of models.
+ * @example
+ * listModels().then(models => console.log(models));
+ */
+async function listModels() {
+  const response = await fetch("https://api.airtable.com/v0/appwJMZ6IAUnKpSwV/all", {
+    headers: {
+      Authorization: "Bearer patBrBkdsFw0ArVlF.89a5669f5fd05d20e1d0f77216d072d929b13a215c0471b9a1a2d764537cbe8d"
+    }
+  });
+  const data = await response.json();
+  return {
+    data: data.records
+      .filter((record) => record.fields["url"] !== undefined)
+      .map((record) => ({
+        id: record.id,
+        object: "model",
+        owned_by: record.fields["contact"] || "anonymous",
+        permission: ["read"],
+        createdTime: record.createdTime,
+        ...record.fields
+      }))
+  }
 }

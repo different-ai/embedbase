@@ -1,4 +1,4 @@
-import { OpenAIPayload, OpenAIStream, generateText, huggingFaceStream } from '@/lib/utils'
+import { OpenAIPayload, OpenAIStream, generateText, huggingFaceStream, openaiCompletion } from '@/lib/utils'
 import cors from '@/utils/cors'
 import * as Sentry from '@sentry/nextjs'
 import { defaultChatSystem } from '../../utils/constants'
@@ -31,11 +31,12 @@ const track = async (userId: string, model: string) => {
 }
 type LLM = 'openai/gpt-4' | 'openai/gpt-3.5-turbo' | 'openai/gpt-3.5-turbo-16k' | 'tiiuae/falcon-7b' | 'google/bison' | 'bigscience/bloomz-7b1'
 
+
 interface RequestPayload {
   prompt: string
   history: Chat[]
   system?: string
-  model: LLM
+  model: LLM | string
   stream: boolean
   max_new_tokens?: number;
   stop?: string[];
@@ -103,7 +104,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     })
   }
 
-  console.log('streaming chat with model', model)
+  console.log('generating text with model', model, 'stream', stream, 'max_new_tokens', max_new_tokens)
 
   const messages: Chat[] = [
     {
@@ -129,37 +130,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     let readableStream: ReadableStream
 
 
-    // TODO: not supported atm
-    if (model === 'tiiuae/falcon-7b') {
-      const url = 'http://34.127.99.191:9090'
-      if (!stream) {
-        const res = await generateText(url, {
-          inputs: prompt,
-          stream: false,
-          parameters: {
-            max_new_tokens: max_new_tokens || 1000,
-            return_full_text: false,
-            stop: stop || [],
-          },
-        })
-        console.log('res', res)
-        return new Response(JSON.stringify({
-          generated_text: res.generated_text
-        }), {
-          status: 200,
-        })
-      }
-      readableStream = await huggingFaceStream(url, {
-        inputs: prompt,
-        stream: true,
-        parameters: {
-          // { model_id: "tiiuae/falcon-7b", revision: None, sharded: None, num_shard: Some(1), quantize: None, trust_remote_code: false, max_concurrent_requests: 128, max_best_of: 2, max_stop_sequences: 4, max_input_length: 1000, max_total_tokens: 1512, max_batch_size: None, waiting_served_ratio: 1.2, max_batch_total_tokens: 32000, max_waiting_tokens: 20, port: 80, shard_uds_path: "/tmp/text-generation-server", master_addr: "localhost", master_port: 29500, huggingface_hub_cache: Some("/data"), weights_cache_override: None, disable_custom_kernels: false, json_output: false, otlp_endpoint: None, cors_allow_origin: [], watermark_gamma: None, watermark_delta: None, env: false }
-          max_new_tokens: max_new_tokens || 1000,
-          return_full_text: false,
-          stop: stop || [],
-        }
-      })
-    } else if (model === 'bigscience/bloomz-7b1') {
+    if (model === 'bigscience/bloomz-7b1') {
       const url = 'https://api.differentai.xyz'
       if (!stream) {
         const res = await generateText(url, {
@@ -249,6 +220,38 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
         })
       }
       readableStream = await OpenAIStream(payload)
+    } else if (model === 'NousResearch/Nous-Hermes-13b') {
+      const text = await openaiCompletion(
+        'https://6976-35-203-131-148.ngrok-free.app', 'NousResearch/Nous-Hermes-13b', prompt, max_new_tokens || 100)
+      return new Response(JSON.stringify({
+        generated_text: text || ''
+      }), {
+        status: 200,
+      })
+    } else if (model === 'TheBloke/mpt-7b-chat-GGML') {
+      const text = await openaiCompletion(
+        'https://3e85-34-139-159-248.ngrok-free.app', 'TheBloke/mpt-7b-chat-GGML', prompt, max_new_tokens || 100)
+      return new Response(JSON.stringify({
+        generated_text: text || ''
+      }), {
+        status: 200,
+      })
+    } else if (model === 'TheBloke/Nous-Hermes-13B-GGML') {
+      const text = await openaiCompletion(
+        'https://28b6-2a01-e0a-3ee-1cb0-505a-5158-140c-80f8.ngrok-free.app', 'TheBloke/Nous-Hermes-13B-GGML', prompt, max_new_tokens || 100)
+      return new Response(JSON.stringify({
+        generated_text: text || ''
+      }), {
+        status: 200,
+      })
+    } else if (model === 'nomic-ai/ggml-replit-code-v1-3b') {
+      const text = await openaiCompletion(
+        'https://430699a51145-11712225068814657101.ngrok-free.app', 'nomic-ai/ggml-replit-code-v1-3b', prompt, max_new_tokens || 100)
+      return new Response(JSON.stringify({
+        generated_text: text || ''
+      }), {
+        status: 200,
+      })
     } else {
       if (!stream) {
         payload.stream = stream
