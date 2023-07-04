@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Optional
 
 from abc import ABC
 
@@ -8,7 +8,6 @@ class BaseClient(ABC):
         self,
         embedbase_url: str = "https://api.embedbase.xyz",
         embedbase_key: Optional[str] = None,
-        fastapi_app: Optional[Any] = None,
         timeout: Optional[float] = 30,
     ):
         if not embedbase_url:
@@ -19,7 +18,6 @@ class BaseClient(ABC):
 
         self.embedbase_url = embedbase_url.rstrip("/") + "/v1"
         self.embedbase_api_key = embedbase_key
-        self.fastapi_app = fastapi_app
         self.headers = {"Content-Type": "application/json"}
         if self.embedbase_api_key:
             self.headers["Authorization"] = f"Bearer {self.embedbase_api_key}"

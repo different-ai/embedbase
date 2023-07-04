@@ -12,5 +12,4 @@ def get_version() -> str:
 
 version: str = get_version()
 
-from .async_client import EmbedbaseAsyncClient
-from .sync_client import EmbedbaseClient
+from .client import EmbedbaseClient

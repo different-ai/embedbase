@@ -1,26 +1,7 @@
-from typing import Any, AsyncGenerator, Generator
-from embedbase_client.errors import EmbedbaseAPIException
-import aiohttp
+from typing import Generator
+
 import requests
-
-
-async def async_stream(url: str, body: str, headers: dict) -> AsyncGenerator[str, None]:
-    """
-    This function is used to stream the response from the server.
-    :param url: The url of the API to which to POST.
-    :param body: The body of the POST request.
-    :param headers: The headers of the POST request.
-    :return: A generator that yields the response from the server.
-    """
-    async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.post(url, data=body) as response:
-            if response.status != 200:
-                message = await response.json()
-                raise EmbedbaseAPIException(message.get("error", message))
-
-            async for value in response.content.iter_chunked(1024):
-                chunk_value = value.decode("utf-8")
-                yield chunk_value
+from embedbase_client.errors import EmbedbaseAPIException
 
 
 def sync_stream(
@@ -44,11 +25,3 @@ def sync_stream(
         for value in response.iter_content(chunk_size=1024):
             chunk_value = value.decode("utf-8")
             yield chunk_value
-
-
-class CustomAsyncGenerator:
-    def __init__(self, async_gen: AsyncGenerator[Any, None]):
-        self.async_gen = async_gen
-
-    def __aiter__(self):
-        return self.async_gen

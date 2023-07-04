@@ -305,17 +305,10 @@ class EmbedbaseClient(BaseClient):
         self,
         embedbase_url: str = "https://api.embedbase.xyz",
         embedbase_key: Optional[str] = None,
-        fastapi_app: Optional[Any] = None,
         timeout: Optional[float] = 30,
     ):
         super().__init__(embedbase_url, embedbase_key, timeout=timeout)
-        # warn user that passing fastapi_app is not supported
-        # in sync client
-        if fastapi_app:
-            raise ValueError(
-                "fastapi_app is not supported in sync client. "
-                "Please use AsyncEmbedbaseClient instead."
-            )
+
 
     def create_context(
         self, dataset: str, query: str, limit: Optional[int] = None
@@ -724,3 +717,173 @@ class EmbedbaseClient(BaseClient):
             raise EmbedbaseAPIException(data.get("error", res.text))
 
         return [Document(**result) for result in data["results"]]
+
+    def generate_text(self, model: str, prompt: str, options: Optional[dict] = None):
+        """
+        Generate text using a specific language model.
+
+        Args:
+            model (str): The name or identifier of the language model.
+            prompt (str): The input text prompt for generating the output text.
+            options (dict, optional): Additional options for the generation process.
+
+        Returns:
+            The generated text as a string.
+
+        Example usage:
+            client = EmbedbaseClient("https://api.embedbase.xyz", "YOUR_API_KEY")
+            generated_text = client.generate_text("openai/gpt-3.5-turbo", "Hello, how are you?")
+            print(generated_text)
+        """
+        if options is None:
+            options = {}
+
+        url = "https://app.embedbase.xyz/api/chat"
+        data = {"prompt": prompt, "model": model, "stream": False, **options}
+
+        response = requests.post(
+            url, headers=self.headers, json=data, timeout=self.timeout
+        )
+        response.raise_for_status()
+
+        result = response.json()
+        return result["generated_text"]
+
+    def stream_text(self, model: str, prompt: str, options: Optional[dict] = None):
+        """
+        Generate text using a specific language model in a streaming fashion.
+
+        Args:
+            model (str): The name or identifier of the language model.
+            prompt (str): The input text prompt for generating the output text.
+            options (dict, optional): Additional options for the generation process.
+
+        Yields:
+            Each generated text chunk as a string.
+
+        Example usage:
+            client = EmbedbaseClient("https://api.embedbase.xyz", "YOUR_API_KEY")
+            for chunk in client.stream_text("openai/gpt-3.5-turbo", "Hello, how are you?"):
+                print(chunk)
+        """
+        if options is None:
+            options = {}
+
+        url = "https://app.embedbase.xyz/api/chat"
+        data = {"prompt": prompt, "model": model, "stream": True, **options}
+
+        # use sync_stream
+
+        return sync_stream(
+            url,
+            json.dumps(data),
+            self.headers,
+            self.timeout,
+        )
+
+    @staticmethod
+    def list_models() -> List[Dict[str, Any]]:
+        """
+        Lists all models available on the platform.
+
+        Returns:
+            A list of dictionaries, each containing information about a model.
+
+        Example usage:
+            models = EmbedbaseClient.list_models()
+            print(models)
+        """
+        headers = {
+            "Authorization": "Bearer patBrBkdsFw0ArVlF.89a5669f5fd05d20e1d0f77216d072d929b13a215c0471b9a1a2d764537cbe8d"
+        }
+
+        response = requests.get(
+            "https://api.airtable.com/v0/appwJMZ6IAUnKpSwV/all",
+            headers=headers,
+            timeout=10,
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        return [
+            {
+                "id": record["id"],
+                "object": "model",
+                "owned_by": record["fields"].get("contact", "anonymous"),
+                "permission": ["read"],
+                "createdTime": record["createdTime"],
+                **record["fields"],
+            }
+            for record in data["records"]
+            if "url" in record["fields"]
+        ]
+
+    def get_models(self) -> List[Dict[str, Any]]:
+        """
+        Retrieves a list of models available for use.
+
+        Returns:
+            A list of dictionaries, each containing information about a model.
+
+        Example usage:
+            client = EmbedbaseClient("https://api.embedbase.xyz", "YOUR_API_KEY")
+            models = client.get_models()
+            print(models)
+        """
+        other_models = self.list_models()
+        models = [
+            {"name": "openai/gpt-4", "description": "OpenAI's GPT-4 model"},
+            {
+                "name": "openai/gpt-3.5-turbo-16k",
+                "description": "OpenAI's GPT-3.5 Turbo 16k model",
+            },
+            {
+                "name": "openai/gpt-3.5-turbo",
+                "description": "OpenAI's GPT-3.5 Turbo model",
+            },
+            {"name": "google/bison", "description": "Google's Bison model"},
+            {
+                "name": "bigscience/bloomz-7b1",
+                "description": "BigScience's Bloomz 7b1 model",
+            },
+            *[
+                {"name": model["model"], "description": json.dumps(model)}
+                for model in other_models
+            ],
+        ]
+        return models
+
+    def use_model(self, model_name: str):
+        """
+        Create an instance of a language model for generating and streaming text.
+
+        Args:
+            model_name (str): The name or identifier of the language model.
+
+        Returns:
+            An instance of the Model class with generate_text and stream_text as methods.
+
+        Example usage:
+            client = EmbedbaseClient("https://api.embedbase.xyz", "YOUR_API_KEY")
+            gpt3_model = client.use_model("openai/gpt-3.5-turbo")
+            generated_text = gpt3_model.generate_text("Hello!")
+            for chunk in gpt3_model.stream_text("Hi!"):
+                print(chunk)
+        """
+        generate_text = self.generate_text
+        stream_text = self.stream_text
+
+        class Model:
+            def generate_text(
+                self, prompt: str, options: Optional[Dict[str, Any]] = None
+            ):
+                return generate_text(model_name, prompt, options)
+
+            def stream_text(
+                self, prompt: str, options: Optional[Dict[str, Any]] = None
+            ):
+                return stream_text(model_name, prompt, options)
+
+        model = Model()
+        model.client = self
+        return model

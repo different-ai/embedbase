@@ -62,15 +62,6 @@ embedbase_key = "<get your key here: https://app.embedbase.xyz>"
 embedbase = EmbedbaseClient(embedbase_url, embedbase_key)
 ```
 
-In an **async** context, you can use the `EmbedbaseAsyncClient` class instead.
-This class provides the same methods as `EmbedbaseClient`, but they are all asynchronous.
-```python copy
-from embedbase_client import EmbedbaseAsyncClient
-```
-
-Remember to use `await` when calling methods on `EmbedbaseAsyncClient` objects.
-
-Learn more about asynchronous Python [here](https://docs.python.org/3/library/asyncio.html).
   </Tab>
 </Tabs>
 
@@ -80,8 +71,8 @@ Learn more about asynchronous Python [here](https://docs.python.org/3/library/as
 
 ### Generating text
 
-Under the hood, generating text use OpenAI models. If you are interested in using
-other models, such as open-source ones, please contact us.
+Embedbase supports 9+ LLMs, including OpenAI, Google, and many state-of-the-art open source ones. If you are interested in using
+other models, please contact us.
 
 Remember that this count in your playground usage,
 for more information head to the [billing page](https://app.embedbase.xyz/dashboard/pricing).
@@ -109,36 +100,21 @@ You can list models with `await embedbase.getModels()`
 
   </Tab>
     <Tab>
-```python copy
-data = embedbase.dataset(dataset_id).create_context("my-context")
-question = 'How do I use Embedbase?'
-# ⚠️ note here that the prompt depends
-# on the used embedder in embedbase.
-# See `create_context` doc for details. ⚠️
-prompt = (
-    "Based on the following context:\n"
-    + "\n".join(data)
-    + f"\nAnswer the user's question: {question}"
-)
-for r in embedbase.generate(prompt):
-    print(r)
-    # You, need, to, query, Notion, API, like, so:, ...
+```py copy
+data = embedbase.dataset('my-documentation').create_context('my-context')
+
+const question = 'How do I use Embedbase?'
+const prompt = """Based on the following context:\n{'\n'.join(data)}\nAnswer the user's question: {question}"""
+
+for res of embedbase.use_model('openai/gpt-3.5-turbo').stream_text(prompt):
+    print(res)
+    # You, can, use, ...
+
+# or res = embedbase.use_model('openai/gpt-3.5-turbo').generate_text(prompt)
 ```
 
-You can also send the history, like in [OpenAI API](https://platform.openai.com/docs/guides/chat/introduction):
+You can list models with `embedbase.get_models()`
 
-```python copy
-history = [
-    {"role": "system", "content": "You are a helpful assistant that teach how to use Embedbase"},
-    {"role": "user", "content": "How can I connect my data to LLMs using Embedbase?"},
-    {"role": "assistant", "content": "You can pip install embedbase-client, write two lines of code, and..."},
-    {"role": "user", "content": "how can i do this with my notion pages now using their api?"},
-]
-
-for r in embedbase.generate(prompt, history):
-    print(r)
-    # You, need, to, query, Notion, API, like, so:, ...
-```
   </Tab>
 </Tabs>
 
@@ -471,7 +447,7 @@ updated_docs = [
     Document(id="document1", data="Updated Document 1"),
     Document(id="document2", data="Updated Document 2"), 
 ]
-updated_results = await async_ds.update(updated_docs)
+updated_results = embedbase.dataset('my-dataset').update(updated_docs)
 ```
 This will update the data for the documents with the given IDs, while keeping all other fields intact.
 
