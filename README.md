@@ -28,8 +28,12 @@ Check out the [docs](https://docs.embedbase.xyz) for more info.
 
 ## What is it
 
-Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and [Embeddings Models](https://en.wikipedia.org/wiki/Sentence_embedding#:~:text=Sentence%20embedding%20is%20the%20collective,to%20vectors%20of%20real%20numbers.) without needing to host them!
-You can use embedbase to customize LLM (like ChatGPT!) and automatically feed them the right information.
+Embedbase is a dead-simple API to help you use [VectorDBs](https://learn.microsoft.com/en-us/semantic-kernel/concepts-ai/vectordb) and LLMs without needing to host them!
+
+## Key features
+
+- Generate: use `.generateText()` to use 9+ LLMs
+- Semantic Search: use `.add()` to create a list of semantically searchable information and `.search()` to run semantic queries
 
 ## Installation
 `npm i embedbase-js`
@@ -54,7 +58,7 @@ const stringifiedSearchResults = searchResults
   .join('')
  
 const answer = await embedbase
-  .useModel('openai/gpt-3.5-turbo-16k')
+  .useModel('openai/gpt-3.5-turbo')
   .generateText(`${stringifiedSearchResults} ${question}`)
  
 console.log(answer) // 'I suggest considering harem pants for your needs. Harem pants are known for their ...'
