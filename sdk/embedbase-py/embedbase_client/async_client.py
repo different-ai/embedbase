@@ -184,7 +184,7 @@ class AsyncDataset:
         """
         return await self.client.add(self.dataset, document, metadata)
 
-    async def batch_add(self, documents: List[Dict[str, Any]]) -> List[Document]:
+    async def batch_add(self, documents: List[AddDocument]) -> List[Document]:
         """
         Add multiple documents to the specified dataset in a single batch asynchronously.
 
@@ -280,6 +280,26 @@ class AsyncDataset:
             context = await dataset.create_max_context("What is Python?", max_tokens=100)
         """
         return await self.client.create_max_context(self.dataset, query, max_tokens)
+
+    async def update(self, document: Document) -> Document:
+        """
+        Update the documents in the specified dataset asynchronously.
+
+        Args:
+            dataset: The name of the dataset to update.
+            documents: A list of documents to update.
+
+        Returns:
+            A list of updated documents.
+
+        Example usage:
+            documents = [
+                {"id": "document_id1", "data": "Updated document 1"},
+                {"id": "document_id2", "data": "Updated document 2"},
+            ]
+            results = await dataset.update(documents)
+        """
+        return await self.client.update(self.dataset, document)
 
 
 class EmbedbaseAsyncClient(BaseClient):
@@ -648,3 +668,40 @@ class EmbedbaseAsyncClient(BaseClient):
             contexts.append(context)
 
         return "\n\n".join(contexts)
+
+    async def update(self, dataset: str, documents: List[Document]) -> List[Document]:
+        """
+        Update the documents in the specified dataset asynchronously.
+
+        Args:
+            dataset: The name of the dataset to update.
+            documents: A list of documents to update.
+
+        Returns:
+            A list of updated documents.
+
+        Example usage:
+            documents = [
+                {"id": "document_id1", "data": "Updated document 1"},
+                {"id": "document_id2", "data": "Updated document 2"},
+            ]
+            results = await embedbase.update("my_dataset", documents)
+        """
+        update_url = f"{self.embedbase_url}/{dataset}"
+        async with httpx.AsyncClient() as client:
+            res = await client.put(
+                update_url,
+                headers=self.headers,
+                json={"documents": [dict(doc) for doc in documents]},
+                timeout=self.timeout,
+            )
+            try:
+                data = res.json()
+            except json.JSONDecodeError:
+                # pylint: disable=raise-missing-from
+                raise EmbedbaseAPIException(res.text)
+
+            if res.status_code != 200:
+                raise EmbedbaseAPIException(data.get("error", res.text))
+
+            return [Document(**result) for result in data["results"]]
