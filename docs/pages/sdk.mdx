@@ -463,11 +463,21 @@ for example, a github repository.
 
   </Tab>
   <Tab>
+To update data in the Python SDK, you can:
 
-Update is not well maintained yet in the Python SDK, please ping louis030195 on [Discord](https://discord.gg/3X6xZtZ) if you need it
-and we will make it happen instantly!
+1. Use the `update()` method by providing the document IDs and new data:
+```py
+updated_docs = [
+    Document(id="document1", data="Updated Document 1"),
+    Document(id="document2", data="Updated Document 2"), 
+]
+updated_results = await async_ds.update(updated_docs)
+```
+This will update the data for the documents with the given IDs, while keeping all other fields intact.
 
-In the meantime check [how to do it using REST](https://docs.embedbase.xyz/interface#updating-data)
+2. Create a new dataset from scratch if you have access to all the data again. For example, if you're ingesting data from a GitHub repository on each run.
+
+Note that the `replace()` method does not exist in the Python SDK, feel free to contact us if you need it.
   </Tab>
 </Tabs>
 
