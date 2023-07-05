@@ -5,15 +5,6 @@
 const { withSentryConfig } = require('@sentry/nextjs');
 
 module.exports = {
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/signup',
-        permanent: false,
-      },
-    ]
-  },
   experimental: {
     appDir: true,
     serverActions: true,

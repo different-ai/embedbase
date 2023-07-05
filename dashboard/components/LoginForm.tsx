@@ -48,9 +48,6 @@ export default function LoginForm() {
   const signInWithGitHub = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: {
-        redirectTo: `${getRedirectURL()}/dashboard`,
-      },
     })
 
     if (error) {
@@ -59,6 +56,8 @@ export default function LoginForm() {
       setIsLoading(false)
       return
     }
+    await router.push('/dashboard')
+
   }
   return (
     <div className="sm:mx-auto sm:w-full sm:max-w-md">
