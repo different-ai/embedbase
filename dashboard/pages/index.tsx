@@ -43,9 +43,9 @@ export const getServerSideProps = async (ctx) => {
   }
 
   return {
-    props: {
-      initialSession: session,
-      user: session?.user ?? {},
+    redirect: {
+      destination: '/datasets',
+      permanent: false,
     },
   }
 }
