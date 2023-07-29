@@ -24,8 +24,8 @@ release: ## [Local development] Release a new version of the API.
 	git push origin main
 	@echo "Done, check '\033[0;31mhttps://github.com/different-ai/embedbase/actions\033[0m'"
 
-openapi:
-	curl localhost:8000/openapi.json | yq -y > .well-known/openapi.yaml
+integrations/zapier:
+	rm -rf integrations/zapier && zapier convert 182530 integrations/zapier --version=1.0.0
 
 #* Poetry
 .PHONY: poetry-download
