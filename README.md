@@ -6,7 +6,7 @@
   <h1 align="center">Embedbase</h1>
 
 
-<h3 align="center">All the tools you need to develop AI apps</h3>
+<h3 align="center">Hosted embeddings-as-a-service</h3>
 
   <p align="center">
     <br />
