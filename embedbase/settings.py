@@ -2,7 +2,8 @@ from enum import Enum
 from functools import lru_cache
 import typing
 import os
-from pydantic_yaml import YamlModel
+from pydantic import BaseModel
+from pydantic_yaml import parse_yaml_file_as
 
 
 class VectorDatabaseEnum(str, Enum):
@@ -18,7 +19,7 @@ class EmbeddingProvider(str, Enum):
     COHERE = "cohere"
 
 
-class Settings(YamlModel):
+class Settings(BaseModel):
     openai_api_key: typing.Optional[str] = None
     openai_organization: typing.Optional[str] = None
     supabase_url: typing.Optional[str] = None
@@ -33,7 +34,7 @@ def get_settings_from_file(path: str = "config.yaml"):
     """
     Read settings from a file, only supports yaml for now
     """
-    settings = Settings.parse_file(path)
+    settings = parse_yaml_file_as(Settings, path)
 
     # TODO: move
     # if firebase, init firebase
