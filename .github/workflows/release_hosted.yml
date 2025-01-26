@@ -77,7 +77,7 @@ jobs:
 
       - id: auth
         if: steps.regex-match.outputs.match != '' || github.event.workflow_run || github.event_name == 'workflow_dispatch'
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY_PROD }}"
 
