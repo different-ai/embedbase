@@ -99,7 +99,7 @@ jobs:
       - name: Deploy to Cloud Run
         if: steps.regex-match.outputs.match != '' || github.event.workflow_run || github.event_name == 'workflow_dispatch'
         id: deploy
-        uses: google-github-actions/deploy-cloudrun@v0
+        uses: google-github-actions/deploy-cloudrun@v1
         with:
           metadata: hosted/service.prod.yaml
           project_id: ${{ env.PROJECT_ID }}
